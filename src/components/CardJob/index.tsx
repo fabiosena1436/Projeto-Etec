@@ -13,7 +13,7 @@ export function CardJob({ job }: CardJobProps) {
   const company = companiesMock.find(c => c.id === job.companyId);
 
   return (
-    <S.CardContainer onClick={() => navigate(`/job/${job.id}`)}>
+    <S.CardContainer onClick={() => navigate(`/vagas/${job.id}`)}>
       <S.CompanyHeader>
         {company?.logoUrl ? (
           <img src={company.logoUrl} alt={`Logo ${company.name}`} />

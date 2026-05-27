@@ -16,7 +16,7 @@ export function JobsList() {
     <S.Container>
       <S.Header>
         <h1>Vagas Disponíveis</h1>
-        <p>Encontre a oportunidade ideal para sua carreira em Santo Anastácio</p>
+        <p>Encontre a oportunidade ideal para sua carreira em Teodoro Sampaio</p>
       </S.Header>
 
       <S.SearchContainer>

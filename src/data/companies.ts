@@ -14,8 +14,8 @@ export const companiesMock: Company[] = [
     name: 'Supermercado Central',
     industry: 'Varejo',
     logoUrl: 'https://ui-avatars.com/api/?name=SC&background=2563eb&color=fff',
-    description: 'Um dos supermercados mais tradicionais de Santo Anastácio.',
-    location: 'Centro, Santo Anastácio',
+    description: 'Um dos supermercados mais tradicionais de Teodoro Sampaio.',
+    location: 'Centro, Teodoro Sampaio',
     contactEmail: 'rh@supermercadocentral.com.br'
   },
   {
@@ -24,7 +24,7 @@ export const companiesMock: Company[] = [
     industry: 'Tecnologia da Informação',
     logoUrl: 'https://ui-avatars.com/api/?name=TS&background=0f172a&color=fff',
     description: 'Empresa de tecnologia focada em desenvolvimento de software e soluções para o comércio local.',
-    location: 'Centro, Santo Anastácio',
+    location: 'Centro, Teodoro Sampaio',
     contactEmail: 'vagas@techsampaio.com.br'
   },
   {
@@ -33,7 +33,7 @@ export const companiesMock: Company[] = [
     industry: 'Agronegócio',
     logoUrl: 'https://ui-avatars.com/api/?name=IA&background=10b981&color=fff',
     description: 'Forte atuação no setor agropecuário e beneficiamento de grãos.',
-    location: 'Distrito Industrial, Santo Anastácio',
+    location: 'Distrito Industrial, Teodoro Sampaio',
     contactEmail: 'curriculos@iaa.com.br'
   },
   {
@@ -42,7 +42,7 @@ export const companiesMock: Company[] = [
     industry: 'Saúde',
     logoUrl: 'https://ui-avatars.com/api/?name=FST&background=ef4444&color=fff',
     description: 'Rede de farmácias com 3 unidades no município.',
-    location: 'Vila Moreno, Santo Anastácio',
+    location: 'Vila Moreno, Teodoro Sampaio',
     contactEmail: 'contato@saudetotal.com.br'
   },
   {
@@ -51,7 +51,7 @@ export const companiesMock: Company[] = [
     industry: 'Logística',
     logoUrl: 'https://ui-avatars.com/api/?name=RO&background=f59e0b&color=fff',
     description: 'Serviços de carga e frete para toda a região oeste paulista.',
-    location: 'Rodovia Raposo Tavares, Santo Anastácio',
+    location: 'Rodovia Raposo Tavares, Teodoro Sampaio',
     contactEmail: 'rh@rapidooeste.com.br'
   }
 ];

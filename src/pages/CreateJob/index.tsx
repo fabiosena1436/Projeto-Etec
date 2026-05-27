@@ -57,7 +57,7 @@ export function CreateJob() {
 
         <S.FormGroup>
           <label>Localização</label>
-          <input required type="text" placeholder="Ex: Centro, Santo Anastácio" />
+          <input required type="text" placeholder="Ex: Centro, Teodoro Sampaio" />
         </S.FormGroup>
 
         <S.FormGroup>
