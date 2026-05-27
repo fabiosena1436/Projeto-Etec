@@ -19,7 +19,7 @@ export const TopBar = styled.header`
   z-index: 50;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
   }
 `;
 
@@ -33,6 +33,11 @@ export const Brand = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: 1.125rem;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
 `;
 
@@ -60,6 +65,12 @@ export const ProfileMenu = styled.div`
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    
+    @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+      width: 32px;
+      height: 32px;
+      font-size: 0.875rem;
+    }
   }
 `;
 
@@ -71,8 +82,8 @@ export const MainContent = styled.main`
   margin: 0 auto;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    padding: 1rem;
-    padding-bottom: 80px; /* Espaço para a Bottom Nav não sobrepor o conteúdo */
+    padding: 0.75rem;
+    padding-bottom: 70px; /* Adjusted for smaller nav */
   }
 `;
 
@@ -89,7 +100,7 @@ export const BottomNav = styled.nav`
     width: 100%;
     background-color: ${({ theme }) => theme.colors.surface};
     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.5rem;
     padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
     z-index: 100;
   }
@@ -110,5 +121,11 @@ export const NavItem = styled.div<{ $active?: boolean }>`
   svg {
     transition: transform 0.2s;
     transform: ${({ $active }) => $active ? 'scale(1.1)' : 'scale(1)'};
+    width: 22px;
+    height: 22px;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: 0.65rem; /* Smaller text on bottom nav */
   }
 `;

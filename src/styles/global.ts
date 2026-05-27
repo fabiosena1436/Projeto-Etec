@@ -22,6 +22,10 @@ export const GlobalStyle = createGlobalStyle`
     font-family: ${({ theme }) => theme.fonts.main};
     font-size: 1rem;
     font-weight: 400;
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+      font-size: 0.875rem; /* 14px on mobile for app-like density */
+    }
   }
 
   button {

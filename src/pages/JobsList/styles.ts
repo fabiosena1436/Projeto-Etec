@@ -5,6 +5,10 @@ export const Container = styled.div`
   margin: 0 auto;
   padding: 3rem 2rem;
   width: 100%;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: 1rem;
+  }
 `;
 
 export const Header = styled.div`
@@ -14,16 +18,33 @@ export const Header = styled.div`
     font-size: 2.25rem;
     color: ${({ theme }) => theme.colors.secondary};
     margin-bottom: 0.5rem;
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+      font-size: 1.5rem;
+    }
   }
 
   p {
     font-size: 1.125rem;
     color: ${({ theme }) => theme.colors.textLight};
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+      font-size: 0.875rem;
+      line-height: 1.3;
+    }
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    margin-bottom: 1rem;
   }
 `;
 
 export const SearchContainer = styled.div`
   margin-bottom: 3rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    margin-bottom: 1.25rem;
+  }
 `;
 
 export const SearchInputWrapper = styled.div`
@@ -51,6 +72,20 @@ export const SearchInputWrapper = styled.div`
     &::placeholder {
       color: ${({ theme }) => theme.colors.textLight};
     }
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+      font-size: 0.875rem;
+    }
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: 0.6rem 0.75rem;
+    gap: 0.5rem;
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
   }
 `;
 
@@ -58,6 +93,11 @@ export const JobsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: 1fr;
+    gap: 0.75rem; /* Tighter gap like native app lists */
+  }
 `;
 
 export const EmptyState = styled.div`
@@ -71,5 +111,12 @@ export const EmptyState = styled.div`
   p {
     color: ${({ theme }) => theme.colors.textLight};
     font-size: 1.125rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: 2rem 1rem;
+    p {
+      font-size: 0.875rem;
+    }
   }
 `;
