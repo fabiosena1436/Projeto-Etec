@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Job } from '../../data/jobs';
+import type { Job } from '../../data/jobs';
 import { companiesMock } from '../../data/companies';
 import { MapPin, Briefcase, DollarSign } from 'lucide-react';
 import * as S from './styles';

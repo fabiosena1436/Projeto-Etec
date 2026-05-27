@@ -20,7 +20,7 @@ export function Header() {
 
         <S.ButtonGroup>
           <S.LoginButton onClick={() => navigate('/login')}>Entrar</S.LoginButton>
-          <S.RegisterButton onClick={() => navigate('/login')}>Cadastrar</S.RegisterButton>
+          <S.RegisterButton onClick={() => navigate('/cadastro')}>Cadastrar</S.RegisterButton>
         </S.ButtonGroup>
       </S.Nav>
 

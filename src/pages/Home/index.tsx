@@ -1,7 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Building, Smartphone } from 'lucide-react';
 import * as S from './styles';
 
 export function Home() {
+  const navigate = useNavigate();
+
   return (
     <S.HomeContainer>
       <S.HeroSection>
@@ -9,8 +12,8 @@ export function Home() {
           <h1>Conectando Talentos às Oportunidades em Teodoro Sampaio</h1>
           <p>A plataforma definitiva para empresas locais encontrarem os melhores profissionais e para os cidadãos conquistarem o emprego ideal.</p>
           <S.ButtonGroup>
-            <S.PrimaryButton>Sou Candidato</S.PrimaryButton>
-            <S.SecondaryButton>Sou Empresa</S.SecondaryButton>
+            <S.PrimaryButton onClick={() => navigate('/login')}>Sou Candidato</S.PrimaryButton>
+            <S.SecondaryButton onClick={() => navigate('/login')}>Sou Empresa</S.SecondaryButton>
           </S.ButtonGroup>
         </S.HeroContent>
       </S.HeroSection>
