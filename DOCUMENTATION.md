@@ -61,6 +61,8 @@ Agora, o desenvolvimento entra nas fases de conclusão dos fluxos internos (Perf
 - [x] Refinar as páginas para garantir que em todas elas (especialmente detalhes da vaga e perfil do candidato) não existam rolagens excessivas ou vazamentos horizontais.
 - [x] Adicionar suporte a Toasts globais na raiz (`App.tsx`).
 - [x] **Polimento Pré-Apresentação:** Conectar todos os botões primários aos fluxos corretos (Home -> Login, Login -> Painéis Direcionados, Layouts Dinâmicos por Tipo de Usuário).
+- [x] **Fluxo de Cadastro Dinâmico:** Implementar tela `/cadastro` com escolha de Perfil (Candidato vs Empresa/Loja) exibindo formulários personalizados para cada tipo de usuário.
+- [x] **Blindagem de Rotas Vazias:** Criação das páginas estéticas de "Empresas Parceiras" (`/empresas`) e "Vagas Salvas" (`/candidato/salvas`) para evitar telas em branco durante a navegação exploratória do Pitch.
 
 ### 🗓️ Fase 5: Deploy e Apresentação do MVP
 - [x] Criar arquivo `vercel.json` na raiz para configurar o *rewrite* das rotas do React Router (`/*` -> `/index.html`) para evitar erro 404 ao atualizar a página na Vercel.

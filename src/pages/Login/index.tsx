@@ -39,6 +39,16 @@ export function Login() {
           </S.RoleButton>
         </S.RoleButtonGroup>
 
+        <div style={{ textAlign: 'center', marginTop: '1rem', marginBottom: '1.5rem' }}>
+          <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Ainda não tem uma conta? </span>
+          <button 
+            onClick={() => navigate('/cadastro')} 
+            style={{ color: '#2563eb', fontWeight: 600, fontSize: '0.875rem', padding: '0.25rem' }}
+          >
+            Cadastre-se
+          </button>
+        </div>
+
         <S.BackLink onClick={() => navigate('/')}>
           <ArrowLeft size={16} />
           Voltar para a página inicial
