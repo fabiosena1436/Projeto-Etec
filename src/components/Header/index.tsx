@@ -10,7 +10,7 @@ export function Header() {
       <Link to="/" style={{ textDecoration: 'none' }}>
         <S.Logo>
           <Briefcase size={28} />
-          Conecta Sampaio
+          Conecta alunos
         </S.Logo>
       </Link>
 
