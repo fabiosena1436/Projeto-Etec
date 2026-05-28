@@ -22,7 +22,7 @@ export function DashboardLayout() {
       <S.TopBar>
         <S.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <Briefcase size={24} />
-          <span>Conecta Sampaio</span>
+          <span>Conecta jovens</span>
         </S.Brand>
 
         {isCompanyFlow ? (
