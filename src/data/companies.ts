@@ -6,6 +6,8 @@ export interface Company {
   description: string;
   location: string;
   contactEmail: string;
+  slogan?: string;
+  isSponsor?: boolean;
 }
 
 export const companiesMock: Company[] = [
@@ -16,7 +18,9 @@ export const companiesMock: Company[] = [
     logoUrl: 'https://ui-avatars.com/api/?name=SC&background=2563eb&color=fff',
     description: 'Um dos supermercados mais tradicionais de Teodoro Sampaio.',
     location: 'Centro, Teodoro Sampaio',
-    contactEmail: 'rh@supermercadocentral.com.br'
+    contactEmail: 'rh@supermercadocentral.com.br',
+    slogan: 'Qualidade e preço baixo para a sua família.',
+    isSponsor: true
   },
   {
     id: 'comp-2',
@@ -25,7 +29,9 @@ export const companiesMock: Company[] = [
     logoUrl: 'https://ui-avatars.com/api/?name=TS&background=0f172a&color=fff',
     description: 'Empresa de tecnologia focada em desenvolvimento de software e soluções para o comércio local.',
     location: 'Centro, Teodoro Sampaio',
-    contactEmail: 'vagas@techsampaio.com.br'
+    contactEmail: 'vagas@techsampaio.com.br',
+    slogan: 'Inovação que transforma o seu negócio.',
+    isSponsor: true
   },
   {
     id: 'comp-3',
@@ -43,7 +49,9 @@ export const companiesMock: Company[] = [
     logoUrl: 'https://ui-avatars.com/api/?name=FST&background=ef4444&color=fff',
     description: 'Rede de farmácias com 3 unidades no município.',
     location: 'Vila Moreno, Teodoro Sampaio',
-    contactEmail: 'contato@saudetotal.com.br'
+    contactEmail: 'contato@saudetotal.com.br',
+    slogan: 'Cuidando de você e de quem você ama.',
+    isSponsor: true
   },
   {
     id: 'comp-5',

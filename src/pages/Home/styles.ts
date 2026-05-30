@@ -194,3 +194,17 @@ export const IconWrapper = styled.div`
   justify-content: center;
   margin: 0 auto 1.5rem;
 `;
+
+export const RecentJobsSection = styled.section`
+  padding: 5rem 2rem;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+export const RecentJobsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+`;

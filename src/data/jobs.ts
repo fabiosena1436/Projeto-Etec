@@ -3,7 +3,7 @@ export interface Job {
   title: string;
   companyId: string;
   location: string;
-  type: 'Tempo Integral' | 'Meio Período' | 'Estágio' | 'Jovem Aprendiz';
+  type: 'Presencial' | 'Remoto' | 'Estágio' | 'Jovem Aprendiz' | 'Freelancer';
   salary: string;
   requirements: string[];
   benefits: string[];
@@ -18,7 +18,7 @@ export const jobsMock: Job[] = [
     title: 'Vendedor(a) de Loja',
     companyId: 'comp-1',
     location: 'Centro, Teodoro Sampaio',
-    type: 'Tempo Integral',
+    type: 'Presencial',
     salary: 'R$ 1.600,00 + Comissão',
     requirements: ['Ensino Médio Completo', 'Boa comunicação', 'Experiência em vendas (diferencial)'],
     benefits: ['Vale Transporte', 'Vale Alimentação'],
@@ -31,7 +31,7 @@ export const jobsMock: Job[] = [
     title: 'Desenvolvedor(a) Front-End Júnior',
     companyId: 'comp-2',
     location: 'Remoto (Sede em Teodoro Sampaio)',
-    type: 'Tempo Integral',
+    type: 'Remoto',
     salary: 'R$ 3.000,00',
     requirements: ['Conhecimento em React e TypeScript', 'Noções de Git', 'Estudante ou formado em TI'],
     benefits: ['Plano de Saúde', 'Auxílio Home Office', 'Plano de Carreira'],
@@ -57,7 +57,7 @@ export const jobsMock: Job[] = [
     title: 'Atendente de Farmácia',
     companyId: 'comp-4',
     location: 'Vila Moreno, Teodoro Sampaio',
-    type: 'Tempo Integral',
+    type: 'Presencial',
     salary: 'R$ 1.800,00 + Adicional',
     requirements: ['Ensino Médio Completo', 'Disponibilidade de horário'],
     benefits: ['Vale Transporte', 'Desconto em medicamentos'],
@@ -70,7 +70,7 @@ export const jobsMock: Job[] = [
     title: 'Auxiliar de Logística',
     companyId: 'comp-5',
     location: 'Saída para Piquerobi',
-    type: 'Tempo Integral',
+    type: 'Presencial',
     salary: 'R$ 1.900,00',
     requirements: ['Ensino Médio Completo', 'Força física', 'Trabalho em equipe'],
     benefits: ['Vale Transporte', 'Refeição no Local', 'Cesta Básica'],

@@ -85,8 +85,13 @@ export const SectionTitle = styled.h2`
   }
 `;
 
-export const JobsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+export const JobsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
 `;

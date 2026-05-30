@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Building, Smartphone } from 'lucide-react';
+import { SponsorCarousel } from '../../components/SponsorCarousel';
+import { JobsBoard } from '../../components/JobsBoard';
 import * as S from './styles';
 
 export function Home() {
@@ -7,6 +9,8 @@ export function Home() {
 
   return (
     <S.HomeContainer>
+     
+
       <S.HeroSection>
         <S.HeroContent>
           <h1>Conectando Talentos às Oportunidades em Teodoro Sampaio</h1>
@@ -17,7 +21,7 @@ export function Home() {
           </S.ButtonGroup>
         </S.HeroContent>
       </S.HeroSection>
-
+ <SponsorCarousel />
       <S.StatsSection>
         <S.StatCard>
           <h3>128</h3>
@@ -73,6 +77,16 @@ export function Home() {
           </S.FeatureCard>
         </S.FeaturesGrid>
       </S.FeaturesSection>
+
+      <S.RecentJobsSection>
+        <S.SectionTitle>
+          <h2>Vagas Disponíveis</h2>
+          <p>Confira todas as oportunidades publicadas na plataforma e encontre a ideal para você.</p>
+        </S.SectionTitle>
+        <S.RecentJobsGrid>
+          <JobsBoard />
+        </S.RecentJobsGrid>
+      </S.RecentJobsSection>
     </S.HomeContainer>
   );
 }

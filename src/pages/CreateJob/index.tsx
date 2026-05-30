@@ -43,10 +43,11 @@ export function CreateJob() {
             <label>Modalidade</label>
             <select required>
               <option value="">Selecione...</option>
-              <option value="integral">Tempo Integral</option>
-              <option value="meio">Meio Período</option>
-              <option value="estagio">Estágio</option>
-              <option value="aprendiz">Jovem Aprendiz</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Remoto">Remoto</option>
+              <option value="Estágio">Estágio</option>
+              <option value="Jovem Aprendiz">Jovem Aprendiz</option>
+              <option value="Freelancer">Freelancer</option>
             </select>
           </S.FormGroup>
           <S.FormGroup>
@@ -61,8 +62,18 @@ export function CreateJob() {
         </S.FormGroup>
 
         <S.FormGroup>
-          <label>Descrição Completa</label>
-          <textarea required rows={5} placeholder="Descreva as responsabilidades, requisitos e benefícios da vaga..."></textarea>
+          <label>Descrição da Vaga</label>
+          <textarea required rows={5} placeholder="Descreva o dia a dia e as responsabilidades da vaga..."></textarea>
+        </S.FormGroup>
+
+        <S.FormGroup>
+          <label>Requisitos</label>
+          <textarea required rows={4} placeholder="Liste os requisitos separados por linha (ex: Ensino Médio Completo, Experiência na área...)"></textarea>
+        </S.FormGroup>
+
+        <S.FormGroup>
+          <label>Benefícios</label>
+          <textarea rows={4} placeholder="Liste os benefícios separados por linha (ex: Vale Transporte, Plano de Saúde...)"></textarea>
         </S.FormGroup>
 
         <S.SubmitButton type="submit" disabled={loading}>
