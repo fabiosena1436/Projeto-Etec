@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ScrollToTop } from '../components/ScrollToTop';
 import { DefaultLayout } from '../layouts/DefaultLayout';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { Home } from '../pages/Home';
@@ -12,10 +13,12 @@ import { CompanyDashboard } from '../pages/CompanyDashboard';
 import { CreateJob } from '../pages/CreateJob';
 import { CompaniesList } from '../pages/CompaniesList';
 import { SavedJobs } from '../pages/SavedJobs';
+import { SponsorProfile } from '../pages/SponsorProfile';
 
 export function Router() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Register />} />
@@ -26,6 +29,7 @@ export function Router() {
           <Route path="vagas" element={<JobsList />} />
           <Route path="vagas/:id" element={<JobDetails />} />
           <Route path="empresas" element={<CompaniesList />} />
+          <Route path="patrocinador/:id" element={<SponsorProfile />} />
         </Route>
 
         {/* Layout de Dashboard para usuários logados (com Bottom Nav no Mobile) */}

@@ -1,3 +1,13 @@
+export interface Promotion {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  price?: number;
+  discountPrice?: number;
+  validUntil?: string;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -8,6 +18,7 @@ export interface Company {
   contactEmail: string;
   slogan?: string;
   isSponsor?: boolean;
+  promotions?: Promotion[];
 }
 
 export const companiesMock: Company[] = [
@@ -20,7 +31,25 @@ export const companiesMock: Company[] = [
     location: 'Centro, Teodoro Sampaio',
     contactEmail: 'rh@supermercadocentral.com.br',
     slogan: 'Qualidade e preço baixo para a sua família.',
-    isSponsor: true
+    isSponsor: true,
+    promotions: [
+      {
+        id: 'promo-1',
+        title: 'Arroz 5kg',
+        description: 'Arroz tipo 1, pacote de 5kg. Limite de 2 por cliente.',
+        price: 25.90,
+        discountPrice: 19.90,
+        validUntil: '2026-06-10'
+      },
+      {
+        id: 'promo-2',
+        title: 'Óleo de Soja',
+        description: 'Óleo de Soja 900ml',
+        price: 7.50,
+        discountPrice: 5.99,
+        validUntil: '2026-06-10'
+      }
+    ]
   },
   {
     id: 'comp-2',
@@ -31,7 +60,15 @@ export const companiesMock: Company[] = [
     location: 'Centro, Teodoro Sampaio',
     contactEmail: 'vagas@techsampaio.com.br',
     slogan: 'Inovação que transforma o seu negócio.',
-    isSponsor: true
+    isSponsor: true,
+    promotions: [
+      {
+        id: 'promo-3',
+        title: 'Consultoria de TI Gratuita',
+        description: 'Agende uma hora de consultoria sem custos para o seu comércio.',
+        validUntil: '2026-06-30'
+      }
+    ]
   },
   {
     id: 'comp-3',
@@ -51,7 +88,17 @@ export const companiesMock: Company[] = [
     location: 'Vila Moreno, Teodoro Sampaio',
     contactEmail: 'contato@saudetotal.com.br',
     slogan: 'Cuidando de você e de quem você ama.',
-    isSponsor: true
+    isSponsor: true,
+    promotions: [
+      {
+        id: 'promo-4',
+        title: 'Vitamina C',
+        description: 'Vitamina C efervescente, tubo com 10 pastilhas.',
+        price: 15.00,
+        discountPrice: 9.99,
+        validUntil: '2026-06-15'
+      }
+    ]
   },
   {
     id: 'comp-5',

@@ -1,16 +1,10 @@
-import styled, { keyframes } from 'styled-components';
-
-const scroll = keyframes`
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-`;
+import styled from 'styled-components';
 
 export const CarouselSection = styled.section`
   padding: 3rem 0;
   background-color: ${({ theme }) => theme.colors.surface};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  overflow: hidden;
   width: 100%;
   position: relative;
 `;
@@ -25,19 +19,24 @@ export const Title = styled.h2`
 
 export const TrackContainer = styled.div`
   width: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  scroll-behavior: auto;
   display: flex;
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+  cursor: grab;
+  &:active {
+    cursor: grabbing;
+  }
 `;
 
 export const Track = styled.div`
   display: flex;
   gap: 2rem;
   width: max-content;
-  animation: ${scroll} 25s linear infinite;
-
-  &:hover {
-    animation-play-state: paused;
-  }
+  padding: 0 1rem;
 `;
 
 export const SponsorCard = styled.div`
@@ -51,6 +50,13 @@ export const SponsorCard = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border};
   width: 300px;
   text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
 
   img {
     width: 64px;
@@ -72,3 +78,20 @@ export const SponsorCard = styled.div`
     font-style: italic;
   }
 `;
+
+export const PromoButton = styled.button`
+  margin-top: auto;
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondary};
+  }
+`;
+
