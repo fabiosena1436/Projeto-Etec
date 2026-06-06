@@ -5,6 +5,8 @@ export interface User {
   avatarUrl: string;
   city: string;
   age: number;
+  phone: string;
+  resumeUrl?: string;
   about: string;
   skills: string[];
   education: string;
@@ -23,6 +25,8 @@ export const usersMock: User[] = [
     avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
     city: 'Teodoro Sampaio, SP',
     age: 24,
+    phone: '18999999999',
+    resumeUrl: 'https://exemplo.com/curriculo-carlos.pdf',
     about: 'Apaixonado por tecnologia e focado na criação de interfaces amigáveis e responsivas. Busco minha primeira oportunidade como desenvolvedor júnior.',
     skills: ['React', 'TypeScript', 'HTML/CSS', 'Git'],
     education: 'Técnico em Desenvolvimento de Sistemas - ETEC (Cursando)',
@@ -41,6 +45,7 @@ export const usersMock: User[] = [
     avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
     city: 'Teodoro Sampaio, SP',
     age: 28,
+    phone: '18988888888',
     about: 'Profissional com 5 anos de experiência no comércio local. Excelente comunicação, facilidade em trabalhar com metas e atendimento ao público.',
     skills: ['Atendimento ao Cliente', 'Pacote Office', 'Vendas', 'Gestão de Estoque'],
     education: 'Ensino Médio Completo',
@@ -64,6 +69,7 @@ export const usersMock: User[] = [
     avatarUrl: 'https://randomuser.me/api/portraits/men/22.jpg',
     city: 'Teodoro Sampaio, SP',
     age: 17,
+    phone: '18977777777',
     about: 'Estudante dedicado, comunicativo e com muita vontade de aprender. Busco uma oportunidade como Jovem Aprendiz para iniciar minha carreira profissional.',
     skills: ['Informática Básica', 'Comunicação', 'Trabalho em Equipe'],
     education: 'Ensino Médio (Cursando 3º ano)',

@@ -69,6 +69,10 @@ export function Register() {
               <input required type="email" placeholder="Ex: joao@email.com" />
             </S.FormGroup>
             <S.FormGroup>
+              <label>WhatsApp (com DDD)</label>
+              <input required type="tel" placeholder="Ex: (18) 99999-9999" />
+            </S.FormGroup>
+            <S.FormGroup>
               <label>Senha</label>
               <input required type="password" placeholder="Crie uma senha forte" />
             </S.FormGroup>
@@ -98,6 +102,10 @@ export function Register() {
             <S.FormGroup>
               <label>E-mail Corporativo</label>
               <input required type="email" placeholder="Ex: contato@empresa.com" />
+            </S.FormGroup>
+            <S.FormGroup>
+              <label>WhatsApp (com DDD)</label>
+              <input required type="tel" placeholder="Ex: (18) 99999-9999" />
             </S.FormGroup>
             <S.FormGroup>
               <label>Senha</label>

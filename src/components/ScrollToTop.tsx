@@ -5,7 +5,12 @@ export function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Timeout garante que o scroll ocorra após a renderização da nova página
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      document.documentElement.scrollTo({ top: 0, behavior: 'instant' });
+      document.body.scrollTo({ top: 0, behavior: 'instant' });
+    }, 0);
   }, [pathname]);
 
   return null;

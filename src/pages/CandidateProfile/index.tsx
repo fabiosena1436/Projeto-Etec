@@ -1,14 +1,26 @@
-import { useParams } from 'react-router-dom';
-import { MapPin, Briefcase, GraduationCap, User } from 'lucide-react';
+import { useParams, useLocation } from 'react-router-dom';
+import { MapPin, Briefcase, GraduationCap, User, Phone, Download } from 'lucide-react';
 import { usersMock } from '../../data/users';
 import * as S from './styles';
 
 export function CandidateProfile() {
   const { id } = useParams();
+  const location = useLocation();
+  
+  // Verifica se a URL contém ?viewer=recruiter
+  const isRecruiter = new URLSearchParams(location.search).get('viewer') === 'recruiter';
   
   // Na vida real buscaria na API pelo ID. 
   // No mock, se não achar pelo ID da rota, pega o primeiro.
   const user = usersMock.find(u => u.id === id) || usersMock[0];
+
+  const handleWhatsAppContact = () => {
+    if (!user.phone) return;
+    // Formata o número (remove não-dígitos) para a URL do WhatsApp
+    const phoneUnformatted = user.phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Olá ${user.name}, vi seu perfil no Conecta Sampaio e gostaria de conversar sobre uma oportunidade.`);
+    window.open(`https://wa.me/55${phoneUnformatted}?text=${message}`, '_blank');
+  };
 
   return (
     <S.ProfileContainer>
@@ -20,10 +32,73 @@ export function CandidateProfile() {
         <S.UserInfo>
           <h1>{user.name}</h1>
           <h2>{user.profession}</h2>
-          <p>
-            <MapPin size={16} />
-            {user.city} • {user.age} anos
-          </p>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', color: '#64748b', fontSize: '0.875rem' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <MapPin size={16} />
+              {user.city} • {user.age} anos
+            </span>
+            
+            {isRecruiter && user.phone && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Phone size={16} />
+                {user.phone}
+              </span>
+            )}
+          </div>
+
+          {isRecruiter && (
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+              {user.phone && (
+                <button 
+                  onClick={handleWhatsAppContact}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#25D366',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#20bd5a')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#25D366')}
+                >
+                  <Phone size={20} />
+                  Contato via WhatsApp
+                </button>
+              )}
+
+              {user.resumeUrl && (
+                <a 
+                  href={user.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#eff6ff',
+                    color: '#2563eb',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#dbeafe')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#eff6ff')}
+                >
+                  <Download size={20} />
+                  Baixar Currículo
+                </a>
+              )}
+            </div>
+          )}
         </S.UserInfo>
       </S.HeaderCard>
 

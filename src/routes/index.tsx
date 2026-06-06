@@ -39,6 +39,7 @@ export function Router() {
           <Route path="candidato/salvas" element={<SavedJobs />} />
           <Route path="empresa/painel" element={<CompanyDashboard />} />
           <Route path="empresa/vaga/nova" element={<CreateJob />} />
+          <Route path="empresa/vaga/:id/editar" element={<CreateJob />} />
         </Route>
       </Routes>
     </BrowserRouter>
