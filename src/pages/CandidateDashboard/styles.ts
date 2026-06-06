@@ -85,6 +85,33 @@ export const SectionTitle = styled.h2`
   }
 `;
 
+export const TabsContainer = styled.div`
+  display: flex;
+  gap: 2rem;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  margin-top: 1rem;
+`;
+
+export const TabButton = styled.button<{ $active?: boolean }>`
+  background: transparent;
+  border: none;
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme, $active }) => $active ? theme.colors.primary : theme.colors.textLight};
+  border-bottom: 3px solid ${({ theme, $active }) => $active ? theme.colors.primary : 'transparent'};
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: -1px;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 export const JobsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

@@ -6,6 +6,7 @@ export interface User {
   city: string;
   age: number;
   phone: string;
+  email?: string;
   resumeUrl?: string;
   about: string;
   skills: string[];

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { jobsMock } from '../../data/jobs';
 import { companiesMock } from '../../data/companies';
+import { useAppliedJobs } from '../../hooks/useAppliedJobs';
 import { ArrowLeft, MapPin, Briefcase, DollarSign, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import * as S from './styles';
@@ -8,6 +9,7 @@ import * as S from './styles';
 export function JobDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasApplied, applyToJob } = useAppliedJobs();
   
   const job = jobsMock.find(j => j.id === id);
   
@@ -25,6 +27,9 @@ export function JobDetails() {
   const company = companiesMock.find(c => c.id === job.companyId);
 
   const handleApply = () => {
+    if (job) {
+      applyToJob(job.id);
+    }
     toast.success('Candidatura enviada com sucesso!', {
       description: 'A empresa receberá seu currículo em breve.',
     });
@@ -99,9 +104,18 @@ export function JobDetails() {
             <p className="description">{company?.description}</p>
           </S.CompanyCard>
 
-          <S.ApplyButton onClick={handleApply}>
-            Candidatar-se a esta vaga
-          </S.ApplyButton>
+          {hasApplied(job.id) ? (
+            <S.ApplyButton 
+              onClick={() => navigate('/candidato')} 
+              style={{ background: '#16a34a' }}
+            >
+              Você já se candidatou a essa vaga
+            </S.ApplyButton>
+          ) : (
+            <S.ApplyButton onClick={handleApply}>
+              Candidatar-se a esta vaga
+            </S.ApplyButton>
+          )}
         </S.Sidebar>
       </S.ContentWrapper>
     </S.Container>

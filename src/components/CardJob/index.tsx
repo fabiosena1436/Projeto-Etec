@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import type { Job } from '../../data/jobs';
 import { companiesMock } from '../../data/companies';
-import { MapPin, Briefcase, DollarSign } from 'lucide-react';
+import { useAppliedJobs } from '../../hooks/useAppliedJobs';
+import { MapPin, Briefcase, DollarSign, CheckCircle } from 'lucide-react';
 import * as S from './styles';
 
 interface CardJobProps {
@@ -10,6 +11,7 @@ interface CardJobProps {
 
 export function CardJob({ job }: CardJobProps) {
   const navigate = useNavigate();
+  const { hasApplied } = useAppliedJobs();
   const company = companiesMock.find(c => c.id === job.companyId);
 
   return (
@@ -39,6 +41,12 @@ export function CardJob({ job }: CardJobProps) {
           <DollarSign size={16} />
           {job.salary}
         </S.Tag>
+        {hasApplied(job.id) && (
+          <S.Tag style={{ background: '#dcfce3', color: '#166534', border: '1px solid #bbf7d0' }}>
+            <CheckCircle size={16} />
+            Candidatura Realizada
+          </S.Tag>
+        )}
       </S.TagsContainer>
       
       <S.Description>
