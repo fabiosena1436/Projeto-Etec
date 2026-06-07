@@ -1,17 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { Briefcase, User, Building, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLoginCandidato = () => {
-    // Redireciona para o painel do candidato mockado (Fase 2)
+    login('candidato');
     navigate('/candidato/painel');
   };
 
   const handleLoginEmpresa = () => {
-    // Redireciona para o painel da empresa mockado (Fase 3)
+    login('empresa');
     navigate('/empresa/painel');
   };
 

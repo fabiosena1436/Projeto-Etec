@@ -1,14 +1,17 @@
-import { useParams, useLocation } from 'react-router-dom';
-import { MapPin, Briefcase, GraduationCap, User, Phone, Download, Mail, Calendar } from 'lucide-react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { MapPin, Briefcase, GraduationCap, User, Phone, Download, Mail, Calendar, ArrowLeft } from 'lucide-react';
 import { usersMock } from '../../data/users';
+import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function CandidateProfile() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { role } = useAuth();
   
-  // Verifica se a URL contém ?viewer=recruiter
-  const isRecruiter = new URLSearchParams(location.search).get('viewer') === 'recruiter';
+  // Verifica se a URL contém ?viewer=recruiter ou se o usuário logado é uma empresa
+  const isRecruiter = role === 'empresa' || new URLSearchParams(location.search).get('viewer') === 'recruiter';
   
   // Na vida real buscaria na API pelo ID. 
   // No mock, se não achar pelo ID da rota, pega o primeiro.
@@ -22,7 +25,14 @@ export function CandidateProfile() {
   };
 
   return (
-    <S.ProfileContainer>
+    <>
+      {isRecruiter && (
+        <S.BackButton onClick={() => navigate('/empresa/painel')} style={{ margin: '0 auto 1rem auto', display: 'flex', maxWidth: '1100px', width: '100%' }}>
+          <ArrowLeft size={20} />
+          Voltar para o Painel da Empresa
+        </S.BackButton>
+      )}
+      <S.ProfileContainer>
       <S.LeftColumn>
         <S.HeaderCard>
           <S.Avatar>
@@ -174,5 +184,6 @@ export function CandidateProfile() {
         </S.ContentCard>
       </S.RightColumn>
     </S.ProfileContainer>
+    </>
   );
 }

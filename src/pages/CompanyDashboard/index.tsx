@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Eye, Users, Briefcase, Tag, Trash2, Edit2, Star, CheckCircle2, ChevronDown, ChevronUp, User, Ban, RefreshCw } from 'lucide-react';
+import { PlusCircle, Eye, Users, Briefcase, Tag, Trash2, Edit2, Star, CheckCircle2, ChevronDown, ChevronUp, User, Ban, RefreshCw, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { jobsMock } from '../../data/jobs';
 import { companiesMock } from '../../data/companies';
 import { usersMock } from '../../data/users';
+import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function CompanyDashboard() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   // Simula a empresa logada (empresa 3 no mock - Não Patrocinadora)
   const company = companiesMock.find(c => c.id === 'comp-3')!;
   
@@ -45,17 +47,33 @@ export function CompanyDashboard() {
     navigate(`/empresa/vaga/${jobId}/editar`);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <S.DashboardContainer>
-      <S.Header>
+      <S.Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <S.Greeting>Olá, {company.name}</S.Greeting>
           <p>Acompanhe o desempenho das suas vagas.</p>
         </div>
-        <S.CreateJobButton onClick={() => navigate('/empresa/vaga/nova')}>
-          <PlusCircle size={20} />
-          <span>Nova Vaga</span>
-        </S.CreateJobButton>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <S.CreateJobButton onClick={() => navigate('/empresa/vaga/nova')}>
+            <PlusCircle size={20} />
+            <span>Nova Vaga</span>
+          </S.CreateJobButton>
+          <button 
+            onClick={handleLogout}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#fee2e2')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = '#fef2f2')}
+          >
+            <LogOut size={18} />
+            Sair
+          </button>
+        </div>
       </S.Header>
 
       <S.MetricsGrid>

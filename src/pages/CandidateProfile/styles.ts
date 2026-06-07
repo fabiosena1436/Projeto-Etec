@@ -13,6 +13,25 @@ export const ProfileContainer = styled.div`
   }
 `;
 
+export const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary}10;
+  }
+`;
+
 export const LeftColumn = styled.aside`
   display: flex;
   flex-direction: column;
