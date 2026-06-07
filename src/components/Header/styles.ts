@@ -1,15 +1,22 @@
 import styled from 'styled-components';
 
 export const HeaderContainer = styled.header`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2rem;
   background-color: ${({ theme }) => theme.colors.surface};
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
+`;
+
+export const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 1rem;

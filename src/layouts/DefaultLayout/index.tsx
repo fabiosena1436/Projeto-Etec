@@ -12,7 +12,9 @@ export function DefaultLayout() {
       </S.MainContent>
       
       <S.Footer>
-        <p>&copy; 2026 Conecta Teodoro Sampaio. Todos os direitos reservados.</p>
+        <S.FooterContent>
+          <p>&copy; 2026 Conecta Teodoro Sampaio. Todos os direitos reservados.</p>
+        </S.FooterContent>
       </S.Footer>
     </S.LayoutContainer>
   );

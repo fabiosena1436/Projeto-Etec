@@ -18,7 +18,7 @@ export const Card = styled.div`
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: 480px) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 1.5rem;
   }
 `;
@@ -94,6 +94,10 @@ export const FormGroup = styled.div`
 
     &:focus {
       border-color: ${({ theme }) => theme.colors.primary};
+    }
+    
+    &:invalid:not(:placeholder-shown) {
+      border-color: #ef4444;
     }
   }
 `;

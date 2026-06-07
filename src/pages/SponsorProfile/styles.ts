@@ -23,7 +23,7 @@ export const Header = styled.div`
     object-fit: cover;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     flex-direction: column;
     text-align: center;
   }

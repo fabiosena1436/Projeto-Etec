@@ -1,11 +1,46 @@
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Tag, ArrowLeft, Percent } from 'lucide-react';
-import { companiesMock } from '../../data/companies';
+import { Tag, ArrowLeft, Percent, Briefcase } from 'lucide-react';
+import { apiService } from '../../services/api';
+import type { Company } from '../../data/companies';
+import type { Job } from '../../data/jobs';
+import { CardJob } from '../../components/CardJob';
 import * as S from './styles';
 
 export function SponsorProfile() {
   const { id } = useParams();
-  const company = companiesMock.find(c => c.id === id);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [companyJobs, setCompanyJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const fetchedCompany = await apiService.getCompanyById(id);
+        if (fetchedCompany) {
+          setCompany(fetchedCompany);
+          // O ideal seria um endpoint específico, mas usando mock:
+          const allJobs = await apiService.getJobs();
+          setCompanyJobs(allJobs.filter(job => job.companyId === fetchedCompany.id));
+        }
+      } catch (error) {
+        console.error("Failed to fetch sponsor details:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <S.Container>
+        <p>Carregando perfil do patrocinador...</p>
+      </S.Container>
+    );
+  }
 
   if (!company) {
     return (
@@ -63,8 +98,24 @@ export function SponsorProfile() {
           ))}
         </S.PromoGrid>
       ) : (
-        <p style={{ color: '#64748b', textAlign: 'center', padding: '3rem 0' }}>
+        <p style={{ color: '#64748b', textAlign: 'center', padding: '3rem 0', marginBottom: '2rem' }}>
           Este patrocinador não possui promoções cadastradas no momento.
+        </p>
+      )}
+
+      <S.SectionTitle style={{ marginTop: '3rem' }}>
+        <Briefcase color="#2563eb" /> Vagas Abertas
+      </S.SectionTitle>
+      
+      {companyJobs.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
+          {companyJobs.map(job => (
+            <CardJob key={job.id} job={job} />
+          ))}
+        </div>
+      ) : (
+        <p style={{ color: '#64748b', textAlign: 'center', padding: '2rem 0' }}>
+          Esta empresa não possui vagas abertas no momento.
         </p>
       )}
     </S.Container>

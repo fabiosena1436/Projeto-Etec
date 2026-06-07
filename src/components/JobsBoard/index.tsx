@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { jobsMock } from '../../data/jobs';
-import { companiesMock } from '../../data/companies';
+import { useState, useEffect } from 'react';
+import type { Job } from '../../data/jobs';
+import type { Company } from '../../data/companies';
+import { apiService } from '../../services/api';
 import { CardJob } from '../CardJob';
+import { CardJobSkeleton } from '../CardJobSkeleton';
 import { Search } from 'lucide-react';
 import * as S from './styles';
 
@@ -15,8 +17,30 @@ const CATEGORIES = ['Todos', 'Presencial', 'Remoto', 'Estágio', 'Jovem Aprendiz
 export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  let filteredJobs = jobsMock.filter(job => {
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      try {
+        const [fetchedJobs, fetchedCompanies] = await Promise.all([
+          apiService.getJobs(),
+          apiService.getCompanies()
+        ]);
+        setJobs(fetchedJobs);
+        setCompanies(fetchedCompanies);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  let filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           job.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'Todos' || job.type === selectedCategory;
@@ -26,8 +50,8 @@ export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
 
   // Sort so that sponsored jobs appear first
   filteredJobs.sort((a, b) => {
-    const companyA = companiesMock.find(c => c.id === a.companyId);
-    const companyB = companiesMock.find(c => c.id === b.companyId);
+    const companyA = companies.find(c => c.id === a.companyId);
+    const companyB = companies.find(c => c.id === b.companyId);
     const isSponsorA = companyA?.isSponsor ? 1 : 0;
     const isSponsorB = companyB?.isSponsor ? 1 : 0;
     return isSponsorB - isSponsorA;
@@ -66,7 +90,11 @@ export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
       )}
 
       <S.JobsGrid>
-        {filteredJobs.length > 0 ? (
+        {isLoading ? (
+          Array.from({ length: maxItems || 6 }).map((_, index) => (
+            <CardJobSkeleton key={index} />
+          ))
+        ) : filteredJobs.length > 0 ? (
           filteredJobs.map(job => (
             <CardJob key={job.id} job={job} />
           ))

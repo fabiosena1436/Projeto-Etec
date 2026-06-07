@@ -20,26 +20,28 @@ export function DashboardLayout() {
   return (
     <S.LayoutContainer>
       <S.TopBar>
-        <S.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          <Briefcase size={24} />
-          <span>Conecta jovens</span>
-        </S.Brand>
+        <S.TopBarContent>
+          <S.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <Briefcase size={24} />
+            <span>Conecta jovens</span>
+          </S.Brand>
 
-        {isCompanyFlow ? (
-          <S.ProfileMenu onClick={() => navigate('/empresa/painel')}>
-            <span>{currentCompany.name}</span>
-            <div className="avatar" style={{ backgroundColor: '#0f172a' }}>
-              <Building size={16} color="white" />
-            </div>
-          </S.ProfileMenu>
-        ) : (
-          <S.ProfileMenu onClick={() => navigate(`/candidato/${currentUser.id}`)}>
-            <span>{currentUser.name}</span>
-            <div className="avatar">
-              {currentUser.name.charAt(0)}
-            </div>
-          </S.ProfileMenu>
-        )}
+          {isCompanyFlow ? (
+            <S.ProfileMenu onClick={() => navigate('/empresa/painel')}>
+              <span>{currentCompany.name}</span>
+              <div className="avatar" style={{ backgroundColor: '#0f172a' }}>
+                <Building size={16} color="white" />
+              </div>
+            </S.ProfileMenu>
+          ) : (
+            <S.ProfileMenu onClick={() => navigate(`/candidato/${currentUser.id}`)}>
+              <span>{currentUser.name}</span>
+              <div className="avatar">
+                {currentUser.name.charAt(0)}
+              </div>
+            </S.ProfileMenu>
+          )}
+        </S.TopBarContent>
       </S.TopBar>
 
       <S.MainContent>

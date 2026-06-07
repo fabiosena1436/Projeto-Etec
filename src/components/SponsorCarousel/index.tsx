@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useEffect, useState } from 'react';
-import { companiesMock } from '../../data/companies';
+import { apiService } from '../../services/api';
+import type { Company } from '../../data/companies';
 import * as S from './styles';
 
 export function SponsorCarousel() {
@@ -10,8 +11,19 @@ export function SponsorCarousel() {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  
-  const sponsors = companiesMock.filter(company => company.isSponsor);
+  const [sponsors, setSponsors] = useState<Company[]>([]);
+
+  useEffect(() => {
+    async function fetchSponsors() {
+      try {
+        const companies = await apiService.getCompanies();
+        setSponsors(companies.filter(company => company.isSponsor));
+      } catch (error) {
+        console.error("Failed to fetch sponsors:", error);
+      }
+    }
+    fetchSponsors();
+  }, []);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -31,7 +43,7 @@ export function SponsorCarousel() {
     animationFrameId = requestAnimationFrame(scroll);
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isHovered, isDragging]);
+  }, [isHovered, isDragging, sponsors.length]);
 
   if (sponsors.length === 0) return null;
 
@@ -89,7 +101,7 @@ export function SponsorCarousel() {
                 e.stopPropagation();
                 if (!isDragging) navigate(`/patrocinador/${sponsor.id}`);
               }}>
-                Ver promoções
+                Ver promoções e vagas
               </S.PromoButton>
             </S.SponsorCard>
           ))}

@@ -6,6 +6,7 @@ export const ProfileContainer = styled.div`
   gap: 2rem;
   max-width: 1100px;
   margin: 0 auto;
+  padding: 2rem 1rem;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
     grid-template-columns: 350px 1fr;

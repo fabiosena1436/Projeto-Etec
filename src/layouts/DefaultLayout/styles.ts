@@ -13,9 +13,16 @@ export const MainContent = styled.main`
 `;
 
 export const Footer = styled.footer`
-  padding: 2rem;
-  text-align: center;
   background-color: ${({ theme }) => theme.colors.secondary};
   color: ${({ theme }) => theme.colors.surface};
   margin-top: auto;
+  width: 100%;
+`;
+
+export const FooterContent = styled.div`
+  padding: 2rem;
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 `;

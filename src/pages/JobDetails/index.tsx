@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { jobsMock } from '../../data/jobs';
-import { companiesMock } from '../../data/companies';
+import { apiService } from '../../services/api';
+import type { Job } from '../../data/jobs';
+import type { Company } from '../../data/companies';
 import { useAppliedJobs } from '../../hooks/useAppliedJobs';
 import { ArrowLeft, MapPin, Briefcase, DollarSign, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,7 +13,37 @@ export function JobDetails() {
   const navigate = useNavigate();
   const { hasApplied, applyToJob } = useAppliedJobs();
   
-  const job = jobsMock.find(j => j.id === id);
+  const [job, setJob] = useState<Job | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const fetchedJob = await apiService.getJobById(id);
+        if (fetchedJob) {
+          setJob(fetchedJob);
+          const fetchedCompany = await apiService.getCompanyById(fetchedJob.companyId);
+          setCompany(fetchedCompany || null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch job details:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <S.Container>
+        <p>Carregando vaga...</p>
+      </S.Container>
+    );
+  }
   
   if (!job) {
     return (
@@ -23,8 +55,6 @@ export function JobDetails() {
       </S.Container>
     );
   }
-
-  const company = companiesMock.find(c => c.id === job.companyId);
 
   const handleApply = () => {
     if (job) {
@@ -106,7 +136,7 @@ export function JobDetails() {
 
           {hasApplied(job.id) ? (
             <S.ApplyButton 
-              onClick={() => navigate('/candidato')} 
+              onClick={() => navigate('/dashboard/candidato')} 
               style={{ background: '#16a34a' }}
             >
               Você já se candidatou a essa vaga

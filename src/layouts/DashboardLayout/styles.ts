@@ -8,15 +8,22 @@ export const LayoutContainer = styled.div`
 `;
 
 export const TopBar = styled.header`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2rem;
   background-color: ${({ theme }) => theme.colors.surface};
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
   z-index: 50;
+  width: 100%;
+`;
+
+export const TopBarContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: 0.75rem 1rem;

@@ -56,7 +56,7 @@ export const ContentWrapper = styled.div`
   gap: 2rem;
   align-items: start;
   
-  @media (max-width: 768px) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
   }
 `;

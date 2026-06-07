@@ -202,9 +202,6 @@ export const RecentJobsSection = styled.section`
 `;
 
 export const RecentJobsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
 `;

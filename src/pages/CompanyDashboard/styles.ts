@@ -18,7 +18,7 @@ export const Header = styled.header`
     margin-top: 0.25rem;
   }
   
-  @media (max-width: 600px) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;

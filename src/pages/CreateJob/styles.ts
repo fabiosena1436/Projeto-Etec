@@ -39,7 +39,7 @@ export const Form = styled.form`
   border-radius: 12px;
   border: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: 480px) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 1.5rem;
   }
 `;
@@ -67,6 +67,10 @@ export const FormGroup = styled.div`
     &:focus {
       border-color: ${({ theme }) => theme.colors.primary};
     }
+    
+    &:invalid:not(:placeholder-shown) {
+      border-color: #ef4444;
+    }
   }
 
   textarea {
@@ -79,7 +83,7 @@ export const FormRow = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 
-  @media (max-width: 480px) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     grid-template-columns: 1fr;
   }
 `;
