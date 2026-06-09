@@ -16,6 +16,7 @@ export interface Company {
   description: string;
   location: string;
   contactEmail: string;
+  website?: string;
   slogan?: string;
   isSponsor?: boolean;
   promotions?: Promotion[];
