@@ -35,7 +35,7 @@ export const Logo = styled.div`
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: 1.15rem;
     
-    svg {
+    svg, img {
       width: 24px;
       height: 24px;
     }

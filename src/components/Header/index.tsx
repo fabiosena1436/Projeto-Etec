@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Briefcase, Menu, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, LogOut, LayoutDashboard } from 'lucide-react';
+import iconConecta from '../../assets/conecta-jovem.png';
 import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
@@ -27,7 +28,7 @@ export function Header() {
       <S.HeaderContent>
         <Link to={getHomeLink()} style={{ textDecoration: 'none' }}>
           <S.Logo>
-            <Briefcase size={28} />
+            <img src={iconConecta} alt="Conecta jovens" width={28} height={28} />
             Conecta jovens
           </S.Logo>
         </Link>
@@ -62,3 +63,4 @@ export function Header() {
     </S.HeaderContainer>
   );
 }
+
