@@ -16,10 +16,16 @@ export function Header() {
     if (role === 'candidato') navigate('/candidato/painel');
     else if (role === 'empresa') navigate('/empresa/painel');
   };
+
+  const getHomeLink = () => {
+    if (!isAuthenticated) return '/';
+    return role === 'candidato' ? '/candidato/painel' : '/empresa/painel';
+  };
+
   return (
     <S.HeaderContainer>
       <S.HeaderContent>
-        <Link to="/" style={{ textDecoration: 'none' }}>
+        <Link to={getHomeLink()} style={{ textDecoration: 'none' }}>
           <S.Logo>
             <Briefcase size={28} />
             Conecta jovens

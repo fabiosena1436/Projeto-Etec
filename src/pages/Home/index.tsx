@@ -1,11 +1,28 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Building, Smartphone } from 'lucide-react';
 import { SponsorCarousel } from '../../components/SponsorCarousel';
 import { JobsBoard } from '../../components/JobsBoard';
+import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function Home() {
   const navigate = useNavigate();
+  const { isAuthenticated, role } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (role === 'candidato') {
+        navigate('/candidato/painel', { replace: true });
+      } else if (role === 'empresa') {
+        navigate('/empresa/painel', { replace: true });
+      }
+    }
+  }, [isAuthenticated, role, navigate]);
+
+  if (isAuthenticated) {
+    return <></>;
+  }
 
   return (
     <S.HomeContainer>

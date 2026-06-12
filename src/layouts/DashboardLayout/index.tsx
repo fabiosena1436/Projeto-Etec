@@ -23,7 +23,14 @@ export function DashboardLayout() {
     <S.LayoutContainer>
       <S.TopBar>
         <S.TopBarContent>
-          <S.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+          <S.Brand 
+            onClick={() => {
+              if (role === 'candidato') navigate('/candidato/painel');
+              else if (role === 'empresa') navigate('/empresa/painel');
+              else navigate('/');
+            }} 
+            style={{ cursor: 'pointer' }}
+          >
             <Briefcase size={24} />
             <span>Conecta jovens</span>
           </S.Brand>
