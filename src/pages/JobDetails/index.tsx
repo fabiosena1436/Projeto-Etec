@@ -136,7 +136,7 @@ export function JobDetails() {
 
           {hasApplied(job.id) ? (
             <S.ApplyButton 
-              onClick={() => navigate('/dashboard/candidato')} 
+              onClick={() => navigate('/candidato/painel')} 
               style={{ background: '#16a34a' }}
             >
               Você já se candidatou a essa vaga

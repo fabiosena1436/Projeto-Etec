@@ -73,10 +73,67 @@ export const BackLink = styled.button`
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   transition: color 0.2s;
+  width: 100%;
 
   &:hover {
     color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: left;
+`;
+
+export const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.text};
+  }
+
+  input {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: ${({ theme }) => theme.colors.primary};
+    }
+  }
+`;
+
+export const SubmitButton = styled.button`
+  width: 100%;
+  padding: 1rem;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  border: none;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 `;

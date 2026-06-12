@@ -2,14 +2,16 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Briefcase, Home, Search, Bookmark, User as UserIcon, Building, PlusCircle } from 'lucide-react';
 import { usersMock } from '../../data/users';
 import { companiesMock } from '../../data/companies';
+import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { role } = useAuth();
   
-  // Detecção de tipo de usuário com base na rota (para apresentação visual)
-  const isCompanyFlow = location.pathname.includes('/empresa');
+  // Detecção de tipo de usuário
+  const isCompanyFlow = role === 'empresa' || location.pathname.includes('/empresa') || new URLSearchParams(location.search).get('viewer') === 'recruiter';
 
   // Mocks de dados
   const currentUser = usersMock[0];

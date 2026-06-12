@@ -16,8 +16,8 @@ export function Home() {
           <h1>Conectando Talentos às Oportunidades em Teodoro Sampaio</h1>
           <p>A plataforma definitiva para empresas locais encontrarem os melhores profissionais e para os cidadãos conquistarem o emprego ideal.</p>
           <S.ButtonGroup>
-            <S.PrimaryButton onClick={() => navigate('/login')}>Sou Candidato</S.PrimaryButton>
-            <S.SecondaryButton onClick={() => navigate('/login')}>Sou Empresa</S.SecondaryButton>
+            <S.PrimaryButton onClick={() => navigate('/login?type=candidato')}>Sou Candidato</S.PrimaryButton>
+            <S.SecondaryButton onClick={() => navigate('/login?type=empresa')}>Sou Empresa</S.SecondaryButton>
           </S.ButtonGroup>
         </S.HeroContent>
       </S.HeroSection>

@@ -32,17 +32,17 @@ export function AppRoutes() {
         <Route path="patrocinador/:id" element={<SponsorProfile />} />
       </Route>
 
-      {/* Layout Protegido (Dashboard unificado sob o prefixo /dashboard) */}
-      <Route path="/dashboard" element={<DashboardLayout />}>
+      {/* Layout Protegido (Dashboard unificado) */}
+      <Route element={<DashboardLayout />}>
         {/* Painel do Candidato */}
-        <Route path="candidato" element={<CandidateDashboard />} />
-        <Route path="candidato/perfil/:id" element={<CandidateProfile />} />
-        <Route path="candidato/salvas" element={<SavedJobs />} />
+        <Route path="/candidato/painel" element={<CandidateDashboard />} />
+        <Route path="/candidato/:id" element={<CandidateProfile />} />
+        <Route path="/candidato/salvas" element={<SavedJobs />} />
         
         {/* Painel da Empresa */}
-        <Route path="empresa" element={<CompanyDashboard />} />
-        <Route path="empresa/vaga/nova" element={<CreateJob />} />
-        <Route path="empresa/vaga/:id/editar" element={<CreateJob />} />
+        <Route path="/empresa/painel" element={<CompanyDashboard />} />
+        <Route path="/empresa/vaga/nova" element={<CreateJob />} />
+        <Route path="/empresa/vaga/:id/editar" element={<CreateJob />} />
       </Route>
 
       {/* Fallback para rotas inexistentes */}
