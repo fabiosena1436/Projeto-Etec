@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Building, Smartphone } from 'lucide-react';
 import { SponsorCarousel } from '../../components/SponsorCarousel';
 import { JobsBoard } from '../../components/JobsBoard';
+import { DatabaseStatus } from '../../components/DatabaseStatus';
 import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
@@ -36,6 +37,9 @@ export function Home() {
             <S.PrimaryButton onClick={() => navigate('/login?type=candidato')}>Sou Candidato</S.PrimaryButton>
             <S.SecondaryButton onClick={() => navigate('/login?type=empresa')}>Sou Empresa</S.SecondaryButton>
           </S.ButtonGroup>
+          <div style={{ marginTop: '2rem', maxWidth: '600px' }}>
+            <DatabaseStatus />
+          </div>
         </S.HeroContent>
       </S.HeroSection>
  <SponsorCarousel />
