@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Briefcase, User, Building, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { authService } from '../../services/supabase/auth.service';
+import { isSupabaseConfigured } from '../../lib/supabase';
+import { toast } from 'sonner';
 import * as S from './styles';
 
 export function Login() {
@@ -12,16 +15,43 @@ export function Login() {
   
   const [loading, setLoading] = useState(false);
   const [activeType, setActiveType] = useState<'candidato' | 'empresa' | null>(initialType);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeType) return;
     
     setLoading(true);
-    setTimeout(() => {
-      login(activeType);
-      navigate(`/${activeType}/painel`);
-    }, 1500);
+    try {
+      if (isSupabaseConfigured) {
+        // Tenta login real no Supabase
+        const result = await authService.signIn({ email, password });
+        const role = (result.profile as any)?.role || activeType;
+        toast.success('Login realizado com sucesso!');
+        navigate(`/${role}/painel`);
+      } else {
+        // Fallback mock para apresentação (como antes)
+        await new Promise(r => setTimeout(r, 800));
+        login(activeType);
+        toast.success(`Entrando como ${activeType} (modo demonstração)`);
+        navigate(`/${activeType}/painel`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      // Se falhar no Supabase (ex: usuário não existe), tenta fallback mock para não quebrar apresentação
+      if (isSupabaseConfigured && err.message?.includes('Invalid login')) {
+        toast.error('Credenciais inválidas. Verifique email/senha ou cadastre-se.');
+      } else if (!isSupabaseConfigured) {
+        // já tratado acima
+        login(activeType);
+        navigate(`/${activeType}/painel`);
+      } else {
+        toast.error(err.message || 'Erro ao fazer login');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,6 +61,12 @@ export function Login() {
           <Briefcase size={48} />
           <h1>Conecta Sampaio</h1>
         </S.Brand>
+
+        {!isSupabaseConfigured && (
+          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.5rem 0.75rem', borderRadius: '8px', fontSize: '0.75rem', color: '#92400e', marginBottom: '1rem', textAlign: 'center' }}>
+            ⚠️ Modo demonstração (sem banco). Configure Supabase para login real.
+          </div>
+        )}
 
         {!activeType ? (
           <>
@@ -64,11 +100,11 @@ export function Login() {
             <S.Form onSubmit={handleLogin}>
               <S.FormGroup>
                 <label>E-mail</label>
-                <input required type="email" placeholder="Digite seu e-mail" disabled={loading} />
+                <input required type="email" placeholder="Digite seu e-mail" disabled={loading} value={email} onChange={e => setEmail(e.target.value)} />
               </S.FormGroup>
               <S.FormGroup>
                 <label>Senha</label>
-                <input required type="password" placeholder="Digite sua senha" disabled={loading} />
+                <input required type="password" placeholder="Digite sua senha" disabled={loading} value={password} onChange={e => setPassword(e.target.value)} />
               </S.FormGroup>
               
               <S.SubmitButton type="submit" disabled={loading} style={activeType === 'empresa' ? { backgroundColor: '#0f172a' } : {}}>
@@ -87,9 +123,9 @@ export function Login() {
               </button>
             </div>
 
-            <S.BackLink onClick={() => navigate('/')} disabled={loading}>
+            <S.BackLink onClick={() => setActiveType(null)} disabled={loading}>
               <ArrowLeft size={16} />
-              Voltar para a página inicial
+              Voltar para seleção de perfil
             </S.BackLink>
           </>
         )}
