@@ -1,15 +1,18 @@
+export type JobTypeLegacy = 'Presencial' | 'Remoto' | 'Estágio' | 'Jovem Aprendiz' | 'Freelancer' | 'Híbrido' | 'Temporário';
+export type JobStatusLegacy = 'Ativa' | 'Encerrada' | 'Rascunho' | 'Em Analise' | 'Expirada';
+
 export interface Job {
   id: string;
   title: string;
   companyId: string;
   location: string;
-  type: 'Presencial' | 'Remoto' | 'Estágio' | 'Jovem Aprendiz' | 'Freelancer';
+  type: JobTypeLegacy;
   salary: string;
   requirements: string[];
   benefits: string[];
   description: string;
   postedAt: string;
-  status: 'Ativa' | 'Encerrada';
+  status: JobStatusLegacy;
 }
 
 export const jobsMock: Job[] = [
