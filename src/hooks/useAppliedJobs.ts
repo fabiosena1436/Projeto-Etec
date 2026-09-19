@@ -1,64 +1,57 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { applicationsService } from '../services/supabase/applications.service';
+import { useAuth } from './useAuth';
+import type { Application } from '../types/database';
 
-const STORAGE_KEY = '@ConectaTeodoro:appliedJobs';
-const INITIAL_JOBS = ['job-1', 'job-3'];
+const EVENT = 'appliedJobsUpdated';
 
+/**
+ * Candidaturas do candidato logado, sincronizadas com o Supabase.
+ * Em modo demonstração usa localStorage (via applicationsService).
+ */
 export function useAppliedJobs() {
-  const [appliedJobIds, setAppliedJobIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Error reading localStorage', e);
+  const { isAuthenticated, isCandidato, loading: authLoading } = useAuth();
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    if (authLoading) return;
+    if (!isAuthenticated || !isCandidato) {
+      setApplications([]);
+      setLoading(false);
+      return;
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_JOBS));
-    return INITIAL_JOBS;
-  });
+    try {
+      const apps = await applicationsService.getMyApplications();
+      setApplications(apps);
+    } catch (e) {
+      console.error('Erro ao carregar candidaturas', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [authLoading, isAuthenticated, isCandidato]);
+
+  useEffect(() => { refresh(); }, [refresh]);
 
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        setAppliedJobIds(JSON.parse(e.newValue));
-      }
-    };
-    
-    const handleCustomEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<string[]>;
-      setAppliedJobIds(customEvent.detail);
-    };
+    const handler = () => refresh();
+    window.addEventListener(EVENT, handler);
+    return () => window.removeEventListener(EVENT, handler);
+  }, [refresh]);
 
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('appliedJobsUpdated', handleCustomEvent);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('appliedJobsUpdated', handleCustomEvent);
-    };
-  }, []);
+  const appliedJobIds = applications.map(a => a.job_id);
 
-  const updateAndSync = (next: string[]) => {
-    setAppliedJobIds(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    window.dispatchEvent(new CustomEvent('appliedJobsUpdated', { detail: next }));
+  const applyToJob = async (jobId: string, coverLetter?: string) => {
+    await applicationsService.apply(jobId, coverLetter);
+    window.dispatchEvent(new CustomEvent(EVENT));
   };
 
-  const applyToJob = (jobId: string) => {
-    if (appliedJobIds.includes(jobId)) return;
-    updateAndSync([...appliedJobIds, jobId]);
-  };
-
-  const withdrawFromJob = (jobId: string) => {
-    updateAndSync(appliedJobIds.filter(id => id !== jobId));
+  const withdrawFromJob = async (jobId: string) => {
+    await applicationsService.withdraw(jobId);
+    window.dispatchEvent(new CustomEvent(EVENT));
   };
 
   const hasApplied = (jobId: string) => appliedJobIds.includes(jobId);
 
-  return {
-    appliedJobIds,
-    applyToJob,
-    withdrawFromJob,
-    hasApplied
-  };
+  return { applications, appliedJobIds, loading, applyToJob, withdrawFromJob, hasApplied, refresh };
 }

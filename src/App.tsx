@@ -1,12 +1,17 @@
 import { BrowserRouter } from 'react-router-dom';
-import { AppRoutes } from './routes';
 import { Toaster } from 'sonner';
+import { AppRoutes } from './routes';
+import { AuthProvider } from './contexts/AuthContext';
+import { ScrollToTop } from './components/ScrollToTop';
 
 export function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
-      <Toaster richColors position="top-right" />
+      <AuthProvider>
+        <ScrollToTop />
+        <AppRoutes />
+        <Toaster richColors position="top-right" closeButton />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
