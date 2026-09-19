@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Briefcase, User, Building, ArrowLeft } from 'lucide-react';
+import { Briefcase, User, Building, ArrowLeft, MailCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '../../services/supabase/auth.service';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import * as S from './styles';
 
 type Step = 'select' | 'candidato' | 'empresa';
+
+export const INDUSTRIES = [
+  'Varejo', 'Supermercado', 'Alimentação', 'Saúde', 'Farmácia', 'Educação', 'Tecnologia da Informação',
+  'Agronegócio', 'Indústria', 'Construção Civil', 'Serviços', 'Beleza e Estética', 'Transporte e Logística',
+  'Hotelaria e Turismo', 'Setor Público', 'Outro',
+];
 
 export function Register() {
   const [searchParams] = useSearchParams();
@@ -16,25 +22,43 @@ export function Register() {
   const [step, setStep] = useState<Step>(initialType || 'select');
   const [loading, setLoading] = useState(false);
 
+  const [emailSent, setEmailSent] = useState<string | null>(null);
+
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     const formData = new FormData(e.currentTarget);
-    const fullName = formData.get('fullName') as string;
-    const email = formData.get('email') as string;
+    const fullName = (formData.get('fullName') as string || '').trim();
+    const email = (formData.get('email') as string || '').trim().toLowerCase();
     const phone = formData.get('phone') as string;
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirmPassword') as string;
-    const companyName = formData.get('companyName') as string;
-    // const cnpj = formData.get('cnpj') as string; // futuro: salvar em companies.cnpj
+    const companyName = (formData.get('companyName') as string || '').trim();
+    const cnpj = formData.get('cnpj') as string;
+    const industry = formData.get('industry') as string;
+    const location = (formData.get('location') as string || '').trim();
 
     if (password !== confirmPassword) {
       toast.error('As senhas não coincidem!');
       return;
     }
-
     if (password.length < 6) {
       toast.error('Senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    const role = step === 'empresa' ? 'empresa' : 'candidato';
+    const nameToUse = role === 'empresa' ? companyName : fullName;
+    if (nameToUse.length < 3) {
+      toast.error('Informe um nome com pelo menos 3 caracteres.');
+      return;
+    }
+    const digitsPhone = (phone || '').replace(/\D/g, '');
+    if (digitsPhone.length < 10 || digitsPhone.length > 13) {
+      toast.error('Informe um WhatsApp válido com DDD (ex: 18 99999-9999).');
+      return;
+    }
+    if (cnpj && cnpj.replace(/\D/g, '').length !== 14) {
+      toast.error('CNPJ inválido. Informe os 14 dígitos ou deixe em branco.');
       return;
     }
 
@@ -42,26 +66,25 @@ export function Register() {
 
     try {
       if (isSupabaseConfigured) {
-        const role = step === 'empresa' ? 'empresa' : 'candidato';
-        const nameToUse = role === 'empresa' ? companyName : fullName;
-
-        await authService.signUp({
+        const result = await authService.signUp({
           email,
           password,
           full_name: nameToUse,
           role,
           city: 'Teodoro Sampaio, SP',
           phone,
+          company: role === 'empresa' ? { name: companyName, cnpj, industry, location: location || 'Teodoro Sampaio, SP' } : undefined,
         });
 
-        // Se empresa, poderia criar company aqui também (futuro)
-        toast.success('Cadastro realizado! Verifique seu email para confirmar.', {
-          description: 'Após confirmar, faça login.',
-        });
-        navigate(`/login?type=${role}`);
+        if (result.needsEmailConfirmation) {
+          setEmailSent(email);
+          toast.success('Cadastro realizado! Confirme seu e-mail para ativar a conta.');
+        } else {
+          toast.success('Conta criada com sucesso!');
+          navigate(`/${role}/painel`, { replace: true });
+        }
       } else {
-        // Modo mock para apresentação
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 800));
         toast.success('Cadastro realizado com sucesso! (modo demonstração)', {
           description: 'Sua conta foi criada. Faça login para continuar.',
         });
@@ -69,15 +92,45 @@ export function Register() {
       }
     } catch (err: any) {
       console.error(err);
-      if (err.message?.includes('already registered')) {
-        toast.error('Este email já está cadastrado. Faça login.');
-      } else {
-        toast.error(err.message || 'Erro ao cadastrar');
-      }
+      toast.error(err.message || 'Erro ao cadastrar');
     } finally {
       setLoading(false);
     }
   };
+
+  if (emailSent) {
+    return (
+      <S.Container>
+        <S.Card>
+          <S.Brand>
+            <MailCheck size={48} />
+            <h1>Confirme seu e-mail</h1>
+          </S.Brand>
+          <p style={{ textAlign: 'center', color: '#475569', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            Enviamos um link de confirmação para <strong>{emailSent}</strong>.<br />
+            Abra o e-mail e clique no link para ativar sua conta. Depois é só fazer login.
+          </p>
+          <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', marginBottom: '1.5rem' }}>
+            Não recebeu? Verifique a caixa de spam ou{' '}
+            <button
+              type="button"
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                try { await authService.resendConfirmation(emailSent); toast.success('E-mail reenviado!'); }
+                catch (e: any) { toast.error(e.message); }
+                finally { setLoading(false); }
+              }}
+              style={{ color: '#2563eb', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+            >
+              reenvie o e-mail
+            </button>.
+          </p>
+          <S.SubmitButton type="button" onClick={() => navigate(`/login?type=${step}`)}>Ir para o login</S.SubmitButton>
+        </S.Card>
+      </S.Container>
+    );
+  }
 
   return (
     <S.Container>
@@ -173,7 +226,18 @@ export function Register() {
             </S.FormGroup>
             <S.FormGroup>
               <label>CNPJ (opcional no cadastro rápido)</label>
-              <input name="cnpj" type="text" placeholder="00.000.000/0000-00" disabled={loading} />
+              <input name="cnpj" type="text" inputMode="numeric" placeholder="00.000.000/0000-00" disabled={loading} />
+            </S.FormGroup>
+            <S.FormGroup>
+              <label>Ramo de atuação</label>
+              <select name="industry" required disabled={loading} defaultValue="">
+                <option value="" disabled>Selecione...</option>
+                {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+              </select>
+            </S.FormGroup>
+            <S.FormGroup>
+              <label>Endereço / Bairro</label>
+              <input name="location" type="text" placeholder="Ex: Centro, Teodoro Sampaio" disabled={loading} />
             </S.FormGroup>
             <S.FormGroup>
               <label>E-mail Corporativo</label>

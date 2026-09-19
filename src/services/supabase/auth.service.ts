@@ -8,6 +8,13 @@ export interface SignUpData {
   role: UserRole;
   city?: string;
   phone?: string;
+  /** Campos da empresa (quando role === 'empresa') */
+  company?: {
+    name: string;
+    cnpj?: string;
+    industry?: string;
+    location?: string;
+  };
 }
 
 export interface SignInData {
@@ -15,44 +22,89 @@ export interface SignInData {
   password: string;
 }
 
+const MOCK_KEY = '@ConectaTeodoro:auth';
+
+function setMockRole(role: UserRole | null) {
+  if (role) localStorage.setItem(MOCK_KEY, JSON.stringify(role));
+  else localStorage.removeItem(MOCK_KEY);
+  window.dispatchEvent(new CustomEvent('authStateUpdated', { detail: role }));
+}
+
+/** Normaliza telefone para somente dígitos (aceito pela constraint do banco) */
+export function normalizePhone(phone?: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 10 ? digits : null;
+}
+
+export function normalizeCnpj(cnpj?: string | null): string | null {
+  if (!cnpj) return null;
+  const digits = cnpj.replace(/\D/g, '');
+  return digits.length === 14 ? digits : null;
+}
+
+/** Traduz mensagens de erro do Supabase Auth para PT-BR amigável */
+export function translateAuthError(message?: string): string {
+  if (!message) return 'Ocorreu um erro inesperado. Tente novamente.';
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (m.includes('email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada (e o spam).';
+  if (m.includes('already registered') || m.includes('already been registered')) return 'Este e-mail já está cadastrado. Faça login.';
+  if (m.includes('password should be at least')) return 'A senha deve ter pelo menos 6 caracteres.';
+  if (m.includes('rate limit') || m.includes('too many requests')) return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+  if (m.includes('invalid email')) return 'E-mail inválido.';
+  if (m.includes('network') || m.includes('fetch')) return 'Falha de conexão. Verifique sua internet.';
+  return message;
+}
+
 export const authService = {
   async signUp(data: SignUpData) {
     if (!isSupabaseConfigured || !supabase) {
-      console.warn('Supabase não configurado, usando mock auth');
-      localStorage.setItem('@ConectaTeodoro:auth', JSON.stringify(data.role));
-      window.dispatchEvent(new CustomEvent('authStateUpdated', { detail: data.role }));
-      return { user: { id: 'mock-id', email: data.email }, profile: null as any };
+      setMockRole(data.role);
+      return { user: { id: 'mock-id', email: data.email }, session: null, needsEmailConfirmation: false };
     }
 
+    const phone = normalizePhone(data.phone);
+
+    // Todos os dados vão no metadata: o trigger `handle_new_user` no banco
+    // cria profile + candidate/company de forma atômica, mesmo se o usuário
+    // ainda precisar confirmar o e-mail (quando não há sessão para inserir via RLS).
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/login?type=${data.role}&confirmed=1`,
         data: {
           full_name: data.full_name,
           role: data.role,
           city: data.city || 'Teodoro Sampaio, SP',
+          phone,
+          company_name: data.company?.name || null,
+          company_cnpj: normalizeCnpj(data.company?.cnpj),
+          company_industry: data.company?.industry || null,
+          company_location: data.company?.location || null,
         },
       },
     });
 
-    if (error) throw error;
+    if (error) throw new Error(translateAuthError(error.message));
 
-    if (authData.user && data.phone) {
-      await (supabase as any)
-        .from('profiles')
-        .update({ phone: data.phone })
-        .eq('id', authData.user.id);
+    // Supabase retorna user com identities vazio quando o e-mail já existe
+    if (authData.user && Array.isArray((authData.user as any).identities) && (authData.user as any).identities.length === 0) {
+      throw new Error('Este e-mail já está cadastrado. Faça login.');
     }
 
-    return authData;
+    return {
+      user: authData.user,
+      session: authData.session,
+      needsEmailConfirmation: !authData.session,
+    };
   },
 
   async signIn(data: SignInData) {
     if (!isSupabaseConfigured || !supabase) {
       const role: UserRole = data.email.includes('empresa') || data.email.includes('rh@') ? 'empresa' : 'candidato';
-      localStorage.setItem('@ConectaTeodoro:auth', JSON.stringify(role));
-      window.dispatchEvent(new CustomEvent('authStateUpdated', { detail: role }));
+      setMockRole(role);
       return { user: { id: 'mock-id', email: data.email }, profile: { role } as unknown as Profile };
     }
 
@@ -61,82 +113,60 @@ export const authService = {
       password: data.password,
     });
 
-    if (error) throw error;
+    if (error) throw new Error(translateAuthError(error.message));
 
-    const { data: profile } = await (supabase as any)
+    const { data: profile } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
       .single();
 
-    await (supabase as any)
+    // fire-and-forget
+    void (supabase as any)
       .from('profiles')
       .update({ last_seen_at: new Date().toISOString() })
       .eq('id', authData.user.id);
 
-    if (profile) {
-      localStorage.setItem('@ConectaTeodoro:auth', JSON.stringify((profile as any).role));
-      window.dispatchEvent(new CustomEvent('authStateUpdated', { detail: (profile as any).role }));
-    }
-
-    return { user: authData.user, profile: profile as Profile };
+    return { user: authData.user, profile: (profile as Profile | null) ?? null };
   },
 
   async signOut() {
-    if (!isSupabaseConfigured || !supabase) {
-      localStorage.removeItem('@ConectaTeodoro:auth');
-      window.dispatchEvent(new CustomEvent('authStateUpdated', { detail: null }));
-      return;
-    }
+    setMockRole(null);
+    if (!isSupabaseConfigured || !supabase) return;
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    localStorage.removeItem('@ConectaTeodoro:auth');
-    window.dispatchEvent(new CustomEvent('authStateUpdated', { detail: null }));
+    if (error) throw new Error(translateAuthError(error.message));
   },
 
-  async getSession() {
-    if (!isSupabaseConfigured || !supabase) {
-      const stored = localStorage.getItem('@ConectaTeodoro:auth');
-      return stored ? JSON.parse(stored) : null;
-    }
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return data.session;
-  },
-
-  async getProfile(): Promise<Profile | null> {
-    if (!isSupabaseConfigured || !supabase) return null;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const { data, error } = await (supabase as any)
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    if (error) return null;
-    return data as Profile;
-  },
-
-  async signInWithGoogle() {
+  async resendConfirmation(email: string) {
     if (!supabase) throw new Error('Supabase não configurado');
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/candidato/painel` },
-    });
-    if (error) throw error;
-    return data;
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    if (error) throw new Error(translateAuthError(error.message));
   },
 
   async resetPassword(email: string) {
     if (!supabase) throw new Error('Supabase não configurado');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/redefinir-senha`,
     });
-    if (error) throw error;
+    if (error) throw new Error(translateAuthError(error.message));
   },
 
-  onAuthStateChange(callback: (event: string, session: any) => void) {
-    if (!supabase) return { data: { subscription: { unsubscribe: () => {} } } };
-    return supabase.auth.onAuthStateChange(callback);
+  async updatePassword(newPassword: string) {
+    if (!supabase) throw new Error('Supabase não configurado');
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw new Error(translateAuthError(error.message));
+  },
+
+  async signInWithGoogle(role: UserRole = 'candidato') {
+    if (!supabase) throw new Error('Supabase não configurado');
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/${role}/painel`,
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
+    });
+    if (error) throw new Error(translateAuthError(error.message));
+    return data;
   },
 };
