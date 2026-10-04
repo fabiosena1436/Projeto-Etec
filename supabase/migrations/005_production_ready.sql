@@ -18,7 +18,7 @@ $$ LANGUAGE sql IMMUTABLE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
-  v_role user_role := COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'candidato');
+  v_role user_role := CASE WHEN NEW.raw_user_meta_data->>'role' = 'empresa' THEN 'empresa'::user_role ELSE 'candidato'::user_role END;
   v_name TEXT := COALESCE(NULLIF(NEW.raw_user_meta_data->>'full_name',''), split_part(NEW.email, '@', 1));
   v_city TEXT := COALESCE(NULLIF(NEW.raw_user_meta_data->>'city',''), 'Teodoro Sampaio, SP');
   v_phone TEXT := NULLIF(regexp_replace(COALESCE(NEW.raw_user_meta_data->>'phone',''), '\D', '', 'g'), '');
@@ -60,10 +60,6 @@ BEGIN
     ON CONFLICT DO NOTHING;
   END IF;
 
-  RETURN NEW;
-EXCEPTION WHEN OTHERS THEN
-  -- Nunca bloqueia o signup por erro de perfil; loga para diagnóstico.
-  RAISE WARNING 'handle_new_user falhou para %: %', NEW.id, SQLERRM;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

@@ -27,15 +27,6 @@ export const applicationsService = {
       };
     }
 
-    const { data: canProceed } = await (supabase as any).rpc('check_rate_limit', {
-      action_name: 'apply_job',
-      max_per_hour: 10,
-    });
-
-    if (canProceed === false) {
-      throw new Error('Muitas candidaturas em pouco tempo. Tente novamente em 1 hora.');
-    }
-
     const { data, error } = await (supabase as any).rpc('apply_to_job', {
       job_uuid: jobId,
       cover_letter_text: coverLetter || null,
