@@ -6,7 +6,7 @@ export const LoginContainer = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100dvh; /* Usa 100dvh para evitar barra de rolagem em celulares (safari/chrome mobile) */
-  background: linear-gradient(135deg, ${({ theme }) => theme.colors.background} 0%, ${({ theme }) => theme.colors.surface} 100%);
+  background: radial-gradient(ellipse at top left, #e5eff9, transparent 55%), #f5f7fa;
   padding: 2rem;
 `;
 
@@ -14,9 +14,11 @@ export const LoginCard = styled.div`
   background-color: ${({ theme }) => theme.colors.surface};
   padding: 3rem 2rem;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 20px 65px #102a4310;
+  border-top: 4px solid #175cda;
   width: 100%;
-  max-width: 400px;
+  max-width: 460px;
+  @media(max-width:500px){padding:28px 22px;}
   text-align: center;
   border: 1px solid ${({ theme }) => theme.colors.border};
 `;
@@ -111,6 +113,7 @@ export const FormGroup = styled.div`
 
     &:focus {
       border-color: ${({ theme }) => theme.colors.primary};
+      box-shadow: 0 0 0 3px #175cda18;
     }
   }
 `;
@@ -137,3 +140,5 @@ export const SubmitButton = styled.button`
     cursor: not-allowed;
   }
 `;
+
+/* A clear, consistent account experience on desktop and mobile. */

@@ -30,7 +30,7 @@ export const TopBarContent = styled.div`
   }
 `;
 
-export const Brand = styled.div`
+export const Brand = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -48,7 +48,7 @@ export const Brand = styled.div`
   }
 `;
 
-export const ProfileMenu = styled.div`
+export const ProfileMenu = styled.button`
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -90,7 +90,7 @@ export const MainContent = styled.main`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: 0.75rem;
-    padding-bottom: 70px; /* Adjusted for smaller nav */
+    padding-bottom: calc(95px + env(safe-area-inset-bottom)); /* Adjusted for smaller nav */
   }
 `;
 
@@ -113,7 +113,7 @@ export const BottomNav = styled.nav`
   }
 `;
 
-export const NavItem = styled.div<{ $active?: boolean }>`
+export const NavItem = styled.button<{ $active?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -133,6 +133,6 @@ export const NavItem = styled.div<{ $active?: boolean }>`
   }
   
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: 0.65rem; /* Smaller text on bottom nav */
+    font-size: 0.75rem;
   }
 `;

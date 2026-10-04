@@ -20,7 +20,7 @@ export const ErrorState = styled.div`
     background: ${({ theme }) => theme.colors.primary};
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: filter 0.2s;
@@ -42,7 +42,7 @@ export const BackButton = styled.button`
   cursor: pointer;
   margin-bottom: 2rem;
   padding: 0.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   transition: background-color 0.2s;
   
   &:hover {
@@ -210,7 +210,7 @@ export const ApplyButton = styled.button`
   background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;

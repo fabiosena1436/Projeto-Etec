@@ -152,72 +152,72 @@ export function CreateJob() {
 
       <S.Form onSubmit={handleSubmit}>
         <S.FormGroup>
-          <label>Título da Vaga *</label>
-          <input required minLength={5} maxLength={120} type="text" placeholder="Ex: Vendedor(a) de Loja" value={title} onChange={e => setTitle(e.target.value)} />
+          <label htmlFor="field-1">Título da Vaga *</label>
+          <input id="field-1" required minLength={5} maxLength={120} type="text" placeholder="Ex: Vendedor(a) de Loja" value={title} onChange={e => setTitle(e.target.value)} />
         </S.FormGroup>
 
         <S.FormRow>
           <S.FormGroup>
-            <label>Modalidade *</label>
-            <select required value={type} onChange={e => setType(e.target.value as JobType)}>
+            <label htmlFor="field-2">Modalidade *</label>
+          <select id="field-2" required value={type} onChange={e => setType(e.target.value as JobType)}>
               <option value="">Selecione...</option>
               {JOB_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </S.FormGroup>
           <S.FormGroup>
-            <label>Salário</label>
-            <input type="text" placeholder="Ex: R$ 1.600,00 + Comissão" value={salary} onChange={e => setSalary(e.target.value)} />
+            <label htmlFor="field-3">Salário</label>
+          <input id="field-3" type="text" placeholder="Ex: R$ 1.600,00 + Comissão" value={salary} onChange={e => setSalary(e.target.value)} />
           </S.FormGroup>
         </S.FormRow>
 
         <S.FormRow>
           <S.FormGroup>
-            <label>Localização *</label>
-            <input required type="text" placeholder="Ex: Centro, Teodoro Sampaio" value={location} onChange={e => setLocation(e.target.value)} />
+            <label htmlFor="field-4">Localização *</label>
+          <input id="field-4" required type="text" placeholder="Ex: Centro, Teodoro Sampaio" value={location} onChange={e => setLocation(e.target.value)} />
           </S.FormGroup>
           <S.FormGroup>
-            <label>Nº de vagas</label>
-            <input type="number" min={1} max={100} value={vacancies} onChange={e => setVacancies(e.target.value)} />
+            <label htmlFor="field-5">Nº de vagas</label>
+          <input id="field-5" type="number" min={1} max={100} value={vacancies} onChange={e => setVacancies(e.target.value)} />
           </S.FormGroup>
         </S.FormRow>
 
         <S.FormRow>
           <S.FormGroup>
-            <label>Nível de experiência</label>
-            <select value={experienceLevel} onChange={e => setExperienceLevel(e.target.value)}>
+            <label htmlFor="field-6">Nível de experiência</label>
+          <select id="field-6" value={experienceLevel} onChange={e => setExperienceLevel(e.target.value)}>
               <option value="">Não especificado</option>
               {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </S.FormGroup>
           <S.FormGroup>
-            <label>Escolaridade mínima</label>
-            <input type="text" placeholder="Ex: Ensino Médio Completo" value={educationRequired} onChange={e => setEducationRequired(e.target.value)} />
+            <label htmlFor="field-7">Escolaridade mínima</label>
+          <input id="field-7" type="text" placeholder="Ex: Ensino Médio Completo" value={educationRequired} onChange={e => setEducationRequired(e.target.value)} />
           </S.FormGroup>
         </S.FormRow>
 
         <S.FormGroup>
-          <label>Descrição da Vaga *</label>
-          <textarea required minLength={20} rows={5} placeholder="Descreva o dia a dia e as responsabilidades da vaga..." value={description} onChange={e => setDescription(e.target.value)}></textarea>
+          <label htmlFor="field-8">Descrição da Vaga *</label>
+          <textarea id="field-8" required minLength={20} rows={5} placeholder="Descreva o dia a dia e as responsabilidades da vaga..." value={description} onChange={e => setDescription(e.target.value)}></textarea>
         </S.FormGroup>
 
         <S.FormGroup>
-          <label>Requisitos (um por linha)</label>
-          <textarea rows={4} placeholder={'Ensino Médio Completo\nBoa comunicação\nExperiência em vendas (diferencial)'} value={requirements} onChange={e => setRequirements(e.target.value)}></textarea>
+          <label htmlFor="field-9">Requisitos (um por linha)</label>
+          <textarea id="field-9" rows={4} placeholder={'Ensino Médio Completo\nBoa comunicação\nExperiência em vendas (diferencial)'} value={requirements} onChange={e => setRequirements(e.target.value)}></textarea>
         </S.FormGroup>
 
         <S.FormGroup>
-          <label>Benefícios (um por linha)</label>
-          <textarea rows={4} placeholder={'Vale Transporte\nVale Alimentação\nPlano de Saúde'} value={benefits} onChange={e => setBenefits(e.target.value)}></textarea>
+          <label htmlFor="field-10">Benefícios (um por linha)</label>
+          <textarea id="field-10" rows={4} placeholder={'Vale Transporte\nVale Alimentação\nPlano de Saúde'} value={benefits} onChange={e => setBenefits(e.target.value)}></textarea>
         </S.FormGroup>
 
         <S.FormRow>
           <S.FormGroup>
-            <label>Encerrar automaticamente em</label>
-            <input type="date" min={new Date().toISOString().slice(0, 10)} value={expiresAt} onChange={e => setExpiresAt(e.target.value)} />
+            <label htmlFor="field-11">Encerrar automaticamente em</label>
+          <input id="field-11" type="date" min={new Date().toISOString().slice(0, 10)} value={expiresAt} onChange={e => setExpiresAt(e.target.value)} />
           </S.FormGroup>
           <S.FormGroup>
-            <label>Status</label>
-            <select value={status} onChange={e => setStatus(e.target.value as 'Ativa' | 'Rascunho')}>
+            <label htmlFor="field-12">Status</label>
+          <select id="field-12" value={status} onChange={e => setStatus(e.target.value as 'Ativa' | 'Rascunho')}>
               <option value="Ativa">Publicada (visível para candidatos)</option>
               <option value="Rascunho">Rascunho (somente você vê)</option>
             </select>

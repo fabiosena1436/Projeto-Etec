@@ -83,7 +83,7 @@ export const CompanyHeader = styled.div`
     color: ${({ theme }) => theme.colors.textLight};
 
     @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-      font-size: 0.75rem;
+      font-size: 0.875rem;
     }
   }
 `;
@@ -111,7 +111,7 @@ export const Tag = styled.div`
   border-radius: 4px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     padding: 0.15rem 0.4rem;
     
     svg {

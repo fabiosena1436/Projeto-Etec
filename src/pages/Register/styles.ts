@@ -6,16 +6,17 @@ export const Container = styled.div`
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: ${({ theme }) => theme.colors.background};
+  background: radial-gradient(ellipse at top left, #e5eff9, transparent 55%), #f5f7fa;
 `;
 
 export const Card = styled.div`
   background: white;
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
+  border-top: 4px solid #175cda;
   padding: 2.5rem;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 20px 65px #102a4310;
   border: 1px solid ${({ theme }) => theme.colors.border};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
@@ -95,6 +96,7 @@ export const FormGroup = styled.div`
 
     &:focus {
       border-color: ${({ theme }) => theme.colors.primary};
+      box-shadow: 0 0 0 3px #175cda18;
     }
     
     &:invalid:not(:placeholder-shown) {

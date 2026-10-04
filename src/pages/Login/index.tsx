@@ -1,6 +1,7 @@
+import { BrandMark } from '../../components/BrandMark';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Briefcase, User, Building, ArrowLeft, Eye, EyeOff, MailCheck } from 'lucide-react';
+import { User, Building, ArrowLeft, Eye, EyeOff, MailCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services/supabase/auth.service';
@@ -109,7 +110,7 @@ export function Login() {
     <S.LoginContainer>
       <S.LoginCard>
         <S.Brand>
-          <Briefcase size={48} />
+          <BrandMark size={44} />
           <h1>Conecta Sampaio</h1>
         </S.Brand>
 
@@ -150,8 +151,8 @@ export function Login() {
             </p>
             <S.Form onSubmit={handleForgot}>
               <S.FormGroup>
-                <label>E-mail</label>
-                <input required type="email" autoComplete="email" placeholder="seu@email.com" disabled={loading} value={email} onChange={e => setEmail(e.target.value)} />
+                <label htmlFor="email">E-mail</label>
+              <input id="email" required type="email" autoComplete="email" placeholder="seu@email.com" disabled={loading} value={email} onChange={e => setEmail(e.target.value)} />
               </S.FormGroup>
               <S.SubmitButton type="submit" disabled={loading}>{loading ? 'Enviando...' : 'Enviar link'}</S.SubmitButton>
             </S.Form>
@@ -168,14 +169,15 @@ export function Login() {
 
             <S.Form onSubmit={handleLogin}>
               <S.FormGroup>
-                <label>E-mail</label>
-                <input required type="email" autoComplete="email" placeholder="Digite seu e-mail" disabled={loading} value={email} onChange={e => setEmail(e.target.value)} />
+                <label htmlFor="email">E-mail</label>
+              <input id="email" required type="email" autoComplete="email" placeholder="Digite seu e-mail" disabled={loading} value={email} onChange={e => setEmail(e.target.value)} />
               </S.FormGroup>
               <S.FormGroup>
-                <label>Senha</label>
+                <label htmlFor="login-password">Senha</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     required
+                    id="login-password"
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     placeholder="Digite sua senha"

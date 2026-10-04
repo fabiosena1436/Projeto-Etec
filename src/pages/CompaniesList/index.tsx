@@ -34,8 +34,8 @@ export function CompaniesList() {
   return (
     <S.Container>
       <S.Header>
-        <h1>Empresas Parceiras</h1>
-        <p>Conheça as empresas de Teodoro Sampaio que estão contratando.</p>
+        <h1>Quem faz a cidade acontecer</h1>
+        <p>Conheça os negócios de Teodoro Sampaio e as oportunidades que eles publicam.</p>
       </S.Header>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.6rem 0.9rem', marginBottom: '1.5rem', maxWidth: 480 }}>

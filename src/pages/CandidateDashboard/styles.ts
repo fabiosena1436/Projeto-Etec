@@ -41,7 +41,7 @@ export const StatCard = styled.div`
   div.icon-wrapper {
     width: 40px;
     height: 40px;
-    border-radius: 8px;
+    border-radius: 12px;
     background-color: ${({ theme }) => theme.colors.primary}15;
     color: ${({ theme }) => theme.colors.primary};
     display: flex;
@@ -176,7 +176,7 @@ export const Field = styled.div<{ $basis?: string }>`
 
   input, textarea, select {
     padding: 0.75rem;
-    border-radius: 8px;
+    border-radius: 12px;
     border: 1px solid #cbd5e1;
     font-size: 0.95rem;
     font-family: inherit;
@@ -187,7 +187,7 @@ export const Field = styled.div<{ $basis?: string }>`
 
   textarea { resize: vertical; }
 
-  small { font-size: 0.75rem; color: ${({ theme }) => theme.colors.textLight}; }
+  small { font-size: 0.875rem; color: ${({ theme }) => theme.colors.textLight}; }
 `;
 
 export const ReadGrid = styled.div`
@@ -199,7 +199,7 @@ export const ReadGrid = styled.div`
 export const ReadItem = styled.div`
   span {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     color: ${({ theme }) => theme.colors.textLight};
     margin-bottom: 0.25rem;
   }
@@ -223,7 +223,7 @@ export const Btn = styled.button<{ $variant?: 'primary' | 'success' | 'ghost' | 
   justify-content: center;
   gap: 0.5rem;
   padding: 0.7rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;

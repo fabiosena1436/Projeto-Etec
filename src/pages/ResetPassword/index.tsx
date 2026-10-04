@@ -57,12 +57,12 @@ export function ResetPassword() {
         ) : (
           <S.Form onSubmit={handleSubmit}>
             <S.FormGroup>
-              <label>Nova senha</label>
-              <input required type="password" minLength={6} value={password} onChange={e => setPassword(e.target.value)} disabled={loading} placeholder="Mínimo 6 caracteres" />
+              <label htmlFor="field-1">Nova senha</label>
+          <input id="field-1" required type="password" minLength={6} value={password} onChange={e => setPassword(e.target.value)} disabled={loading} placeholder="Mínimo 6 caracteres" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>Confirmar nova senha</label>
-              <input required type="password" minLength={6} value={confirm} onChange={e => setConfirm(e.target.value)} disabled={loading} placeholder="Repita a senha" />
+              <label htmlFor="field-2">Confirmar nova senha</label>
+          <input id="field-2" required type="password" minLength={6} value={confirm} onChange={e => setConfirm(e.target.value)} disabled={loading} placeholder="Repita a senha" />
             </S.FormGroup>
             <S.SubmitButton type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar nova senha'}</S.SubmitButton>
           </S.Form>

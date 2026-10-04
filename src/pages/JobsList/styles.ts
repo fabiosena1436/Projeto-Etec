@@ -3,7 +3,7 @@ import styled from 'styled-components';
 export const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 3rem 2rem;
+  padding: 46px 24px;
   width: 100%;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -20,7 +20,7 @@ export const Header = styled.div`
     margin-bottom: 0.5rem;
 
     @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
     }
   }
 

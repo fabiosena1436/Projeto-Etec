@@ -1,5 +1,6 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/Header';
+import { Footer } from '../../components/Footer';
 import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
@@ -15,15 +16,11 @@ export function DefaultLayout() {
     <S.LayoutContainer>
       <Header />
       
-      <S.MainContent>
+      <S.MainContent id="conteudo" tabIndex={-1}>
         <Outlet />
       </S.MainContent>
       
-      <S.Footer>
-        <S.FooterContent>
-          <p>&copy; 2026 Conecta Teodoro Sampaio. Todos os direitos reservados.</p>
-        </S.FooterContent>
-      </S.Footer>
+      <Footer />
     </S.LayoutContainer>
   );
 }

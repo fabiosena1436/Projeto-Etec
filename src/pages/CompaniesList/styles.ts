@@ -1,9 +1,10 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
+  width:100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 46px 24px;
 `;
 
 export const Header = styled.div`
@@ -23,7 +24,7 @@ export const Header = styled.div`
 
 export const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%,300px), 1fr));
   gap: 1.5rem;
 `;
 

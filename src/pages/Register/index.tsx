@@ -1,6 +1,7 @@
+import { BrandMark } from '../../components/BrandMark';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Briefcase, User, Building, ArrowLeft, MailCheck } from 'lucide-react';
+import { User, Building, ArrowLeft, MailCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '../../services/supabase/auth.service';
 import { isSupabaseConfigured } from '../../lib/supabase';
@@ -136,8 +137,8 @@ export function Register() {
     <S.Container>
       <S.Card>
         <S.Brand>
-          <Briefcase size={48} />
-          <h1>Criar Nova Conta</h1>
+          <BrandMark size={44} />
+          <h1>Crie sua conta</h1><p>Seu próximo passo começa aqui.</p>
         </S.Brand>
 
         {!isSupabaseConfigured && (
@@ -174,26 +175,27 @@ export function Register() {
           <S.Form onSubmit={handleRegister}>
             <p style={{ textAlign: 'center', marginBottom: '1rem', fontWeight: 500 }}>Cadastro de Candidato</p>
             <S.FormGroup>
-              <label>Nome Completo</label>
-              <input required name="fullName" type="text" placeholder="Ex: João da Silva" disabled={loading} />
+              <label htmlFor="fullName">Nome Completo</label>
+              <input id="fullName" required name="fullName" type="text" placeholder="Ex: João da Silva" disabled={loading} autoComplete="name" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>E-mail</label>
-              <input required name="email" type="email" placeholder="Ex: joao@email.com" disabled={loading} />
+              <label htmlFor="email">E-mail</label>
+              <input id="email" required name="email" type="email" placeholder="Ex: joao@email.com" disabled={loading} autoComplete="email" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>WhatsApp (com DDD)</label>
-              <input required name="phone" type="tel" placeholder="Ex: (18) 99999-9999" disabled={loading} />
+              <label htmlFor="phone">WhatsApp (com DDD)</label>
+              <input id="phone" required name="phone" type="tel" placeholder="Ex: (18) 99999-9999" disabled={loading} autoComplete="tel" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>Senha</label>
-              <input required name="password" type="password" placeholder="Crie uma senha forte (min 6)" disabled={loading} />
+              <label htmlFor="password">Senha</label>
+              <input id="password" required name="password" type="password" minLength={6} placeholder="Pelo menos 6 caracteres" disabled={loading} autoComplete="new-password" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>Confirmar Senha</label>
-              <input required name="confirmPassword" type="password" placeholder="Digite a senha novamente" disabled={loading} />
+              <label htmlFor="confirmPassword">Confirmar Senha</label>
+              <input id="confirmPassword" required name="confirmPassword" type="password" placeholder="Digite a senha novamente" disabled={loading} autoComplete="new-password" />
             </S.FormGroup>
             
+            <p style={{ fontSize: 13, color: '#526578' }}>Saiba como seus dados são utilizados na <a href="/privacidade" style={{ color: '#175cda', textDecoration: 'underline' }}>página de privacidade</a>.</p>
             <S.SubmitButton type="submit" disabled={loading}>
               {loading ? 'Criando conta...' : 'Concluir Cadastro'}
             </S.SubmitButton>
@@ -221,39 +223,39 @@ export function Register() {
           <S.Form onSubmit={handleRegister}>
             <p style={{ textAlign: 'center', marginBottom: '1rem', fontWeight: 500 }}>Cadastro de Empresa / Loja</p>
             <S.FormGroup>
-              <label>Nome da Empresa (Razão Social ou Fantasia)</label>
-              <input required name="companyName" type="text" placeholder="Ex: Supermercado Central" disabled={loading} />
+              <label htmlFor="companyName">Nome da Empresa (Razão Social ou Fantasia)</label>
+              <input id="companyName" required name="companyName" type="text" placeholder="Ex: Supermercado Central" disabled={loading} autoComplete="organization" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>CNPJ (opcional no cadastro rápido)</label>
-              <input name="cnpj" type="text" inputMode="numeric" placeholder="00.000.000/0000-00" disabled={loading} />
+              <label htmlFor="cnpj">CNPJ (opcional no cadastro rápido)</label>
+              <input id="cnpj" name="cnpj" type="text" inputMode="numeric" placeholder="00.000.000/0000-00" disabled={loading} />
             </S.FormGroup>
             <S.FormGroup>
-              <label>Ramo de atuação</label>
-              <select name="industry" required disabled={loading} defaultValue="">
+              <label htmlFor="industry">Ramo de atuação</label>
+              <select id="industry" name="industry" required disabled={loading} defaultValue="">
                 <option value="" disabled>Selecione...</option>
                 {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
               </select>
             </S.FormGroup>
             <S.FormGroup>
-              <label>Endereço / Bairro</label>
-              <input name="location" type="text" placeholder="Ex: Centro, Teodoro Sampaio" disabled={loading} />
+              <label htmlFor="location">Endereço / Bairro</label>
+              <input id="location" name="location" type="text" placeholder="Ex: Centro, Teodoro Sampaio" disabled={loading} />
             </S.FormGroup>
             <S.FormGroup>
-              <label>E-mail Corporativo</label>
-              <input required name="email" type="email" placeholder="Ex: contato@empresa.com" disabled={loading} />
+              <label htmlFor="email">E-mail Corporativo</label>
+              <input id="email" required name="email" type="email" placeholder="Ex: contato@empresa.com" disabled={loading} autoComplete="email" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>WhatsApp (com DDD)</label>
-              <input required name="phone" type="tel" placeholder="Ex: (18) 99999-9999" disabled={loading} />
+              <label htmlFor="phone">WhatsApp (com DDD)</label>
+              <input id="phone" required name="phone" type="tel" placeholder="Ex: (18) 99999-9999" disabled={loading} autoComplete="tel" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>Senha</label>
-              <input required name="password" type="password" placeholder="Crie uma senha forte (min 6)" disabled={loading} />
+              <label htmlFor="password">Senha</label>
+              <input id="password" required name="password" type="password" placeholder="Crie uma senha forte (min 6)" disabled={loading} autoComplete="new-password" />
             </S.FormGroup>
             <S.FormGroup>
-              <label>Confirmar Senha</label>
-              <input required name="confirmPassword" type="password" placeholder="Digite a senha novamente" disabled={loading} />
+              <label htmlFor="confirmPassword">Confirmar Senha</label>
+              <input id="confirmPassword" required name="confirmPassword" type="password" placeholder="Digite a senha novamente" disabled={loading} autoComplete="new-password" />
             </S.FormGroup>
             
             <S.SubmitButton type="submit" disabled={loading} style={{ backgroundColor: '#0f172a' }}>

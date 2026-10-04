@@ -58,7 +58,7 @@ export const FormGroup = styled.div`
   input, select, textarea {
     padding: 0.75rem 1rem;
     border: 1px solid ${({ theme }) => theme.colors.border};
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 1rem;
     outline: none;
     transition: border-color 0.2s;
@@ -96,7 +96,7 @@ export const SubmitButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 1rem;
   transition: opacity 0.2s;

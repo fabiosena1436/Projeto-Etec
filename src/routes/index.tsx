@@ -11,6 +11,8 @@ import { SponsorProfile } from '../pages/SponsorProfile';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { ResetPassword } from '../pages/ResetPassword';
+import { Help } from '../pages/Help';
+import { Privacy } from '../pages/Privacy';
 
 import { CandidateDashboard } from '../pages/CandidateDashboard';
 import { CandidateProfile } from '../pages/CandidateProfile';
@@ -30,6 +32,8 @@ export function AppRoutes() {
       <Route path="/" element={<DefaultLayout />}>
         <Route index element={<Home />} />
         <Route path="vagas" element={<JobsList />} />
+        <Route path="ajuda" element={<Help />} />
+        <Route path="privacidade" element={<Privacy />} />
         <Route path="vagas/:id" element={<JobDetails />} />
         <Route path="empresas" element={<CompaniesList />} />
         <Route path="empresas/:id" element={<SponsorProfile />} />

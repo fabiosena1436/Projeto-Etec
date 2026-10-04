@@ -53,7 +53,7 @@ export const EmptyState = styled.div`
     background-color: ${({ theme }) => theme.colors.primary};
     color: white;
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    border-radius: 12px;
     font-weight: 600;
 
     &:hover {

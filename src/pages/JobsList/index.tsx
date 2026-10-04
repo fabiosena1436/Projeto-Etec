@@ -5,8 +5,8 @@ export function JobsList() {
   return (
     <S.Container>
       <S.Header>
-        <h1>Vagas Disponíveis</h1>
-        <p>Encontre a oportunidade ideal para sua carreira em Teodoro Sampaio</p>
+        <h1>Encontre seu próximo passo</h1>
+        <p>Explore oportunidades em Teodoro Sampaio. Consulte as vagas sem precisar criar uma conta.</p>
       </S.Header>
 
       <JobsBoard />

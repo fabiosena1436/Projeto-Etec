@@ -37,7 +37,7 @@ export const CreateJobButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   padding: 0.75rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   transition: background-color 0.2s;
 
@@ -66,7 +66,7 @@ export const MetricCard = styled.div`
   .icon {
     width: 48px;
     height: 48px;
-    border-radius: 8px;
+    border-radius: 12px;
     background: ${({ theme }) => theme.colors.background};
     display: flex;
     align-items: center;
@@ -249,7 +249,7 @@ export const UpsellBanner = styled.div`
     color: ${({ theme }) => theme.colors.primary};
     border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    border-radius: 12px;
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;

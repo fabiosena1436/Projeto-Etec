@@ -29,6 +29,7 @@ export function DashboardLayout() {
 
   return (
     <S.LayoutContainer>
+      <a className="skip-link" href="#conteudo">Ir para o conteúdo</a>
       <S.TopBar>
         <S.TopBarContent>
           <S.Brand
@@ -36,7 +37,7 @@ export function DashboardLayout() {
             style={{ cursor: 'pointer' }}
           >
             <Briefcase size={24} />
-            <span>Conecta jovens</span>
+            <span>Conecta Sampaio</span>
           </S.Brand>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -67,7 +68,7 @@ export function DashboardLayout() {
         </S.TopBarContent>
       </S.TopBar>
 
-      <S.MainContent>
+      <S.MainContent id="conteudo" tabIndex={-1}>
         <Outlet />
       </S.MainContent>
 
