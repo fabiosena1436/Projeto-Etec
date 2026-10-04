@@ -10,7 +10,7 @@ const EVENT = 'appliedJobsUpdated';
  * Em modo demonstração usa localStorage (via applicationsService).
  */
 export function useAppliedJobs() {
-  const { isAuthenticated, isCandidato, loading: authLoading } = useAuth();
+  const { profile, isAuthenticated, isCandidato, loading: authLoading } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +29,7 @@ export function useAppliedJobs() {
     } finally {
       setLoading(false);
     }
-  }, [authLoading, isAuthenticated, isCandidato]);
+  }, [authLoading, isAuthenticated, isCandidato, profile?.id]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
