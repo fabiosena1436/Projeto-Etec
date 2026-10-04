@@ -56,6 +56,11 @@ CREATE TRIGGER protect_profile_fields BEFORE UPDATE ON public.profiles FOR EACH 
 CREATE OR REPLACE FUNCTION public.protect_company_fields()
 RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF auth.uid() IS NOT NULL AND (NEW.is_sponsor OR NEW.is_verified OR NEW.sponsor_expires_at IS NOT NULL)
+    THEN RAISE EXCEPTION 'Campos administrativos não podem ser alterados'; END IF;
+    RETURN NEW;
+  END IF;
   IF auth.uid() IS NOT NULL AND (
     NEW.owner_profile_id IS DISTINCT FROM OLD.owner_profile_id OR NEW.is_sponsor IS DISTINCT FROM OLD.is_sponsor
     OR NEW.is_verified IS DISTINCT FROM OLD.is_verified OR NEW.sponsor_expires_at IS DISTINCT FROM OLD.sponsor_expires_at
@@ -63,7 +68,7 @@ BEGIN
   RETURN NEW;
 END $$;
 DROP TRIGGER IF EXISTS protect_company_fields ON public.companies;
-CREATE TRIGGER protect_company_fields BEFORE UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.protect_company_fields();
+CREATE TRIGGER protect_company_fields BEFORE INSERT OR UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.protect_company_fields();
 CREATE OR REPLACE FUNCTION public.protect_application_fields()
 RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
@@ -83,12 +88,13 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
   SELECT EXISTS (SELECT 1 FROM public.applications WHERE job_id = job_uuid AND candidate_id = auth.uid());
 $$;
 DROP POLICY IF EXISTS "Vagas ativas visíveis publicamente" ON public.jobs;
+DROP POLICY IF EXISTS jobs_read ON public.jobs;
 CREATE POLICY jobs_read ON public.jobs FOR SELECT USING (status = 'Ativa' OR public.can_manage_company(company_id) OR public.has_applied_to_job(id));
 
 -- File writes are scoped to the owner of the folder, not every signed-in user.
 DO $$ DECLARE p record; BEGIN
   FOR p IN SELECT policyname FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects'
-    AND policyname IN ('Empresa pode upload logo', 'Empresa pode atualizar logo', 'Empresa pode deletar logo', 'Empresa patrocinadora upload promoção', 'Empresa patrocinadora gerencia promoção', 'Empresa patrocinadora deleta promoção', 'Resumes privado - dono leitura')
+    AND policyname IN ('Empresa pode upload logo', 'Empresa pode atualizar logo', 'Empresa pode deletar logo', 'Empresa patrocinadora upload promoção', 'Empresa patrocinadora gerencia promoção', 'Empresa patrocinadora deleta promoção', 'Resumes privado - dono leitura', 'company_logo_owner', 'promotion_file_owner', 'resumes_read')
   LOOP EXECUTE format('DROP POLICY %I ON storage.objects', p.policyname); END LOOP;
 END $$;
 CREATE POLICY company_logo_owner ON storage.objects FOR ALL TO authenticated
