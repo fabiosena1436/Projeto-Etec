@@ -1,17 +1,27 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Building, Smartphone } from 'lucide-react';
 import { SponsorCarousel } from '../../components/SponsorCarousel';
 import { JobsBoard } from '../../components/JobsBoard';
 import { DatabaseStatus } from '../../components/DatabaseStatus';
 import { useAuth } from '../../hooks/useAuth';
+import { metricsService } from '../../services/supabase/metrics.service';
+import type { PublicMetrics } from '../../services/supabase/metrics.service';
 import * as S from './styles';
+
+const fmt = (n: number) => n.toLocaleString('pt-BR');
 
 export function Home() {
   const navigate = useNavigate();
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, loading } = useAuth();
+  const [metrics, setMetrics] = useState<PublicMetrics | null>(null);
 
   useEffect(() => {
+    metricsService.getPublic().then(setMetrics).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
     if (isAuthenticated) {
       if (role === 'candidato') {
         navigate('/candidato/painel', { replace: true });
@@ -19,7 +29,7 @@ export function Home() {
         navigate('/empresa/painel', { replace: true });
       }
     }
-  }, [isAuthenticated, role, navigate]);
+  }, [isAuthenticated, role, navigate, loading]);
 
   if (isAuthenticated) {
     return <></>;
@@ -37,24 +47,26 @@ export function Home() {
             <S.PrimaryButton onClick={() => navigate('/login?type=candidato')}>Sou Candidato</S.PrimaryButton>
             <S.SecondaryButton onClick={() => navigate('/login?type=empresa')}>Sou Empresa</S.SecondaryButton>
           </S.ButtonGroup>
-          <div style={{ marginTop: '2rem', maxWidth: '600px' }}>
-            <DatabaseStatus />
-          </div>
+          {import.meta.env.DEV && (
+            <div style={{ marginTop: '2rem', maxWidth: '600px' }}>
+              <DatabaseStatus />
+            </div>
+          )}
         </S.HeroContent>
       </S.HeroSection>
  <SponsorCarousel />
       <S.StatsSection>
         <S.StatCard>
-          <h3>128</h3>
+          <h3>{metrics ? fmt(metrics.active_jobs) : '—'}</h3>
           <p>Vagas Abertas</p>
         </S.StatCard>
         <S.StatCard>
-          <h3>67</h3>
-          <p>Empresas Parceiras</p>
+          <h3>{metrics ? fmt(metrics.companies) : '—'}</h3>
+          <p>Empresas Cadastradas</p>
         </S.StatCard>
         <S.StatCard>
-          <h3>1.240</h3>
-          <p>Currículos Cadastrados</p>
+          <h3>{metrics ? fmt(metrics.candidates) : '—'}</h3>
+          <p>Candidatos Cadastrados</p>
         </S.StatCard>
       </S.StatsSection>
 

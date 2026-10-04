@@ -13,6 +13,12 @@ export interface Job {
   description: string;
   postedAt: string;
   status: JobStatusLegacy;
+  /** Campos denormalizados vindos da view v_jobs_with_company (opcionais no mock) */
+  companyName?: string;
+  companyLogoUrl?: string | null;
+  companyIsSponsor?: boolean;
+  viewsCount?: number;
+  applicationsCount?: number;
 }
 
 export const jobsMock: Job[] = [

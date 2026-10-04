@@ -84,12 +84,13 @@ export const FormGroup = styled.div`
     color: ${({ theme }) => theme.colors.text};
   }
 
-  input {
+  input, select {
     padding: 0.75rem 1rem;
     border-radius: 8px;
     border: 1px solid ${({ theme }) => theme.colors.border};
     font-size: 1rem;
     outline: none;
+    background: white;
     transition: border-color 0.2s;
 
     &:focus {

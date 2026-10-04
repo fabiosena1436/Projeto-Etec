@@ -8,8 +8,8 @@ export function Header() {
   const navigate = useNavigate();
   const { isAuthenticated, role, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 

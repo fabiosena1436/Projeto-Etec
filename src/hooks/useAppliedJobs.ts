@@ -1,19 +1,57 @@
-import { useState, useEffect } from 'react';
-import { apiService } from '../services/api';
+import { useCallback, useEffect, useState } from 'react';
+import { applicationsService } from '../services/supabase/applications.service';
 import { useAuth } from './useAuth';
+import type { Application } from '../types/database';
+
+const EVENT = 'appliedJobsUpdated';
+
+/**
+ * Candidaturas do candidato logado, sincronizadas com o Supabase.
+ * Em modo demonstração usa localStorage (via applicationsService).
+ */
 export function useAppliedJobs() {
-  const { user } = useAuth();
-  const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
+  const { isAuthenticated, isCandidato, loading: authLoading } = useAuth();
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    if (authLoading) return;
+    if (!isAuthenticated || !isCandidato) {
+      setApplications([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      const apps = await applicationsService.getMyApplications();
+      setApplications(apps);
+    } catch (e) {
+      console.error('Erro ao carregar candidaturas', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [authLoading, isAuthenticated, isCandidato]);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
   useEffect(() => {
-    let active = true;
-    const load = () => {
-      if (user?.role !== 'candidato') { setAppliedJobIds([]); return; }
-      apiService.getApplications().then(rows => { if (active) setAppliedJobIds(rows.map(row => row.jobId)); }).catch(() => { if (active) setAppliedJobIds([]); });
-    };
-    load(); window.addEventListener('applicationsUpdated', load);
-    return () => { active = false; window.removeEventListener('applicationsUpdated', load); };
-  }, [user?.id, user?.role]);
-  const applyToJob = async (id: string) => { await apiService.apply(id); window.dispatchEvent(new Event('applicationsUpdated')); };
-  const withdrawFromJob = async (id: string) => { await apiService.withdraw(id); window.dispatchEvent(new Event('applicationsUpdated')); };
-  return { appliedJobIds, applyToJob, withdrawFromJob, hasApplied: (id: string) => appliedJobIds.includes(id) };
+    const handler = () => refresh();
+    window.addEventListener(EVENT, handler);
+    return () => window.removeEventListener(EVENT, handler);
+  }, [refresh]);
+
+  const appliedJobIds = applications.map(a => a.job_id);
+
+  const applyToJob = async (jobId: string, coverLetter?: string) => {
+    await applicationsService.apply(jobId, coverLetter);
+    window.dispatchEvent(new CustomEvent(EVENT));
+  };
+
+  const withdrawFromJob = async (jobId: string) => {
+    await applicationsService.withdraw(jobId);
+    window.dispatchEvent(new CustomEvent(EVENT));
+  };
+
+  const hasApplied = (jobId: string) => appliedJobIds.includes(jobId);
+
+  return { applications, appliedJobIds, loading, applyToJob, withdrawFromJob, hasApplied, refresh };
 }

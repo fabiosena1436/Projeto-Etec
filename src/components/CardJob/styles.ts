@@ -48,7 +48,13 @@ export const CompanyHeader = styled.div`
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    background-color: ${({ theme }) => theme.colors.border};
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.primary}15;
 
     @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
       width: 40px;

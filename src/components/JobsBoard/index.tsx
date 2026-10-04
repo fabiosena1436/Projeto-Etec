@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { Job } from '../../data/jobs';
-import type { Company } from '../../data/companies';
 import { apiService } from '../../services/api';
 import { CardJob } from '../CardJob';
 import { CardJobSkeleton } from '../CardJobSkeleton';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import * as S from './styles';
 
 interface JobsBoardProps {
@@ -12,54 +11,49 @@ interface JobsBoardProps {
   hideSearch?: boolean;
 }
 
-const CATEGORIES = ['Todos', 'Presencial', 'Remoto', 'Estágio', 'Jovem Aprendiz', 'Freelancer'];
+const CATEGORIES = ['Todos', 'Presencial', 'Remoto', 'Híbrido', 'Estágio', 'Jovem Aprendiz', 'Freelancer', 'Temporário'];
+
+function useDebounce<T>(value: T, delay = 350) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
 
 export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const debouncedSearch = useDebounce(searchTerm.trim());
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchData() {
       setIsLoading(true);
+      setError(null);
       try {
-        const [fetchedJobs, fetchedCompanies] = await Promise.all([
-          apiService.getJobs(),
-          apiService.getCompanies()
-        ]);
-        setJobs(fetchedJobs);
-        setCompanies(fetchedCompanies);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
+        const fetched = await apiService.getJobs({
+          search: debouncedSearch || undefined,
+          type: selectedCategory === 'Todos' ? undefined : selectedCategory,
+          limit: maxItems && !debouncedSearch && selectedCategory === 'Todos' ? maxItems : 100,
+        });
+        if (!cancelled) setJobs(fetched);
+      } catch (err) {
+        console.error('Failed to fetch jobs:', err);
+        if (!cancelled) setError('Não foi possível carregar as vagas. Tente novamente.');
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
     fetchData();
-  }, []);
+    return () => { cancelled = true; };
+  }, [debouncedSearch, selectedCategory, maxItems]);
 
-  let filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todos' || job.type === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
-
-  // Sort so that sponsored jobs appear first
-  filteredJobs.sort((a, b) => {
-    const companyA = companies.find(c => c.id === a.companyId);
-    const companyB = companies.find(c => c.id === b.companyId);
-    const isSponsorA = companyA?.isSponsor ? 1 : 0;
-    const isSponsorB = companyB?.isSponsor ? 1 : 0;
-    return isSponsorB - isSponsorA;
-  });
-
-  if (maxItems && !searchTerm && selectedCategory === 'Todos') {
-    filteredJobs = filteredJobs.slice(0, maxItems);
-  }
+  const visible = maxItems && !debouncedSearch && selectedCategory === 'Todos' ? jobs.slice(0, maxItems) : jobs;
 
   return (
     <S.BoardContainer>
@@ -67,14 +61,20 @@ export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
         <S.SearchContainer>
           <S.SearchInputWrapper>
             <Search size={20} color="#64748b" />
-            <input 
-              type="text" 
-              placeholder="Buscar por cargo, palavra-chave ou empresa..." 
+            <input
+              type="search"
+              aria-label="Buscar vagas"
+              placeholder="Buscar por cargo, palavra-chave ou empresa..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {searchTerm && (
+              <button type="button" aria-label="Limpar busca" onClick={() => setSearchTerm('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex' }}>
+                <X size={18} />
+              </button>
+            )}
           </S.SearchInputWrapper>
-          
+
           <S.FilterContainer>
             {CATEGORIES.map(category => (
               <S.FilterButton
@@ -91,16 +91,18 @@ export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
 
       <S.JobsGrid>
         {isLoading ? (
-          Array.from({ length: maxItems || 6 }).map((_, index) => (
-            <CardJobSkeleton key={index} />
-          ))
-        ) : filteredJobs.length > 0 ? (
-          filteredJobs.map(job => (
-            <CardJob key={job.id} job={job} />
-          ))
+          Array.from({ length: maxItems || 6 }).map((_, index) => <CardJobSkeleton key={index} />)
+        ) : error ? (
+          <S.EmptyState><p>{error}</p></S.EmptyState>
+        ) : visible.length > 0 ? (
+          visible.map(job => <CardJob key={job.id} job={job} />)
         ) : (
           <S.EmptyState>
-            <p>Nenhuma vaga encontrada com os filtros atuais.</p>
+            <p>
+              {debouncedSearch || selectedCategory !== 'Todos'
+                ? 'Nenhuma vaga encontrada com os filtros atuais.'
+                : 'Ainda não há vagas publicadas. Volte em breve!'}
+            </p>
           </S.EmptyState>
         )}
       </S.JobsGrid>
