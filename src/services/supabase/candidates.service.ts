@@ -149,7 +149,8 @@ export const candidatesService = {
     const path = `${user.id}/curriculo.${ext}`;
     const { error } = await supabase.storage.from('resumes').upload(path, file, { upsert: true, cacheControl: '3600' });
     if (error) throw new Error(error.message);
-    await (supabase as any).from('candidates').update({ resume_url: path }).eq('profile_id', user.id);
+    const { error: profileError } = await (supabase as any).from('candidates').update({ resume_url: path }).eq('profile_id', user.id);
+    if (profileError) throw new Error(profileError.message);
     return path;
   },
 
@@ -173,7 +174,8 @@ export const candidatesService = {
     if (error) throw new Error(error.message);
     const { data } = supabase.storage.from('avatars').getPublicUrl(path);
     const url = `${data.publicUrl}?v=${Date.now()}`;
-    await (supabase as any).from('profiles').update({ avatar_url: url }).eq('id', user.id);
+    const { error: profileError } = await (supabase as any).from('profiles').update({ avatar_url: url }).eq('id', user.id);
+    if (profileError) throw new Error(profileError.message);
     return url;
   },
 

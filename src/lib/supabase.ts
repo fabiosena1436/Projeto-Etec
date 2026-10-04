@@ -3,10 +3,15 @@ import type { Database } from '../types/database';
 
 // Validação de envs com fallback para desenvolvimento
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Se não houver envs, usamos modo mock (útil para dev sem banco ainda)
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(supabaseUrl)
+  && supabaseAnonKey && !supabaseAnonKey.startsWith('sb_secret_')
+  && !supabaseUrl.includes('seu-projeto') && !supabaseAnonKey.includes('sua-anon-key')
+);
+export const isDemoMode = import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO === 'true' && !isSupabaseConfigured;
 
 if (!isSupabaseConfigured) {
   console.warn(

@@ -115,11 +115,12 @@ export const authService = {
 
     if (error) throw new Error(translateAuthError(error.message));
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
       .single();
+    if (profileError || !profile) throw new Error('Não foi possível carregar seu perfil. Tente novamente.');
 
     // fire-and-forget
     void (supabase as any)

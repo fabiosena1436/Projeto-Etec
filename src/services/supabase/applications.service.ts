@@ -68,9 +68,13 @@ export const applicationsService = {
       }));
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Não autenticado');
     const { data, error } = await (supabase as any)
       .from('applications')
       .select('*, job:jobs(*, company:companies(*))')
+      .eq('candidate_id', user.id)
+      .neq('status', 'desistiu')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -154,15 +158,6 @@ export const applicationsService = {
       .select()
       .single();
     if (error) throw error;
-    if (data) {
-      await (supabase as any).from('notifications').insert({
-        profile_id: (data as any).candidate_id,
-        title: `Candidatura ${status}`,
-        message: `Sua candidatura foi atualizada para: ${status}`,
-        type: 'application',
-        link: `/vagas/${(data as any).job_id}`,
-      });
-    }
     return data as unknown as Application;
   },
 
@@ -179,7 +174,7 @@ export const applicationsService = {
     if (!user) throw new Error('Não autenticado');
     const { error } = await (supabase as any)
       .from('applications')
-      .delete()
+      .update({ status: 'desistiu' })
       .eq('job_id', jobId)
       .eq('candidate_id', user.id);
     if (error) throw error;
@@ -198,6 +193,7 @@ export const applicationsService = {
       .select('id')
       .eq('job_id', jobId)
       .eq('candidate_id', user.id)
+      .neq('status', 'desistiu')
       .maybeSingle();
     if (error) return false;
     return !!data;
@@ -215,7 +211,7 @@ export const applicationsService = {
     }
     const { data, error } = await (supabase as any)
       .from('saved_jobs')
-      .select('*, job:v_jobs_with_company(*)')
+      .select('*, job:jobs(*, company:companies(*))')
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data as unknown as SavedJob[];

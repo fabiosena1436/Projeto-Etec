@@ -128,7 +128,7 @@ BEGIN
   PERFORM pg_advisory_xact_lock(hashtextextended(v_uid::text, 0));
   SELECT company_id INTO v_company FROM public.jobs WHERE id = job_uuid AND status = 'Ativa' FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Vaga não encontrada ou não está ativa'; END IF;
-  IF length(coalesce(cover_letter_text,'')) > 5000 THEN RAISE EXCEPTION 'Carta de apresentação muito longa'; END IF;
+  IF length(coalesce(cover_letter_text,'')) > 2000 THEN RAISE EXCEPTION 'Carta de apresentação muito longa'; END IF;
   IF (SELECT count(*) FROM public.applications WHERE candidate_id = v_uid AND created_at >= now() - interval '1 hour') >= 10 THEN RAISE EXCEPTION 'Muitas candidaturas. Aguarde uma hora'; END IF;
   IF EXISTS (SELECT 1 FROM public.applications WHERE candidate_id = v_uid AND job_id = job_uuid) THEN RAISE EXCEPTION 'Você já se candidatou a esta vaga'; END IF;
   INSERT INTO public.applications (job_id, candidate_id, company_id, cover_letter) VALUES (job_uuid, v_uid, v_company, cover_letter_text) RETURNING id INTO v_id;

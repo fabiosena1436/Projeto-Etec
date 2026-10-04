@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isDemoMode } from '../lib/supabase';
 import type { Profile, UserRole } from '../types/database';
 
 const MOCK_STORAGE_KEY = '@ConectaTeodoro:auth';
@@ -61,7 +61,7 @@ function readMockRole(): AuthRole {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const isMock = !isSupabaseConfigured || !supabase;
+  const isMock = isDemoMode;
 
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(() => {
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return role ? buildMockProfile(role) : null;
   });
   const [loading, setLoading] = useState(!isMock);
-  const fetchingFor = useRef<string | null>(null);
+  const fetchingFor = useRef(0);
 
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     if (!supabase) return null;
@@ -89,6 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     const resolveSession = async (nextSession: Session | null) => {
+      const requestId = ++fetchingFor.current;
+      if (cancelled) return;
       setSession(nextSession);
       if (!nextSession?.user) {
         setProfile(null);
@@ -96,17 +98,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       // evita corrida entre getSession e onAuthStateChange
-      fetchingFor.current = nextSession.user.id;
       const p = await fetchProfile(nextSession.user.id);
-      if (cancelled || fetchingFor.current !== nextSession.user.id) return;
+      if (cancelled || fetchingFor.current !== requestId) return;
       setProfile(p);
       setLoading(false);
     };
 
-    supabase.auth.getSession().then(({ data }) => resolveSession(data.session));
+    supabase.auth.getSession().then(({ data }) => resolveSession(data.session)).catch(() => {
+      if (!cancelled) { setProfile(null); setLoading(false); }
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      resolveSession(nextSession);
+      // Supabase auth callbacks hold an internal lock; queries run after it is released.
+      setTimeout(() => { if (!cancelled) void resolveSession(nextSession); }, 0);
     });
 
     return () => {
@@ -142,7 +146,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(MOCK_STORAGE_KEY);
     localStorage.removeItem('@ConectaTeodoro:appliedJobs');
     if (!isMock && supabase) {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     }
     setSession(null);
     setProfile(null);
