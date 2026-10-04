@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:database": "node tests/database-security.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

@@ -86,7 +86,7 @@ BEGIN
   IF FOUND THEN RETURN v_company; END IF;
 
   SELECT * INTO v_profile FROM public.profiles WHERE id = v_uid;
-  IF v_profile.role <> 'empresa' THEN RAISE EXCEPTION 'Apenas perfis de empresa'; END IF;
+  IF NOT FOUND OR v_profile.role <> 'empresa' THEN RAISE EXCEPTION 'Apenas perfis de empresa'; END IF;
 
   INSERT INTO public.companies (owner_profile_id, name, slug, industry, location, city, contact_email, phone)
   VALUES (
@@ -194,16 +194,21 @@ DECLARE
   v_uid UUID := auth.uid();
   s TEXT;
   v_skill_id UUID;
+  v_slug TEXT;
 BEGIN
   IF v_uid IS NULL THEN RAISE EXCEPTION 'Não autenticado'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = v_uid AND role = 'candidato') THEN RAISE EXCEPTION 'Apenas candidatos podem editar habilidades'; END IF;
+  IF cardinality(skill_names) > 50 THEN RAISE EXCEPTION 'Limite de 50 habilidades'; END IF;
 
   DELETE FROM public.candidate_skills WHERE candidate_id = v_uid;
 
   FOREACH s IN ARRAY COALESCE(skill_names, '{}') LOOP
     s := trim(s);
     CONTINUE WHEN s = '';
+    IF char_length(s) > 100 THEN RAISE EXCEPTION 'Habilidade muito longa'; END IF;
+    v_slug := COALESCE(NULLIF(public.slugify(s), ''), 'skill') || '-' || substr(md5(s), 1, 12);
     INSERT INTO public.skills (name, slug, category)
-    VALUES (s, public.slugify(s), 'Geral')
+    VALUES (s, v_slug, 'Geral')
     ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
     RETURNING id INTO v_skill_id;
 

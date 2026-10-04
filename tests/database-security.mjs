@@ -55,6 +55,10 @@ try {
   await assert.rejects(asUser(ids[0],"UPDATE applications SET status='aprovada' WHERE id=$1",[app]),/só pode desistir/);
   await assert.rejects(asUser(ids[2],'UPDATE applications SET company_id=$1 WHERE id=$2',[secondCompany,app]),/Identidade/);
   await asUser(ids[2],"UPDATE applications SET status='visualizada' WHERE id=$1",[app]);
+  assert.equal((await asUser(ids[0],"SELECT * FROM notifications WHERE title='Sua candidatura foi atualizada'")).rows.length,1,'company review notifies the candidate');
+  await asUser(ids[0],"SELECT set_my_skills(ARRAY['C++','C#','React','React'])");
+  assert.equal((await asUser(ids[0],'SELECT * FROM candidate_skills')).rows.length,3,'skill slug collisions and duplicates are handled');
+  await assert.rejects(asUser(ids[2],"SELECT set_my_skills(ARRAY['React'])"),/Apenas candidatos/);
   await asUser(ids[0],'SELECT toggle_saved_job($1)',[job]);
   assert.equal((await asUser(ids[1],'SELECT * FROM saved_jobs')).rows.length,0,'saved jobs are private');
   await asUser(ids[2],"UPDATE jobs SET status='Encerrada' WHERE id=$1",[job]);

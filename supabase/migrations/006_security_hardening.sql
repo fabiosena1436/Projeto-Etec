@@ -80,6 +80,19 @@ END $$;
 DROP TRIGGER IF EXISTS protect_application_fields ON public.applications;
 CREATE TRIGGER protect_application_fields BEFORE UPDATE ON public.applications FOR EACH ROW EXECUTE FUNCTION public.protect_application_fields();
 
+-- Notify the candidate from a trusted database trigger after company review.
+CREATE OR REPLACE FUNCTION public.notify_application_status()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NEW.status IS DISTINCT FROM OLD.status AND NEW.status <> 'desistiu' THEN
+    INSERT INTO public.notifications (profile_id,title,message,type,link)
+    VALUES (NEW.candidate_id, 'Sua candidatura foi atualizada', 'A empresa atualizou o status da sua candidatura para ' || NEW.status::text || '.', 'application', '/candidato/candidaturas');
+  END IF;
+  RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS notify_application_status ON public.applications;
+CREATE TRIGGER notify_application_status AFTER UPDATE OF status ON public.applications FOR EACH ROW EXECUTE FUNCTION public.notify_application_status();
+
 -- Preserve application history after the vacancy is closed; the public view
 -- evaluates the caller's RLS instead of bypassing it as the view owner.
 ALTER VIEW public.v_jobs_with_company SET (security_invoker = true);
