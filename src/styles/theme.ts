@@ -1,19 +1,20 @@
 export const theme = {
   colors: {
-    primary: '#2563eb', // Blue
-    primaryHover: '#1d4ed8',
-    secondary: '#0f172a', // Slate
-    secondaryHover: '#1e293b',
-    background: '#f8fafc', // Light gray background
+    primary: '#175cda',
+    primaryHover: '#1046aa',
+    secondary: '#102a43',
+    secondaryHover: '#183b56',
+    accent: '#0c6d5d',
+    background: '#f5f7fa',
     surface: '#ffffff', // White cards
-    text: '#334155', // Slate gray text
-    textLight: '#64748b',
-    border: '#e2e8f0',
-    success: '#10b981',
-    error: '#ef4444',
+    text: '#21374b',
+    textLight: '#526578',
+    border: '#dbe3eb',
+    success: '#087653',
+    error: '#c53030',
   },
   fonts: {
-    main: "'Inter', sans-serif",
+    main: "'Segoe UI', Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
   },
   breakpoints: {
     mobile: '576px',

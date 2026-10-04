@@ -1,7 +1,6 @@
-import { useNavigate } from 'react-router-dom';
 import type { Job } from '../../data/jobs';
 import { useAppliedJobs } from '../../hooks/useAppliedJobs';
-import { MapPin, Briefcase, DollarSign, CheckCircle, Star } from 'lucide-react';
+import { MapPin, Briefcase, DollarSign, CheckCircle, Star, ArrowUpRight, Clock3 } from 'lucide-react';
 import * as S from './styles';
 
 interface CardJobProps {
@@ -19,12 +18,11 @@ function timeAgo(date: string) {
 }
 
 export function CardJob({ job }: CardJobProps) {
-  const navigate = useNavigate();
   const { hasApplied } = useAppliedJobs();
   const companyName = job.companyName || 'Empresa Confidencial';
 
   return (
-    <S.CardContainer onClick={() => navigate(`/vagas/${job.id}`)} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/vagas/${job.id}`)}>
+    <S.CardContainer to={`/vagas/${job.id}`} aria-label={`${job.title} — ${companyName}. Ver detalhes da vaga`}>
       <S.CompanyHeader>
         {job.companyLogoUrl ? (
           <img src={job.companyLogoUrl} alt={`Logo ${companyName}`} loading="lazy" />
@@ -56,9 +54,7 @@ export function CardJob({ job }: CardJobProps) {
         {job.description.length > 110 ? `${job.description.substring(0, 110)}...` : job.description}
       </S.Description>
 
-      <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#94a3b8' }}>
-        {timeAgo(job.postedAt)}
-      </div>
+      <S.CardFooter><span><Clock3 size={14} /> {timeAgo(job.postedAt)}</span><strong>Ver oportunidade <ArrowUpRight size={16} /></strong></S.CardFooter>
     </S.CardContainer>
   );
 }

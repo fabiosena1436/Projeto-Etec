@@ -8,13 +8,15 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   html, body {
-    overflow-x: hidden;
+    min-width: 320px;
+    scroll-behavior: smooth;
   }
 
   body {
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.text};
     -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
     font-family: ${({ theme }) => theme.fonts.main};
   }
 
@@ -23,15 +25,30 @@ export const GlobalStyle = createGlobalStyle`
     font-size: 1rem;
     font-weight: 400;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-      font-size: 0.875rem; /* 14px on mobile for app-like density */
-    }
   }
 
   button {
     cursor: pointer;
     border: none;
     background: transparent;
+    min-height: 44px;
+  }
+
+  input, select, textarea { max-width: 100%; min-width: 0; }
+  input, select { min-height: 44px; }
+  img { max-width: 100%; }
+  h1, h2, h3, h4 { line-height: 1.25; letter-spacing: -0.025em; }
+  h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
+  p { overflow-wrap: break-word; }
+  ::selection { background: #c9e3fc; color: #102a43; }
+  :focus-visible { outline: 3px solid #175cda; outline-offset: 4px; }
+  button:disabled { cursor: not-allowed; }
+  [id] { scroll-margin-top: 100px; }
+  .skip-link { position: fixed; top: -80px; left: 16px; z-index: 1000; background: white; color: #102a43; padding: 12px 20px; border: 2px solid #175cda; border-radius: 10px; }
+  .skip-link:focus { top: 12px; }
+  @media (prefers-reduced-motion: reduce) {
+    html, body { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 
   a {

@@ -1,110 +1,28 @@
-import styled from 'styled-components';
-
+﻿import styled from 'styled-components';
 export const HeaderContainer = styled.header`
-  background-color: ${({ theme }) => theme.colors.surface};
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  width: 100%;
+  background: #ffffffed; backdrop-filter: blur(16px); border-bottom: 1px solid ${({ theme }) => theme.colors.border}; position: sticky; top: 0; z-index: 100;
 `;
-
 export const HeaderContent = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    padding: 1rem;
-  }
+  max-width: 1200px; margin: auto; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  @media(max-width: 900px) { padding: 14px 20px; }
 `;
-
 export const Logo = styled.div`
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.primary};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: 1.15rem;
-    
-    svg, img {
-      width: 24px;
-      height: 24px;
-    }
+  display: flex; align-items: center; gap: 10px; color: ${({ theme }) => theme.colors.secondary}; font-size: 20px; font-weight: 600; line-height: 1.2; white-space: nowrap;
+  strong { font-weight: 800; } small { display: block; font-size: 11px; font-weight: 500; color: ${({ theme }) => theme.colors.textLight}; margin-top: 4px; letter-spacing: .02em; }
+`;
+export const Nav = styled.nav<{ $open: boolean }>`
+  display: flex; gap: 25px; align-items: center; font-size: 14px; font-weight: 600;
+  > a { padding: 10px 0; color: ${({ theme }) => theme.colors.textLight}; }
+  > a:hover, > a.active { color: ${({ theme }) => theme.colors.primary}; }
+  @media(max-width: 900px) {
+    display: ${({ $open }) => $open ? 'flex' : 'none'}; position: absolute; top: 100%; left: 0; right: 0; background: white; padding: 20px; flex-direction: column; align-items: stretch; gap: 8px; border-bottom: 1px solid #dbe3eb; box-shadow: 0 16px 30px #102a4310;
+    > a { padding: 12px; border-radius: 8px; } > a.active { background: #edf4ff; }
   }
 `;
-
-export const Nav = styled.nav`
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-
-  a {
-    color: ${({ theme }) => theme.colors.text};
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
-
-    &:hover {
-      color: ${({ theme }) => theme.colors.primary};
-    }
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    display: none; /* Esconde no mobile para sensação de App */
-  }
-`;
-
-export const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-`;
-
+export const ButtonGroup = styled.div`display:flex; gap: 10px; @media(max-width:900px) { margin-top: 8px; > button { flex: 1; } }`;
 export const LoginButton = styled.button`
-  background: transparent;
-  color: ${({ theme }) => theme.colors.primary};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  padding: 0.5rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme }) => theme.colors.surface};
-  }
+  display: inline-flex; justify-content: center; align-items: center; gap: 7px; border: 1px solid #dbe3eb; color: ${({ theme }) => theme.colors.secondary}; padding: 10px 17px; border-radius: 9px; font-size: 14px; font-weight: 650;
+  &:hover { background: #f0f5fa; }
 `;
-
-export const RegisterButton = styled(LoginButton)`
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surface};
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.primaryHover};
-    border-color: ${({ theme }) => theme.colors.primaryHover};
-  }
-`;
-
-export const MobileMenuButton = styled.button`
-  display: none;
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.text};
-  cursor: pointer;
-  padding: 0.5rem;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-`;
+export const RegisterButton = styled(LoginButton)`background: ${({ theme }) => theme.colors.primary}; color: white; border-color: transparent; &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }`;
+export const MobileMenuButton = styled.button`display: none; align-items: center; justify-content: center; width:44px; color:#102a43; border:1px solid #dbe3eb; border-radius:9px; @media(max-width:900px){display:flex;}`;

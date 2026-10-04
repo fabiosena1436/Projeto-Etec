@@ -1,6 +1,9 @@
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
-export const CardContainer = styled.div`
+export const CardContainer = styled(Link)`
+  display: flex;
+  flex-direction: column;
   background-color: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 12px;
@@ -127,4 +130,9 @@ export const Description = styled.p`
     font-size: 0.875rem;
     line-height: 1.4;
   }
+`;
+
+export const CardFooter = styled.div`
+  margin-top:auto;padding-top:20px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:#526578;
+  span,strong{display:inline-flex;gap:6px;align-items:center;}strong{color:#175cda;font-weight:650;}
 `;

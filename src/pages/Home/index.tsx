@@ -1,125 +1,65 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Users, Building, Smartphone } from 'lucide-react';
+﻿import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, ArrowUpRight, MapPin, Search, BriefcaseBusiness, Building2, ShieldCheck, UserRound, Check } from 'lucide-react';
 import { SponsorCarousel } from '../../components/SponsorCarousel';
 import { JobsBoard } from '../../components/JobsBoard';
-import { DatabaseStatus } from '../../components/DatabaseStatus';
-import { useAuth } from '../../hooks/useAuth';
 import { metricsService } from '../../services/supabase/metrics.service';
 import type { PublicMetrics } from '../../services/supabase/metrics.service';
 import * as S from './styles';
 
-const fmt = (n: number) => n.toLocaleString('pt-BR');
-
 export function Home() {
   const navigate = useNavigate();
-  const { isAuthenticated, role, loading } = useAuth();
+  const [search, setSearch] = useState('');
   const [metrics, setMetrics] = useState<PublicMetrics | null>(null);
-
   useEffect(() => {
-    metricsService.getPublic().then(setMetrics).catch(() => {});
+    let active = true;
+    metricsService.getPublic().then(value => { if(active) setMetrics(value); }).catch(() => {});
+    return () => { active = false; };
   }, []);
-
-  useEffect(() => {
-    if (loading) return;
-    if (isAuthenticated) {
-      if (role === 'candidato') {
-        navigate('/candidato/painel', { replace: true });
-      } else if (role === 'empresa') {
-        navigate('/empresa/painel', { replace: true });
-      }
-    }
-  }, [isAuthenticated, role, navigate, loading]);
-
-  if (isAuthenticated) {
-    return <></>;
-  }
-
-  return (
-    <S.HomeContainer>
-     
-
-      <S.HeroSection>
-        <S.HeroContent>
-          <h1>Conectando Talentos às Oportunidades em Teodoro Sampaio</h1>
-          <p>A plataforma definitiva para empresas locais encontrarem os melhores profissionais e para os cidadãos conquistarem o emprego ideal.</p>
-          <S.ButtonGroup>
-            <S.PrimaryButton onClick={() => navigate('/login?type=candidato')}>Sou Candidato</S.PrimaryButton>
-            <S.SecondaryButton onClick={() => navigate('/login?type=empresa')}>Sou Empresa</S.SecondaryButton>
-          </S.ButtonGroup>
-          {import.meta.env.DEV && (
-            <div style={{ marginTop: '2rem', maxWidth: '600px' }}>
-              <DatabaseStatus />
-            </div>
-          )}
-        </S.HeroContent>
-      </S.HeroSection>
- <SponsorCarousel />
-      <S.StatsSection>
-        <S.StatCard>
-          <h3>{metrics ? fmt(metrics.active_jobs) : '—'}</h3>
-          <p>Vagas Abertas</p>
-        </S.StatCard>
-        <S.StatCard>
-          <h3>{metrics ? fmt(metrics.companies) : '—'}</h3>
-          <p>Empresas Cadastradas</p>
-        </S.StatCard>
-        <S.StatCard>
-          <h3>{metrics ? fmt(metrics.candidates) : '—'}</h3>
-          <p>Candidatos Cadastrados</p>
-        </S.StatCard>
-      </S.StatsSection>
-
-      <S.FeaturesSection>
-        <S.SectionTitle>
-          <h2>Por que usar o Conecta Sampaio?</h2>
-          <p>Uma plataforma feita sob medida para o desenvolvimento econômico da nossa região.</p>
-        </S.SectionTitle>
-
-        <S.FeaturesGrid>
-          <S.FeatureCard>
-            <S.IconWrapper>
-              <TrendingUp size={32} />
-            </S.IconWrapper>
-            <h4>Fortalecimento Local</h4>
-            <p>Priorizamos vagas e talentos da cidade, mantendo a riqueza e as oportunidades circulando na nossa região.</p>
-          </S.FeatureCard>
-          
-          <S.FeatureCard>
-            <S.IconWrapper>
-              <Users size={32} />
-            </S.IconWrapper>
-            <h4>Inclusão Digital</h4>
-            <p>Fácil de usar para todas as idades, conectando desde o jovem aprendiz até profissionais experientes.</p>
-          </S.FeatureCard>
-
-          <S.FeatureCard>
-            <S.IconWrapper>
-              <Building size={32} />
-            </S.IconWrapper>
-            <h4>Apoio ao Comércio</h4>
-            <p>Pequenos comércios agora possuem uma vitrine digital profissional para atrair os melhores funcionários.</p>
-          </S.FeatureCard>
-
-          <S.FeatureCard>
-            <S.IconWrapper>
-              <Smartphone size={32} />
-            </S.IconWrapper>
-            <h4>100% Responsivo</h4>
-            <p>Acesse pelo celular, tablet ou computador. Seu currículo ou painel da empresa sempre com você.</p>
-          </S.FeatureCard>
-        </S.FeaturesGrid>
-      </S.FeaturesSection>
-
-      <S.RecentJobsSection>
-        <S.SectionTitle>
-          <h2>Vagas Disponíveis</h2>
-          <p>Confira todas as oportunidades publicadas na plataforma e encontre a ideal para você.</p>
-        </S.SectionTitle>
-        <S.RecentJobsGrid>
-          <JobsBoard />
-        </S.RecentJobsGrid>
-      </S.RecentJobsSection>
-    </S.HomeContainer>
-  );
+  const fmt = (value: number | undefined) => value === undefined ? '—' : value.toLocaleString('pt-BR');
+  return <S.HomeContainer>
+    <S.HeroSection>
+      <S.HeroContent>
+        <S.Eyebrow><MapPin size={15} /> TEODORO SAMPAIO · SP</S.Eyebrow>
+        <h1>Seu próximo passo<br />pode estar <em>bem perto.</em></h1>
+        <p>Encontre trabalho, descubra empresas e faça novas conexões. Um lugar para o talento de toda a nossa cidade.</p>
+        <S.SearchForm role="search" onSubmit={e => { e.preventDefault(); navigate(`/vagas${search.trim() ? `?busca=${encodeURIComponent(search.trim())}` : ''}`); }}>
+          <Search size={21} aria-hidden="true" />
+          <input aria-label="Cargo ou empresa" placeholder="Qual oportunidade você procura?" value={search} onChange={e => setSearch(e.target.value)} />
+          <button type="submit">Buscar vagas <ArrowRight size={17} /></button>
+        </S.SearchForm>
+        <S.HeroLinks><span><Check size={15} /> Consulte vagas sem cadastro</span><Link to="/cadastro?type=empresa">Quero contratar <ArrowUpRight size={16} /></Link></S.HeroLinks>
+      </S.HeroContent>
+      <S.CityPanel>
+        <div className="panel-top"><span className="dot" /> CONEXÕES QUE MOVEM A CIDADE</div>
+        <h2>Da nossa cidade.<br />Para sua próxima<br /><em>conquista.</em></h2>
+        <div className="city" aria-hidden="true"><span className="sun" /><span className="building one" /><span className="building two" /><span className="building three" /><span className="building four" /><span className="ground" /></div>
+        <div className="panel-bottom"><Building2 size={20} /><span>Empresas locais.<br /><strong>Talentos de todos os caminhos.</strong></span><ArrowUpRight size={24} /></div>
+      </S.CityPanel>
+    </S.HeroSection>
+    <S.StatsSection aria-label="A plataforma em números">
+      <S.StatCard><BriefcaseBusiness size={23} /><div><strong>{fmt(metrics?.active_jobs)}</strong><span>vagas abertas</span></div></S.StatCard>
+      <S.StatCard><Building2 size={23} /><div><strong>{fmt(metrics?.companies)}</strong><span>empresas cadastradas</span></div></S.StatCard>
+      <S.StatCard><UserRound size={23} /><div><strong>{fmt(metrics?.candidates)}</strong><span>pessoas conectadas</span></div></S.StatCard>
+      <p>Oportunidades reais.<br /><strong>Uma cidade com mais possibilidades.</strong></p>
+    </S.StatsSection>
+    <S.Section id="oportunidades">
+      <S.SectionTitle><div><S.Eyebrow>ENCONTRE SEU CAMINHO</S.Eyebrow><h2>Oportunidades perto de você</h2><p>Do primeiro emprego ao próximo desafio. Explore as vagas da cidade.</p></div><Link to="/vagas">Ver todas as vagas <ArrowRight size={18} /></Link></S.SectionTitle>
+      <JobsBoard maxItems={6} />
+    </S.Section>
+    <S.HowSection>
+      <S.SectionTitle><div><S.Eyebrow>SIMPLES, DO COMEÇO AO FIM</S.Eyebrow><h2>Seu próximo passo em três etapas</h2></div><Link to="/ajuda">Como funciona <ArrowRight size={18} /></Link></S.SectionTitle>
+      <S.StepsGrid>
+        <S.Step><span>01</span><h3>Encontre uma oportunidade</h3><p>Busque vagas por cargo, empresa ou modalidade. Você pode explorar antes de criar sua conta.</p></S.Step>
+        <S.Step><span>02</span><h3>Apresente seu talento</h3><p>Crie seu perfil e acrescente suas experiências, habilidades e currículo.</p></S.Step>
+        <S.Step><span>03</span><h3>Dê o próximo passo</h3><p>Envie sua candidatura e acompanhe as atualizações pelo seu painel.</p></S.Step>
+      </S.StepsGrid>
+    </S.HowSection>
+    <S.CompanySection>
+      <div><S.Eyebrow>PARA QUEM FAZ A CIDADE CRESCER</S.Eyebrow><h2>O próximo talento da sua empresa<br />pode ser seu vizinho.</h2><p>Publique oportunidades e organize suas candidaturas em um só lugar. Seu comércio, negócio ou empresa tem espaço aqui.</p><Link to="/cadastro?type=empresa">Cadastrar minha empresa <ArrowUpRight size={18} /></Link></div>
+      <div className="company-note"><Building2 size={40} /><strong>Mais perto das pessoas.<br />Mais perto do seu negócio.</strong><span>De pequenos comércios a grandes equipes.</span></div>
+    </S.CompanySection>
+    <SponsorCarousel />
+    <S.TrustSection><ShieldCheck size={25} /><div><strong>Seu currículo merece cuidado.</strong><p>O arquivo fica privado e é compartilhado com as empresas para as quais você se candidata.</p></div><Link to="/privacidade">Entenda a privacidade <ArrowRight size={16} /></Link></S.TrustSection>
+  </S.HomeContainer>;
 }
