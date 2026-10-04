@@ -1,22 +1,23 @@
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Briefcase, Home, Search, Bookmark, User as UserIcon, Building, PlusCircle } from 'lucide-react';
-import { usersMock } from '../../data/users';
-import { companiesMock } from '../../data/companies';
 import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role } = useAuth();
+  const { role, user, loading, error } = useAuth();
   
   // Detecção de tipo de usuário
   const isCompanyFlow = role === 'empresa' || location.pathname.includes('/empresa') || new URLSearchParams(location.search).get('viewer') === 'recruiter';
 
-  // Mocks de dados
-  const currentUser = usersMock[0];
-  const currentCompany = companiesMock.find(c => c.id === 'comp-2')!; // Empresa mockada do painel
-
+  if (loading) return <p role="status">Carregando sua conta...</p>;
+  if (error) return <p role="alert">{error}</p>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (location.pathname.startsWith('/empresa') && role !== 'empresa') return <Navigate to="/candidato/painel" replace />;
+  if (location.pathname === '/candidato/painel' && role !== 'candidato') return <Navigate to="/empresa/painel" replace />;
+  const currentUser = { id: user.id, name: user.name };
+  const currentCompany = { name: user.name };
   const isActive = (path: string) => location.pathname === path;
 
   return (

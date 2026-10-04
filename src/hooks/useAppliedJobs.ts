@@ -1,64 +1,19 @@
 import { useState, useEffect } from 'react';
-
-const STORAGE_KEY = '@ConectaTeodoro:appliedJobs';
-const INITIAL_JOBS = ['job-1', 'job-3'];
-
+import { apiService } from '../services/api';
+import { useAuth } from './useAuth';
 export function useAppliedJobs() {
-  const [appliedJobIds, setAppliedJobIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Error reading localStorage', e);
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_JOBS));
-    return INITIAL_JOBS;
-  });
-
+  const { user } = useAuth();
+  const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        setAppliedJobIds(JSON.parse(e.newValue));
-      }
+    let active = true;
+    const load = () => {
+      if (user?.role !== 'candidato') { setAppliedJobIds([]); return; }
+      apiService.getApplications().then(rows => { if (active) setAppliedJobIds(rows.map(row => row.jobId)); }).catch(() => { if (active) setAppliedJobIds([]); });
     };
-    
-    const handleCustomEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<string[]>;
-      setAppliedJobIds(customEvent.detail);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('appliedJobsUpdated', handleCustomEvent);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('appliedJobsUpdated', handleCustomEvent);
-    };
-  }, []);
-
-  const updateAndSync = (next: string[]) => {
-    setAppliedJobIds(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    window.dispatchEvent(new CustomEvent('appliedJobsUpdated', { detail: next }));
-  };
-
-  const applyToJob = (jobId: string) => {
-    if (appliedJobIds.includes(jobId)) return;
-    updateAndSync([...appliedJobIds, jobId]);
-  };
-
-  const withdrawFromJob = (jobId: string) => {
-    updateAndSync(appliedJobIds.filter(id => id !== jobId));
-  };
-
-  const hasApplied = (jobId: string) => appliedJobIds.includes(jobId);
-
-  return {
-    appliedJobIds,
-    applyToJob,
-    withdrawFromJob,
-    hasApplied
-  };
+    load(); window.addEventListener('applicationsUpdated', load);
+    return () => { active = false; window.removeEventListener('applicationsUpdated', load); };
+  }, [user?.id, user?.role]);
+  const applyToJob = async (id: string) => { await apiService.apply(id); window.dispatchEvent(new Event('applicationsUpdated')); };
+  const withdrawFromJob = async (id: string) => { await apiService.withdraw(id); window.dispatchEvent(new Event('applicationsUpdated')); };
+  return { appliedJobIds, applyToJob, withdrawFromJob, hasApplied: (id: string) => appliedJobIds.includes(id) };
 }

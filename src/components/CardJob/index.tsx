@@ -1,18 +1,18 @@
 import { useNavigate } from 'react-router-dom';
 import type { Job } from '../../data/jobs';
-import { companiesMock } from '../../data/companies';
+import type { Company } from '../../data/companies';
 import { useAppliedJobs } from '../../hooks/useAppliedJobs';
 import { MapPin, Briefcase, DollarSign, CheckCircle } from 'lucide-react';
 import * as S from './styles';
 
 interface CardJobProps {
-  job: Job;
+  job: Job & { company?: Company };
 }
 
 export function CardJob({ job }: CardJobProps) {
   const navigate = useNavigate();
   const { hasApplied } = useAppliedJobs();
-  const company = companiesMock.find(c => c.id === job.companyId);
+  const company = job.company;
 
   return (
     <S.CardContainer onClick={() => navigate(`/vagas/${job.id}`)}>

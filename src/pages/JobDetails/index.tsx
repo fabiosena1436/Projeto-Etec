@@ -4,13 +4,16 @@ import { apiService } from '../../services/api';
 import type { Job } from '../../data/jobs';
 import type { Company } from '../../data/companies';
 import { useAppliedJobs } from '../../hooks/useAppliedJobs';
-import { ArrowLeft, MapPin, Briefcase, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, MapPin, Briefcase, DollarSign, Calendar, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function JobDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isCandidato } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
   const { hasApplied, applyToJob } = useAppliedJobs();
   
   const [job, setJob] = useState<Job | null>(null);
@@ -56,15 +59,18 @@ export function JobDetails() {
     );
   }
 
-  const handleApply = () => {
-    if (job) {
-      applyToJob(job.id);
-    }
-    toast.success('Candidatura enviada com sucesso!', {
-      description: 'A empresa receberá seu currículo em breve.',
-    });
-    // Simula redirecionamento ou delay
-    setTimeout(() => navigate('/vagas'), 2000);
+  const handleApply = async () => {
+    if (!isCandidato) { navigate('/login?type=candidato'); return; }
+    if (!job || submitting) return;
+    setSubmitting(true);
+    try { await applyToJob(job.id); toast.success('Candidatura enviada com sucesso!'); }
+    catch (error) { toast.error((error as Error).message); }
+    finally { setSubmitting(false); }
+  };
+  const handleSave = async () => {
+    if (!isCandidato) { navigate('/login?type=candidato'); return; }
+    try { await apiService.saveJob(job.id); toast.success('Vaga salva!'); }
+    catch (error) { toast.error((error as Error).message); }
   };
 
   return (
@@ -74,6 +80,7 @@ export function JobDetails() {
         Voltar
       </S.BackButton>
 
+      <button type="button" onClick={handleSave} style={{ padding: 12, marginBottom: 16 }}><Bookmark size={16} /> Salvar vaga</button>
       <S.ContentWrapper>
         <S.MainInfo>
           <S.Header>
@@ -142,7 +149,7 @@ export function JobDetails() {
               Você já se candidatou a essa vaga
             </S.ApplyButton>
           ) : (
-            <S.ApplyButton onClick={handleApply}>
+            <S.ApplyButton onClick={handleApply} disabled={submitting}>
               Candidatar-se a esta vaga
             </S.ApplyButton>
           )}

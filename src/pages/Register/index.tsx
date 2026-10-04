@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Briefcase, User, Building, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { authService } from '../../services/supabase/auth.service';
-import { isSupabaseConfigured } from '../../lib/supabase';
+import { request } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 type Step = 'select' | 'candidato' | 'empresa';
@@ -12,6 +12,7 @@ export function Register() {
   const [searchParams] = useSearchParams();
   const initialType = searchParams.get('type') as Step | null;
   const navigate = useNavigate();
+  const { refresh } = useAuth();
 
   const [step, setStep] = useState<Step>(initialType || 'select');
   const [loading, setLoading] = useState(false);
@@ -33,40 +34,18 @@ export function Register() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error('Senha deve ter pelo menos 6 caracteres');
+    if (password.length < 8) {
+      toast.error('Senha deve ter pelo menos 8 caracteres');
       return;
     }
 
     setLoading(true);
 
     try {
-      if (isSupabaseConfigured) {
-        const role = step === 'empresa' ? 'empresa' : 'candidato';
-        const nameToUse = role === 'empresa' ? companyName : fullName;
-
-        await authService.signUp({
-          email,
-          password,
-          full_name: nameToUse,
-          role,
-          city: 'Teodoro Sampaio, SP',
-          phone,
-        });
-
-        // Se empresa, poderia criar company aqui também (futuro)
-        toast.success('Cadastro realizado! Verifique seu email para confirmar.', {
-          description: 'Após confirmar, faça login.',
-        });
-        navigate(`/login?type=${role}`);
-      } else {
-        // Modo mock para apresentação
-        await new Promise(r => setTimeout(r, 1000));
-        toast.success('Cadastro realizado com sucesso! (modo demonstração)', {
-          description: 'Sua conta foi criada. Faça login para continuar.',
-        });
-        navigate(`/login?type=${step}`);
-      }
+      const role = step === 'empresa' ? 'empresa' : 'candidato';
+      await request('auth/register', 'POST', { email, password, full_name: role === 'empresa' ? companyName : fullName, role, city: 'Teodoro Sampaio, SP', phone });
+      await refresh(); toast.success('Cadastro realizado com sucesso!');
+      navigate('/' + role + '/painel');
     } catch (err: any) {
       console.error(err);
       if (err.message?.includes('already registered')) {
@@ -86,12 +65,6 @@ export function Register() {
           <Briefcase size={48} />
           <h1>Criar Nova Conta</h1>
         </S.Brand>
-
-        {!isSupabaseConfigured && (
-          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.5rem 0.75rem', borderRadius: '8px', fontSize: '0.75rem', color: '#92400e', marginBottom: '1rem', textAlign: 'center' }}>
-            ⚠️ Modo demonstração. Com Supabase configurado, cadastro cria usuário real.
-          </div>
-        )}
 
         {step === 'select' && (
           <>
@@ -134,7 +107,7 @@ export function Register() {
             </S.FormGroup>
             <S.FormGroup>
               <label>Senha</label>
-              <input required name="password" type="password" placeholder="Crie uma senha forte (min 6)" disabled={loading} />
+              <input required name="password" type="password" placeholder="Crie uma senha forte (min 8)" disabled={loading} />
             </S.FormGroup>
             <S.FormGroup>
               <label>Confirmar Senha</label>
@@ -185,7 +158,7 @@ export function Register() {
             </S.FormGroup>
             <S.FormGroup>
               <label>Senha</label>
-              <input required name="password" type="password" placeholder="Crie uma senha forte (min 6)" disabled={loading} />
+              <input required name="password" type="password" placeholder="Crie uma senha forte (min 8)" disabled={loading} />
             </S.FormGroup>
             <S.FormGroup>
               <label>Confirmar Senha</label>

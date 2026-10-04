@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { jobsMock } from '../../data/jobs';
+import { apiService } from '../../services/api';
 import * as S from './styles';
 
 export function CreateJob() {
@@ -22,38 +22,23 @@ export function CreateJob() {
 
   useEffect(() => {
     if (id) {
-      const jobToEdit = jobsMock.find(j => j.id === id);
-      if (jobToEdit) {
-        setIsEditing(true);
-        setTitle(jobToEdit.title);
-        setType(jobToEdit.type);
-        setSalary(jobToEdit.salary || '');
-        setLocation(jobToEdit.location);
-        setDescription(jobToEdit.description);
-        setRequirements(jobToEdit.requirements.join('\n'));
-        setBenefits(jobToEdit.benefits.join('\n'));
-      }
+      apiService.getJobById(id).then(jobToEdit => {
+        setIsEditing(true); setTitle(jobToEdit.title); setType(jobToEdit.type); setSalary(jobToEdit.salary);
+        setLocation(jobToEdit.location); setDescription(jobToEdit.description);
+        setRequirements(jobToEdit.requirements.join('\n')); setBenefits(jobToEdit.benefits.join('\n'));
+      }).catch(error => { toast.error(error.message); navigate('/empresa/painel'); });
+
     }
   }, [id]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    // Simula requisição e tempo de rede
-    setTimeout(() => {
-      setLoading(false);
-      if (isEditing) {
-        toast.success('Vaga atualizada com sucesso!', {
-          description: 'As alterações foram salvas.'
-        });
-      } else {
-        toast.success('Vaga publicada com sucesso!', {
-          description: 'Sua vaga já está visível para os candidatos.'
-        });
-      }
-      navigate('/empresa/painel');
-    }, 1500);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); setLoading(true);
+    try {
+      const data = { title, type, salary, location, description, requirements: requirements.split('\n').filter(Boolean), benefits: benefits.split('\n').filter(Boolean) };
+      if (id) await apiService.updateJob(id, data); else await apiService.createJob(data);
+      toast.success(id ? 'Vaga atualizada!' : 'Vaga publicada!'); navigate('/empresa/painel');
+    } catch (error) { toast.error((error as Error).message); }
+    finally { setLoading(false); }
   };
 
   return (
