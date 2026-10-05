@@ -35,7 +35,7 @@ export function CreateJob() {
   const [experienceLevel, setExperienceLevel] = useState('');
   const [educationRequired, setEducationRequired] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
-  const [status, setStatus] = useState<'Ativa' | 'Rascunho'>('Ativa');
+  const [status, setStatus] = useState<'Ativa' | 'Rascunho' | 'Encerrada'>('Ativa');
 
   useEffect(() => {
     let cancelled = false;
@@ -70,8 +70,10 @@ export function CreateJob() {
           setExperienceLevel(job.experience_level || '');
           setEducationRequired(job.education_required || '');
           setExpiresAt(job.expires_at ? job.expires_at.slice(0, 10) : '');
-          setStatus(job.status === 'Rascunho' ? 'Rascunho' : 'Ativa');
+          setStatus(job.status === 'Rascunho' ? 'Rascunho' : job.status === 'Encerrada' ? 'Encerrada' : 'Ativa');
         }
+      } catch {
+        if (!cancelled) toast.error('Não foi possível carregar a vaga. Tente novamente.');
       } finally {
         if (!cancelled) setInitializing(false);
       }
@@ -217,9 +219,10 @@ export function CreateJob() {
           </S.FormGroup>
           <S.FormGroup>
             <label htmlFor="field-12">Status</label>
-          <select id="field-12" value={status} onChange={e => setStatus(e.target.value as 'Ativa' | 'Rascunho')}>
+          <select id="field-12" value={status} onChange={e => setStatus(e.target.value as 'Ativa' | 'Rascunho' | 'Encerrada')}>
               <option value="Ativa">Publicada (visível para candidatos)</option>
               <option value="Rascunho">Rascunho (somente você vê)</option>
+              {isEditing && <option value="Encerrada">Encerrada</option>}
             </select>
           </S.FormGroup>
         </S.FormRow>

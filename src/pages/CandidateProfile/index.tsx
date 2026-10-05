@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { candidatesService } from '../../services/supabase/candidates.service';
 import { applicationsService } from '../../services/supabase/applications.service';
 import { PageLoader } from '../../components/PageLoader';
+import { openDocument } from '../../utils/openDocument';
 import type { Candidate, Profile } from '../../types/database';
 import * as S from './styles';
 
@@ -32,7 +33,7 @@ export function CandidateProfile() {
   const [loading, setLoading] = useState(true);
 
   const isOwner = !!profile && profile.id === id;
-  const isRecruiter = role === 'empresa' || role === 'admin' || new URLSearchParams(location.search).get('viewer') === 'recruiter';
+  const isRecruiter = role === 'empresa' || role === 'admin';
   const applicationId = new URLSearchParams(location.search).get('app');
 
   useEffect(() => {
@@ -43,6 +44,8 @@ export function CandidateProfile() {
       try {
         const data = await candidatesService.getById(isMock && !id.startsWith('user-') ? 'user-1' : id);
         if (!cancelled) setCandidate(data as CandidateFull | null);
+      } catch {
+        if (!cancelled) { setCandidate(null); toast.error('Não foi possível carregar o perfil. Tente novamente.'); }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -65,7 +68,7 @@ export function CandidateProfile() {
       <S.ProfileContainer style={{ display: 'block', textAlign: 'center', padding: '3rem 1rem' }}>
         <h2 style={{ marginBottom: '0.5rem' }}>Perfil não encontrado</h2>
         <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-          {isOwner ? 'Complete seu cadastro no painel para ativar seu perfil público.' : 'Este candidato pode ter desativado o perfil.'}
+          {isOwner ? 'Complete seu cadastro no painel.' : 'O perfil está indisponível ou você não tem acesso. Empresas podem ver os candidatos que se inscreveram nas suas vagas.'}
         </p>
         <button onClick={() => navigate(isOwner ? '/candidato/painel' : -1 as any)} style={{ ...actionBtn('#2563eb', 'white'), width: 'auto', margin: '0 auto', padding: '0.75rem 1.5rem' }}>
           {isOwner ? 'Ir para o painel' : 'Voltar'}
@@ -90,9 +93,8 @@ export function CandidateProfile() {
 
   const handleDownloadResume = async () => {
     if (!candidate.resume_url) return;
-    const url = await candidatesService.getResumeSignedUrl(candidate.resume_url);
-    if (url) window.open(url, '_blank', 'noopener');
-    else toast.error('Currículo indisponível. A empresa só pode baixar currículos de quem se candidatou às suas vagas.');
+    try { await openDocument(() => candidatesService.getResumeSignedUrl(candidate.resume_url!)); }
+    catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível abrir o currículo.'); }
   };
 
   return (

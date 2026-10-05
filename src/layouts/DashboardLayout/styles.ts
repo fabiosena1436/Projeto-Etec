@@ -95,10 +95,16 @@ export const MainContent = styled.main`
 `;
 
 export const BottomNav = styled.nav`
-  display: none;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  background: ${({ theme }) => theme.colors.surface};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 1rem;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     display: flex;
+    gap: 0;
     justify-content: space-around;
     align-items: center;
     position: fixed;

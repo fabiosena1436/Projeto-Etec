@@ -6,6 +6,7 @@ import { CardJob } from '../CardJob';
 import { CardJobSkeleton } from '../CardJobSkeleton';
 import { Search, X, BriefcaseBusiness, RefreshCw } from 'lucide-react';
 import * as S from './styles';
+import { useAuth } from '../../hooks/useAuth';
 
 interface JobsBoardProps { maxItems?: number; hideSearch?: boolean; }
 const CATEGORIES = ['Todos', 'Presencial', 'Remoto', 'Híbrido', 'Estágio', 'Jovem Aprendiz', 'Freelancer', 'Temporário'];
@@ -15,6 +16,7 @@ function useDebounce<T>(value: T, delay = 350) {
   return debounced;
 }
 export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
+  const { isAuthenticated, isEmpresa } = useAuth();
   const [params, setParams] = useSearchParams();
   const searchTerm = params.get('busca') || '';
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -54,7 +56,7 @@ export function JobsBoard({ maxItems, hideSearch = false }: JobsBoardProps) {
         <S.EmptyState role="status"><BriefcaseBusiness size={30} />
           <h3>{filtered ? 'Nenhuma vaga com esses filtros' : 'As próximas oportunidades começam aqui'}</h3>
           <p>{filtered ? 'Experimente outro cargo ou veja todas as modalidades.' : 'Ainda não há vagas publicadas. Você já pode preparar seu perfil ou cadastrar sua empresa.'}</p>
-          {filtered ? <button onClick={() => {updateSearch('');setSelectedCategory('Todos');}}>Limpar filtros</button> : <Link to="/cadastro">Criar minha conta <span aria-hidden="true">→</span></Link>}
+          {filtered ? <button onClick={() => {updateSearch('');setSelectedCategory('Todos');}}>Limpar filtros</button> : <Link to={isAuthenticated ? (isEmpresa ? '/empresa/vaga/nova' : '/candidato/painel') : '/cadastro'}>{isAuthenticated ? (isEmpresa ? 'Publicar uma vaga' : 'Meu painel') : 'Criar minha conta'} <span aria-hidden="true">→</span></Link>}
         </S.EmptyState>}
     </S.JobsGrid>
   </S.BoardContainer>;

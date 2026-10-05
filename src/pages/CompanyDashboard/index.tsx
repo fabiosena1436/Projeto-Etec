@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  PlusCircle, Eye, Users, Briefcase, Tag, Trash2, Edit2, Star, CheckCircle2, ChevronDown, ChevronUp, User, Ban,
+  PlusCircle, Eye, Users, Briefcase, Tag, Trash2, Edit2, Star, ChevronDown, ChevronUp, User, Ban,
   RefreshCw, LogOut, LayoutDashboard, Building2, Save, Camera, Phone, FileText, Inbox,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ import { applicationsService } from '../../services/supabase/applications.servic
 import { metricsService, type CompanyMetrics } from '../../services/supabase/metrics.service';
 import { candidatesService } from '../../services/supabase/candidates.service';
 import { PageLoader } from '../../components/PageLoader';
+import { openDocument } from '../../utils/openDocument';
 import { INDUSTRIES } from '../Register';
 import { APPLICATION_STATUS_LABEL } from '../CandidateDashboard';
 import * as F from '../CandidateDashboard/styles';
@@ -54,7 +55,7 @@ export function CompanyDashboard() {
         });
         const [j, apps, m] = await Promise.all([
           jobsService.getByCompany(c.id),
-          applicationsService.getCompanyApplications(c.id).catch(() => [] as Application[]),
+          applicationsService.getCompanyApplications(c.id),
           metricsService.getCompany(c.id),
         ]);
         setJobs(j);
@@ -91,7 +92,7 @@ export function CompanyDashboard() {
       const updated = await jobsService.update(job.id, { status: newStatus });
       setJobs(prev => prev.map(j => j.id === job.id ? updated : j));
       toast.success(newStatus === 'Ativa' ? 'Vaga reaberta com sucesso!' : 'Vaga encerrada com sucesso!');
-      metricsService.getCompany(company!.id).then(setMetrics);
+      metricsService.getCompany(company!.id).then(setMetrics).catch(() => toast.error('Não foi possível atualizar os indicadores. Atualize o painel.'));
     } catch (err: any) {
       toast.error(err.message || 'Erro ao alterar status.');
     }
@@ -213,14 +214,13 @@ export function CompanyDashboard() {
   const handleSponsorContact = () => {
     const msg = encodeURIComponent(`Olá! Sou da empresa ${company?.name} e quero ser Patrocinador no Conecta Sampaio.`);
     if (SPONSOR_WHATSAPP) window.open(`https://wa.me/${SPONSOR_WHATSAPP.replace(/\D/g, '')}?text=${msg}`, '_blank', 'noopener');
-    else toast.info('Entre em contato com a equipe do Conecta Sampaio para se tornar patrocinador.', { description: 'Configure VITE_SPONSOR_WHATSAPP para abrir o WhatsApp direto.' });
+    else toast.info('Entre em contato com a equipe do Conecta Sampaio para se tornar patrocinador.', { description: 'Fale com Fabio V. Sena pelo e-mail fabiosena1436@gmail.com.' });
   };
 
   const openResume = async (path: string | null | undefined) => {
     if (!path) return;
-    const url = await candidatesService.getResumeSignedUrl(path);
-    if (url) window.open(url, '_blank', 'noopener');
-    else toast.error('Não foi possível abrir o currículo.');
+    try { await openDocument(() => candidatesService.getResumeSignedUrl(path)); }
+    catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível abrir o currículo.'); }
   };
 
   // ------------------------------------------------------------------ render
@@ -233,7 +233,7 @@ export function CompanyDashboard() {
           <Building2 size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
           <h2 style={{ marginBottom: '0.5rem' }}>Empresa não encontrada</h2>
           <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-            Não encontramos uma empresa vinculada à sua conta ({profile?.email}). Execute a migration <code>005_production_ready.sql</code> no Supabase ou entre em contato com o suporte.
+            Não encontramos uma empresa vinculada à sua conta ({profile?.email}). Tente novamente ou entre em contato com o suporte em fabiosena1436@gmail.com.
           </p>
           <F.Btn onClick={() => load()}><RefreshCw size={16} /> Tentar novamente</F.Btn>
         </div>
@@ -268,11 +268,13 @@ export function CompanyDashboard() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <select
+            disabled={app.status === 'desistiu'}
             value={app.status}
             onChange={e => handleStatusChange(app, e.target.value as ApplicationStatus)}
             aria-label="Status da candidatura"
             style={{ padding: '0.45rem 0.6rem', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.85rem', background: 'white' }}
           >
+            {app.status === 'desistiu' && <option value="desistiu">Desistiu</option>}
             {STATUS_OPTIONS.map(s => <option key={s} value={s}>{APPLICATION_STATUS_LABEL[s]}</option>)}
           </select>
           {cand?.phone && (
@@ -285,7 +287,7 @@ export function CompanyDashboard() {
               <FileText size={16} />
             </button>
           )}
-          <F.Btn onClick={() => navigate(`/candidato/${app.candidate_id}?viewer=recruiter&app=${app.id}`)} style={{ padding: '0.5rem 0.9rem' }}>
+          <F.Btn disabled={app.status === 'desistiu'} onClick={() => navigate(`/candidato/${app.candidate_id}?app=${app.id}`)} style={{ padding: '0.5rem 0.9rem' }}>
             <User size={16} /> Perfil
           </F.Btn>
         </div>
@@ -302,7 +304,7 @@ export function CompanyDashboard() {
               {!company.logo_url && <Building2 size={28} />}
             </div>
             <span style={{ position: 'absolute', bottom: -4, right: -4, background: 'white', borderRadius: '50%', padding: 4, boxShadow: '0 1px 3px rgba(0,0,0,.2)', display: 'flex' }}><Camera size={14} color="#2563eb" /></span>
-            <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleLogoUpload} style={{ display: 'none' }} disabled={saving} />
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleLogoUpload} aria-label="Alterar imagem do perfil" style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', cursor: 'pointer' }} disabled={saving} />
           </label>
           <div>
             <S.Greeting style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -322,12 +324,12 @@ export function CompanyDashboard() {
       </S.Header>
 
       <S.TabsContainer>
-        <S.TabButton $active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}><LayoutDashboard size={20} /> Visão Geral</S.TabButton>
-        <S.TabButton $active={activeTab === 'candidates'} onClick={() => setActiveTab('candidates')}>
+        <S.TabButton aria-pressed={activeTab === 'overview'} $active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}><LayoutDashboard size={20} /> Visão Geral</S.TabButton>
+        <S.TabButton aria-pressed={activeTab === 'candidates'} $active={activeTab === 'candidates'} onClick={() => setActiveTab('candidates')}>
           <Inbox size={20} /> Candidatos
           {newApplications > 0 && <span style={{ background: '#ef4444', color: 'white', borderRadius: 999, fontSize: '0.7rem', padding: '0.1rem 0.45rem' }}>{newApplications}</span>}
         </S.TabButton>
-        <S.TabButton $active={activeTab === 'profile'} onClick={() => setActiveTab('profile')}><Building2 size={20} /> Perfil da Empresa</S.TabButton>
+        <S.TabButton aria-pressed={activeTab === 'profile'} $active={activeTab === 'profile'} onClick={() => setActiveTab('profile')}><Building2 size={20} /> Perfil da Empresa</S.TabButton>
       </S.TabsContainer>
 
       {/* ------------------------------ VISÃO GERAL ------------------------------ */}
@@ -348,20 +350,6 @@ export function CompanyDashboard() {
             </S.MetricCard>
           </S.MetricsGrid>
 
-          {!company.is_sponsor && (
-            <S.UpsellBanner>
-              <h3><Star size={24} fill="#fbbf24" color="#fbbf24" /> Torne-se uma Empresa Patrocinadora!</h3>
-              <p>Destaque sua marca e alcance milhares de candidatos e clientes na nossa página inicial. Como Patrocinador Oficial, você ganha visibilidade premium e ferramentas exclusivas de vendas.</p>
-              <ul>
-                <li><CheckCircle2 size={18} color="#4ade80" /> Sua logo no Carrossel Principal da página inicial.</li>
-                <li><CheckCircle2 size={18} color="#4ade80" /> Página de perfil exclusiva da sua loja.</li>
-                <li><CheckCircle2 size={18} color="#4ade80" /> Cadastro de até {MAX_PROMOTIONS} produtos em promoção para atrair clientes.</li>
-                <li><CheckCircle2 size={18} color="#4ade80" /> Suas vagas aparecem primeiro nas buscas.</li>
-              </ul>
-              <button onClick={handleSponsorContact}>Quero ser Patrocinador</button>
-            </S.UpsellBanner>
-          )}
-
           {company.is_sponsor && (
             <S.Section style={{ marginTop: 0 }}>
               <S.PromoHeader>
@@ -377,13 +365,13 @@ export function CompanyDashboard() {
               {promoForm.open && (
                 <form onSubmit={handleSavePromo} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '1.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <F.FieldRow>
-                    <F.Field><label>Título</label><input required minLength={3} maxLength={120} value={promoForm.title} onChange={e => setPromoForm(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Arroz 5kg" /></F.Field>
-                    <F.Field $basis="160px"><label>Válido até</label><input type="date" value={promoForm.valid_until} onChange={e => setPromoForm(p => ({ ...p, valid_until: e.target.value }))} /></F.Field>
+                    <F.Field><label htmlFor="company-field-1">Título</label><input id="company-field-1" required minLength={3} maxLength={120} value={promoForm.title} onChange={e => setPromoForm(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Arroz 5kg" /></F.Field>
+                    <F.Field $basis="160px"><label htmlFor="company-field-2">Válido até</label><input id="company-field-2" type="date" value={promoForm.valid_until} onChange={e => setPromoForm(p => ({ ...p, valid_until: e.target.value }))} /></F.Field>
                   </F.FieldRow>
-                  <F.Field><label>Descrição</label><textarea required rows={2} value={promoForm.description} onChange={e => setPromoForm(p => ({ ...p, description: e.target.value }))} /></F.Field>
+                  <F.Field><label htmlFor="company-field-3">Descrição</label><textarea id="company-field-3" required rows={2} value={promoForm.description} onChange={e => setPromoForm(p => ({ ...p, description: e.target.value }))} /></F.Field>
                   <F.FieldRow>
-                    <F.Field $basis="160px"><label>Preço original (R$)</label><input inputMode="decimal" value={promoForm.price} onChange={e => setPromoForm(p => ({ ...p, price: e.target.value }))} placeholder="25,90" /></F.Field>
-                    <F.Field $basis="160px"><label>Preço promocional (R$)</label><input inputMode="decimal" value={promoForm.discount_price} onChange={e => setPromoForm(p => ({ ...p, discount_price: e.target.value }))} placeholder="19,90" /></F.Field>
+                    <F.Field $basis="160px"><label htmlFor="company-field-4">Preço original (R$)</label><input id="company-field-4" inputMode="decimal" value={promoForm.price} onChange={e => setPromoForm(p => ({ ...p, price: e.target.value }))} placeholder="25,90" /></F.Field>
+                    <F.Field $basis="160px"><label htmlFor="company-field-5">Preço promocional (R$)</label><input id="company-field-5" inputMode="decimal" value={promoForm.discount_price} onChange={e => setPromoForm(p => ({ ...p, discount_price: e.target.value }))} placeholder="19,90" /></F.Field>
                   </F.FieldRow>
                   <F.Actions>
                     <F.Btn type="submit" $variant="success" disabled={saving}><Save size={16} /> {promoForm.editing ? 'Salvar' : 'Publicar'}</F.Btn>
@@ -436,10 +424,10 @@ export function CompanyDashboard() {
                   const isActive = job.status === 'Ativa';
                   return (
                     <div key={job.id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', opacity: isActive ? 1 : 0.75 }}>
-                      <div style={{ padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', cursor: 'pointer' }} onClick={() => setExpandedJob(isOpen ? null : job.id)}>
+                      <div style={{ padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                         <div style={{ minWidth: 0 }}>
                           <h4 style={{ fontSize: '1rem', color: '#0f172a', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {job.title}
+                            <button type="button" aria-expanded={isOpen} aria-controls={`applications-${job.id}`} onClick={() => setExpandedJob(isOpen ? null : job.id)} style={{ color: 'inherit', font: 'inherit', fontWeight: 600, textAlign: 'left' }}>{job.title}</button>
                             <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: isActive ? '#dcfce7' : '#fee2e2', color: isActive ? '#166534' : '#991b1b', fontWeight: 600 }}>{job.status.toUpperCase()}</span>
                           </h4>
                           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.75rem', color: '#64748b' }}>
@@ -452,9 +440,9 @@ export function CompanyDashboard() {
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', color: '#64748b' }}><Eye size={16} /> {job.views_count || 0}</span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', color: '#64748b' }}><Users size={16} /> {jobApps.length || job.applications_count || 0}</span>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={(e) => { e.stopPropagation(); navigate(`/vagas/${job.id}`); }} title="Ver vaga pública" style={{ padding: '0.4rem', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', color: '#64748b', cursor: 'pointer', display: 'flex' }}><Eye size={16} /></button>
+                            <button disabled={job.status === 'Rascunho'} onClick={(e) => { e.stopPropagation(); navigate(`/vagas/${job.id}`); }} title={job.status === 'Rascunho' ? 'Publique para ver a página pública' : 'Ver vaga pública'} style={{ padding: '0.4rem', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', color: '#64748b', cursor: 'pointer', display: 'flex' }}><Eye size={16} /></button>
                             <button onClick={(e) => { e.stopPropagation(); navigate(`/empresa/vaga/${job.id}/editar`); }} title="Editar" style={{ padding: '0.4rem', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', color: '#64748b', cursor: 'pointer', display: 'flex' }}><Edit2 size={16} /></button>
-                            <button onClick={(e) => handleToggleJobStatus(e, job)} title={isActive ? 'Encerrar' : 'Reabrir'} style={{ padding: '0.4rem', borderRadius: 6, border: `1px solid ${isActive ? '#fee2e2' : '#dcfce7'}`, background: isActive ? '#fef2f2' : '#f0fdf4', color: isActive ? '#ef4444' : '#10b981', cursor: 'pointer', display: 'flex' }}>{isActive ? <Ban size={16} /> : <RefreshCw size={16} />}</button>
+                            <button onClick={(e) => handleToggleJobStatus(e, job)} title={isActive ? 'Encerrar' : job.status === 'Rascunho' ? 'Publicar' : 'Reabrir'} style={{ padding: '0.4rem', borderRadius: 6, border: `1px solid ${isActive ? '#fee2e2' : '#dcfce7'}`, background: isActive ? '#fef2f2' : '#f0fdf4', color: isActive ? '#ef4444' : '#10b981', cursor: 'pointer', display: 'flex' }}>{isActive ? <Ban size={16} /> : <RefreshCw size={16} />}</button>
                             <button onClick={(e) => handleDeleteJob(e, job)} title="Excluir" style={{ padding: '0.4rem', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}><Trash2 size={16} /></button>
                           </div>
                           {isOpen ? <ChevronUp size={20} color="#64748b" /> : <ChevronDown size={20} color="#64748b" />}
@@ -462,7 +450,7 @@ export function CompanyDashboard() {
                       </div>
 
                       {isOpen && (
-                        <div style={{ padding: '0 1.25rem 1.25rem', borderTop: '1px solid #f1f5f9', background: '#f8fafc' }}>
+                        <div id={`applications-${job.id}`} style={{ padding: '0 1.25rem 1.25rem', borderTop: '1px solid #f1f5f9', background: '#f8fafc' }}>
                           <h5 style={{ fontSize: '0.875rem', color: '#64748b', margin: '1rem 0' }}>Candidatos que aplicaram ({jobApps.length}):</h5>
                           {jobApps.length === 0 ? (
                             <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Nenhuma candidatura ainda. Compartilhe o link da vaga para alcançar mais pessoas!</p>
@@ -477,6 +465,11 @@ export function CompanyDashboard() {
               </S.JobList>
             )}
           </S.Section>
+          {!company.is_sponsor && <S.UpsellBanner>
+            <h3><Star size={20} /> Divulgue sua empresa</h3>
+            <p>Conheça as opções de destaque e divulgação de promoções no Conecta Sampaio.</p>
+            <button onClick={handleSponsorContact}>Falar com a equipe</button>
+          </S.UpsellBanner>}
         </div>
       )}
 
@@ -507,27 +500,27 @@ export function CompanyDashboard() {
 
           <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', background: 'white', padding: '1.5rem', borderRadius: 12, border: '1px solid #e2e8f0' }}>
             <F.FieldRow>
-              <F.Field><label>Nome da Empresa</label><input required minLength={2} value={profileData.name} onChange={e => setProfileData(p => ({ ...p, name: e.target.value }))} /></F.Field>
+              <F.Field><label htmlFor="company-field-6">Nome da Empresa</label><input id="company-field-6" required minLength={2} value={profileData.name} onChange={e => setProfileData(p => ({ ...p, name: e.target.value }))} /></F.Field>
               <F.Field $basis="220px">
-                <label>Ramo de atuação</label>
-                <select value={profileData.industry} onChange={e => setProfileData(p => ({ ...p, industry: e.target.value }))}>
+                <label htmlFor="company-field-7">Ramo de atuação</label>
+                <select id="company-field-7" value={profileData.industry} onChange={e => setProfileData(p => ({ ...p, industry: e.target.value }))}>
                   <option value="">Selecione...</option>
                   {[...INDUSTRIES, ...(profileData.industry && !INDUSTRIES.includes(profileData.industry) ? [profileData.industry] : [])].map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </F.Field>
             </F.FieldRow>
-            <F.Field><label>Slogan</label><input maxLength={200} value={profileData.slogan} onChange={e => setProfileData(p => ({ ...p, slogan: e.target.value }))} placeholder="Ex: Qualidade e preço baixo para a sua família." /></F.Field>
+            <F.Field><label htmlFor="company-field-8">Slogan</label><input id="company-field-8" maxLength={200} value={profileData.slogan} onChange={e => setProfileData(p => ({ ...p, slogan: e.target.value }))} placeholder="Ex: Qualidade e preço baixo para a sua família." /></F.Field>
             <F.FieldRow>
-              <F.Field><label>Endereço / Bairro</label><input value={profileData.location} onChange={e => setProfileData(p => ({ ...p, location: e.target.value }))} placeholder="Ex: Centro, Teodoro Sampaio" /></F.Field>
-              <F.Field><label>Site ou Rede Social</label><input value={profileData.website} onChange={e => setProfileData(p => ({ ...p, website: e.target.value }))} placeholder="https://suaempresa.com.br" /></F.Field>
+              <F.Field><label htmlFor="company-field-9">Endereço / Bairro</label><input id="company-field-9" value={profileData.location} onChange={e => setProfileData(p => ({ ...p, location: e.target.value }))} placeholder="Ex: Centro, Teodoro Sampaio" /></F.Field>
+              <F.Field><label htmlFor="company-field-10">Site ou Rede Social</label><input id="company-field-10" value={profileData.website} onChange={e => setProfileData(p => ({ ...p, website: e.target.value }))} placeholder="https://suaempresa.com.br" /></F.Field>
             </F.FieldRow>
             <F.FieldRow>
-              <F.Field><label>E-mail de contato (RH)</label><input type="email" required value={profileData.contact_email} onChange={e => setProfileData(p => ({ ...p, contact_email: e.target.value }))} /></F.Field>
-              <F.Field><label>WhatsApp da empresa</label><input type="tel" value={profileData.phone} onChange={e => setProfileData(p => ({ ...p, phone: e.target.value }))} placeholder="(18) 99999-9999" /></F.Field>
+              <F.Field><label htmlFor="company-field-11">E-mail de contato (RH)</label><input id="company-field-11" type="email" required value={profileData.contact_email} onChange={e => setProfileData(p => ({ ...p, contact_email: e.target.value }))} /></F.Field>
+              <F.Field><label htmlFor="company-field-12">WhatsApp da empresa</label><input id="company-field-12" type="tel" value={profileData.phone} onChange={e => setProfileData(p => ({ ...p, phone: e.target.value }))} placeholder="(18) 99999-9999" /></F.Field>
             </F.FieldRow>
             <F.Field>
-              <label>Descrição da Empresa</label>
-              <textarea rows={5} maxLength={5000} value={profileData.description} onChange={e => setProfileData(p => ({ ...p, description: e.target.value }))} placeholder="Conte um pouco sobre a história e os valores da empresa..." />
+              <label htmlFor="company-field-13">Descrição da Empresa</label>
+              <textarea id="company-field-13" rows={5} maxLength={5000} value={profileData.description} onChange={e => setProfileData(p => ({ ...p, description: e.target.value }))} placeholder="Conte um pouco sobre a história e os valores da empresa..." />
               <small>{profileData.description.length}/5000</small>
             </F.Field>
             <F.Actions>

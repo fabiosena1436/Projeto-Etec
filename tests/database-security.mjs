@@ -19,11 +19,11 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality']) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   }
   // Reapplying the security correction is safe.
-  await db.exec(await readFile(new URL('../supabase/migrations/006_security_hardening.sql', import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
   for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato' }]);
@@ -50,14 +50,29 @@ try {
   await assert.rejects(asUser(ids[3],"INSERT INTO storage.objects(bucket_id,name) VALUES('company-logos',$1)",[`${company}/logo.png`]),/row-level security/);
   await assert.rejects(asUser(ids[0],'INSERT INTO applications(job_id,candidate_id,company_id) VALUES($1,$2,$3)',[job,ids[0],company]),/row-level security/);
   const app = (await asUser(ids[0],'SELECT apply_to_job($1) AS id',[job])).rows[0].id;
+  await assert.rejects(asUser(ids[0],'SELECT apply_to_job($1)',[job]),/já se candidatou/,'duplicate applications are rejected');
+  assert.equal((await asUser(ids[3],"UPDATE jobs SET title='Outra empresa' WHERE id=$1 RETURNING id",[job])).rows.length,0,'another company cannot edit the job');
+  await asUser(ids[2],"UPDATE jobs SET title='Vaga Teste Editada' WHERE id=$1",[job]);
+  assert.equal((await asUser(null,'SELECT title FROM v_jobs_with_company WHERE id=$1',[job])).rows[0].title,'Vaga Teste Editada','owner changes appear publicly');
   assert.equal((await asUser(ids[2],'SELECT * FROM candidates WHERE profile_id=$1',[ids[0]])).rows.length,1,'recipient company can access its candidate');
   assert.equal((await asUser(ids[2],"SELECT * FROM storage.objects WHERE bucket_id='resumes'")).rows.length,1,'recipient company can download the submitted resume');
   await assert.rejects(asUser(ids[0],"UPDATE applications SET status='aprovada' WHERE id=$1",[app]),/só pode desistir/);
   await assert.rejects(asUser(ids[2],'UPDATE applications SET company_id=$1 WHERE id=$2',[secondCompany,app]),/Identidade/);
   await asUser(ids[2],"UPDATE applications SET status='visualizada' WHERE id=$1",[app]);
   assert.equal((await asUser(ids[0],"SELECT * FROM notifications WHERE title='Sua candidatura foi atualizada'")).rows.length,1,'company review notifies the candidate');
+  for (const status of ['em_analise','pre_selecionado','aprovada','rejeitada']) {
+    await asUser(ids[2],'UPDATE applications SET status=$1 WHERE id=$2',[status,app]);
+    assert.equal((await asUser(ids[0],'SELECT status FROM applications WHERE id=$1',[app])).rows[0].status,status,'candidate sees each recruiter status');
+  }
   await asUser(ids[0],"SELECT set_my_skills(ARRAY['C++','C#','React','React'])");
   assert.equal((await asUser(ids[0],'SELECT * FROM candidate_skills')).rows.length,3,'skill slug collisions and duplicates are handled');
+  await asUser(ids[0],"UPDATE candidates SET profession='Desenvolvedor',about='Apresentação profissional com mais de vinte caracteres.',education='Técnico',city='Teodoro Sampaio',resume_url='curriculo.pdf' WHERE profile_id=$1",[ids[0]]);
+  assert.equal((await asUser(ids[0],'SELECT completion_percent FROM candidates WHERE profile_id=$1',[ids[0]])).rows[0].completion_percent,86,'profile edits recalculate completion without referencing candidate_id');
+  const experience = (await asUser(ids[0],"INSERT INTO candidate_experiences(candidate_id,company_name,role,start_date) VALUES($1,'Empresa Teste','Assistente','2025-01-01') RETURNING id",[ids[0]])).rows[0].id;
+  assert.equal((await asUser(ids[0],'SELECT completion_percent FROM candidates WHERE profile_id=$1',[ids[0]])).rows[0].completion_percent,100,'experience insertion recalculates completion');
+  await asUser(ids[0],'DELETE FROM candidate_experiences WHERE id=$1',[experience]);
+  await asUser(ids[0],"SELECT set_my_skills(ARRAY[]::text[])");
+  assert.equal((await asUser(ids[0],'SELECT completion_percent FROM candidates WHERE profile_id=$1',[ids[0]])).rows[0].completion_percent,71,'skill and experience removal use OLD and update completion');
   await assert.rejects(asUser(ids[2],"SELECT set_my_skills(ARRAY['React'])"),/Apenas candidatos/);
   await asUser(ids[0],'SELECT toggle_saved_job($1)',[job]);
   assert.equal((await asUser(ids[1],'SELECT * FROM saved_jobs')).rows.length,0,'saved jobs are private');
@@ -66,6 +81,7 @@ try {
   assert.equal((await asUser(ids[0],'SELECT * FROM v_jobs_with_company WHERE id=$1',[job])).rows.length,1,'applicant retains job history');
   await assert.rejects(asUser(ids[1],'SELECT apply_to_job($1)',[job]),/não está ativa/);
   await asUser(ids[0],"UPDATE applications SET status='desistiu' WHERE id=$1",[app]);
+  await assert.rejects(asUser(ids[2],"UPDATE applications SET status='enviada' WHERE id=$1",[app]),/não pode ser reativada/);
   assert.equal((await asUser(ids[2],"SELECT * FROM storage.objects WHERE bucket_id='resumes'")).rows.length,0,'withdrawal revokes recruiter access');
   console.log('PASS: migrations, signup, jobs, applications, private files and authorization checks.');
 } finally { await db.close(); }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Briefcase, Home, Search, Bookmark, User as UserIcon, Building, PlusCircle, LogOut } from 'lucide-react';
+import { Home, Search, Bookmark, User as UserIcon, Building, PlusCircle, LogOut } from 'lucide-react';
+import { BrandMark } from '../../components/BrandMark';
 import { toast } from 'sonner';
 import { useAuth } from '../../hooks/useAuth';
 import { companiesService } from '../../services/supabase/companies.service';
@@ -36,7 +37,7 @@ export function DashboardLayout() {
             onClick={() => navigate(role === 'empresa' ? '/empresa/painel' : '/candidato/painel')}
             style={{ cursor: 'pointer' }}
           >
-            <Briefcase size={24} />
+            <BrandMark size={32} />
             <span>Conecta Sampaio</span>
           </S.Brand>
 
@@ -72,7 +73,7 @@ export function DashboardLayout() {
         <Outlet />
       </S.MainContent>
 
-      <S.BottomNav>
+      <S.BottomNav aria-label="Navegação do painel">
         {isEmpresa ? (
           <>
             <S.NavItem $active={isActive('/empresa/painel')} onClick={() => navigate('/empresa/painel')}>

@@ -87,12 +87,15 @@ export const SectionTitle = styled.h2`
 
 export const TabsContainer = styled.div`
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
+  overflow-x: auto;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   margin-top: 1rem;
 `;
 
 export const TabButton = styled.button<{ $active?: boolean }>`
+  flex-shrink: 0;
+  white-space: nowrap;
   background: transparent;
   border: none;
   padding: 0.75rem 0;
@@ -178,7 +181,7 @@ export const Field = styled.div<{ $basis?: string }>`
     padding: 0.75rem;
     border-radius: 12px;
     border: 1px solid #cbd5e1;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-family: inherit;
     background: white;
     width: 100%;

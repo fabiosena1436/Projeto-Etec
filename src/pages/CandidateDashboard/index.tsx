@@ -11,6 +11,7 @@ import { candidatesService } from '../../services/supabase/candidates.service';
 import { JobsBoard } from '../../components/JobsBoard';
 import { SponsorCarousel } from '../../components/SponsorCarousel';
 import { PageLoader } from '../../components/PageLoader';
+import { openDocument } from '../../utils/openDocument';
 import type { Candidate, Profile, ApplicationStatus } from '../../types/database';
 import * as S from './styles';
 
@@ -161,6 +162,7 @@ export function CandidateDashboard() {
     e.preventDefault();
     if (isMock) { toast.success('Experiência adicionada! (demo)'); return; }
     if (!expForm.company_name.trim() || !expForm.role.trim() || !expForm.start_date) return toast.error('Preencha empresa, cargo e data de início.');
+    if (!expForm.is_current && expForm.end_date && expForm.end_date < expForm.start_date) return toast.error('A data de fim deve ser posterior à data de início.');
     setSaving(true);
     try {
       await candidatesService.addExperience({
@@ -228,9 +230,8 @@ export function CandidateDashboard() {
 
   const openResume = async () => {
     if (!resumeUrl) return;
-    const url = await candidatesService.getResumeSignedUrl(resumeUrl);
-    if (url) window.open(url, '_blank', 'noopener');
-    else toast.error('Não foi possível abrir o currículo.');
+    try { await openDocument(() => candidatesService.getResumeSignedUrl(resumeUrl)); }
+    catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível abrir o currículo.'); }
   };
 
   const handleWithdraw = async (jobId: string) => {
@@ -261,7 +262,7 @@ export function CandidateDashboard() {
             <span style={{ position: 'absolute', bottom: -2, right: -2, background: 'white', borderRadius: '50%', padding: 4, boxShadow: '0 1px 3px rgba(0,0,0,.2)', display: 'flex' }}>
               <Camera size={14} color="#2563eb" />
             </span>
-            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarUpload} style={{ display: 'none' }} disabled={saving} />
+            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarUpload} aria-label="Alterar imagem do perfil" style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', cursor: 'pointer' }} disabled={saving} />
           </label>
           <div>
             <h1>Olá, {firstName}!</h1>
@@ -275,13 +276,13 @@ export function CandidateDashboard() {
       </S.WelcomeSection>
 
       <S.TabsContainer style={{ overflowX: 'auto' }}>
-        <S.TabButton $active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
+        <S.TabButton aria-pressed={activeTab === 'overview'} $active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
           <LayoutDashboard size={20} /> Visão Geral
         </S.TabButton>
-        <S.TabButton $active={activeTab === 'profile'} onClick={() => setActiveTab('profile')}>
+        <S.TabButton aria-pressed={activeTab === 'profile'} $active={activeTab === 'profile'} onClick={() => setActiveTab('profile')}>
           <User size={20} /> Meu Perfil
         </S.TabButton>
-        <S.TabButton $active={activeTab === 'applications'} onClick={() => setActiveTab('applications')}>
+        <S.TabButton aria-pressed={activeTab === 'applications'} $active={activeTab === 'applications'} onClick={() => setActiveTab('applications')}>
           <Briefcase size={20} /> Candidaturas {applications.length > 0 && <span style={{ background: '#2563eb', color: 'white', borderRadius: 999, fontSize: '0.7rem', padding: '0.1rem 0.45rem' }}>{applications.length}</span>}
         </S.TabButton>
       </S.TabsContainer>
@@ -312,7 +313,7 @@ export function CandidateDashboard() {
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <div>
                 <strong style={{ color: '#1e40af' }}>Complete seu perfil</strong>
-                <p style={{ color: '#1e3a8a', fontSize: '0.875rem', margin: 0 }}>Perfis completos têm até 3x mais chances de serem chamados pelas empresas.</p>
+                <p style={{ color: '#1e3a8a', fontSize: '0.875rem', margin: 0 }}>Adicione suas informações para ajudar as empresas a conhecer sua experiência.</p>
               </div>
               <S.Btn onClick={() => setActiveTab('profile')}>Completar agora</S.Btn>
             </div>
@@ -357,28 +358,28 @@ export function CandidateDashboard() {
               {editingSection === 'basic' ? (
                 <S.CardBody $editing>
                   <S.FieldRow>
-                    <S.Field><label>Nome Completo</label><input required minLength={3} name="name" value={form.name} onChange={onChange} /></S.Field>
-                    <S.Field><label>Profissão / Cargo Desejado</label><input name="profession" value={form.profession} onChange={onChange} placeholder="Ex: Vendedor, Auxiliar Administrativo" /></S.Field>
+                    <S.Field><label htmlFor="candidate-field-1">Nome Completo</label><input id="candidate-field-1" required minLength={3} name="name" value={form.name} onChange={onChange} /></S.Field>
+                    <S.Field><label htmlFor="candidate-field-2">Profissão / Cargo Desejado</label><input id="candidate-field-2" name="profession" value={form.profession} onChange={onChange} placeholder="Ex: Vendedor, Auxiliar Administrativo" /></S.Field>
                   </S.FieldRow>
                   <S.FieldRow>
-                    <S.Field $basis="140px"><label>Idade</label><input type="number" min={14} max={80} name="age" value={form.age} onChange={onChange} /></S.Field>
-                    <S.Field><label>Cidade / Estado</label><input required name="city" value={form.city} onChange={onChange} /></S.Field>
+                    <S.Field $basis="140px"><label htmlFor="candidate-field-3">Idade</label><input id="candidate-field-3" type="number" min={14} max={80} name="age" value={form.age} onChange={onChange} /></S.Field>
+                    <S.Field><label htmlFor="candidate-field-4">Cidade / Estado</label><input id="candidate-field-4" required name="city" value={form.city} onChange={onChange} /></S.Field>
                     <S.Field $basis="200px">
-                      <label>Disponibilidade</label>
-                      <select name="availability" value={form.availability} onChange={onChange}>
+                      <label htmlFor="candidate-field-5">Disponibilidade</label>
+                      <select id="candidate-field-5" name="availability" value={form.availability} onChange={onChange}>
                         <option value="">Selecione...</option>
                         <option>Imediata</option><option>Manhã</option><option>Tarde</option><option>Noite</option><option>Fins de semana</option><option>Integral</option>
                       </select>
                     </S.Field>
                   </S.FieldRow>
-                  <S.Field><label>Formação Acadêmica</label><input name="education" value={form.education} onChange={onChange} placeholder="Ex: Ensino Médio Completo, Técnico em Informática (ETEC)" /></S.Field>
+                  <S.Field><label htmlFor="candidate-field-6">Formação Acadêmica</label><input id="candidate-field-6" name="education" value={form.education} onChange={onChange} placeholder="Ex: Ensino Médio Completo, Técnico em Informática (ETEC)" /></S.Field>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#334155', cursor: 'pointer' }}>
                     <input type="checkbox" name="is_open_to_work" checked={form.is_open_to_work} onChange={onChange} style={{ width: 'auto' }} />
-                    Estou disponível para novas oportunidades (visível para empresas)
+                    Estou disponível para novas oportunidades
                   </label>
                   <S.Actions>
                     <S.Btn type="submit" $variant="success" disabled={saving}><Save size={18} /> {saving ? 'Salvando...' : 'Salvar'}</S.Btn>
-                    <S.Btn type="button" $variant="ghost" onClick={() => setEditingSection(null)}>Cancelar</S.Btn>
+                    <S.Btn type="button" $variant="ghost" onClick={() => { setEditingSection(null); loadCandidate(); }}>Cancelar</S.Btn>
                   </S.Actions>
                 </S.CardBody>
               ) : (
@@ -406,13 +407,13 @@ export function CandidateDashboard() {
               {editingSection === 'about' ? (
                 <S.CardBody $editing>
                   <S.Field>
-                    <label>Apresentação</label>
-                    <textarea rows={5} maxLength={2000} name="about" value={form.about} onChange={onChange} placeholder="Fale sobre você, seus objetivos e o que você busca profissionalmente..." />
+                    <label htmlFor="candidate-field-7">Apresentação</label>
+                    <textarea id="candidate-field-7" rows={5} maxLength={2000} name="about" value={form.about} onChange={onChange} placeholder="Fale sobre você, seus objetivos e o que você busca profissionalmente..." />
                     <small>{form.about.length}/2000</small>
                   </S.Field>
                   <S.Actions>
                     <S.Btn type="submit" $variant="success" disabled={saving}><Save size={18} /> {saving ? 'Salvando...' : 'Salvar'}</S.Btn>
-                    <S.Btn type="button" $variant="ghost" onClick={() => setEditingSection(null)}>Cancelar</S.Btn>
+                    <S.Btn type="button" $variant="ghost" onClick={() => { setEditingSection(null); loadCandidate(); }}>Cancelar</S.Btn>
                   </S.Actions>
                 </S.CardBody>
               ) : (
@@ -432,9 +433,9 @@ export function CandidateDashboard() {
             {editingSection === 'skills' ? (
               <S.CardBody $editing>
                 <S.Field>
-                  <label>Adicionar habilidade</label>
+                  <label htmlFor="candidate-field-8">Adicionar habilidade</label>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }} placeholder="Ex: Atendimento ao cliente, Excel, Vendas" />
+                    <input id="candidate-field-8" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }} placeholder="Ex: Atendimento ao cliente, Excel, Vendas" />
                     <S.Btn type="button" onClick={addSkill}><Plus size={18} /></S.Btn>
                   </div>
                   <small>Pressione Enter para adicionar. Máximo 20.</small>
@@ -469,12 +470,12 @@ export function CandidateDashboard() {
               {editingSection === 'experience' && (
                 <form onSubmit={handleAddExperience} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0' }}>
                   <S.FieldRow>
-                    <S.Field><label>Empresa</label><input required value={expForm.company_name} onChange={e => setExpForm(p => ({ ...p, company_name: e.target.value }))} /></S.Field>
-                    <S.Field><label>Cargo</label><input required value={expForm.role} onChange={e => setExpForm(p => ({ ...p, role: e.target.value }))} /></S.Field>
+                    <S.Field><label htmlFor="candidate-field-9">Empresa</label><input id="candidate-field-9" required value={expForm.company_name} onChange={e => setExpForm(p => ({ ...p, company_name: e.target.value }))} /></S.Field>
+                    <S.Field><label htmlFor="candidate-field-10">Cargo</label><input id="candidate-field-10" required value={expForm.role} onChange={e => setExpForm(p => ({ ...p, role: e.target.value }))} /></S.Field>
                   </S.FieldRow>
                   <S.FieldRow>
-                    <S.Field $basis="180px"><label>Início</label><input required type="date" value={expForm.start_date} onChange={e => setExpForm(p => ({ ...p, start_date: e.target.value }))} /></S.Field>
-                    <S.Field $basis="180px"><label>Fim</label><input type="date" disabled={expForm.is_current} value={expForm.end_date} onChange={e => setExpForm(p => ({ ...p, end_date: e.target.value }))} /></S.Field>
+                    <S.Field $basis="180px"><label htmlFor="candidate-field-11">Início</label><input id="candidate-field-11" required type="date" value={expForm.start_date} onChange={e => setExpForm(p => ({ ...p, start_date: e.target.value }))} /></S.Field>
+                    <S.Field $basis="180px"><label htmlFor="candidate-field-12">Fim</label><input id="candidate-field-12" type="date" disabled={expForm.is_current} value={expForm.end_date} onChange={e => setExpForm(p => ({ ...p, end_date: e.target.value }))} /></S.Field>
                     <S.Field $basis="180px" style={{ justifyContent: 'flex-end' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                         <input type="checkbox" checked={expForm.is_current} onChange={e => setExpForm(p => ({ ...p, is_current: e.target.checked }))} style={{ width: 'auto' }} /> Trabalho atual
@@ -519,14 +520,14 @@ export function CandidateDashboard() {
                 <S.CardBody $editing>
                   <S.FieldRow>
                     <S.Field>
-                      <label>Telefone / WhatsApp</label>
-                      <input type="tel" name="phone" value={form.phone} onChange={onChange} placeholder="(18) 99999-9999" />
+                      <label htmlFor="candidate-field-13">Telefone / WhatsApp</label>
+                      <input id="candidate-field-13" type="tel" name="phone" value={form.phone} onChange={onChange} placeholder="(18) 99999-9999" />
                       <small>Visível apenas para empresas em que você se candidatou.</small>
                     </S.Field>
                     <S.Field>
-                      <label>Currículo (PDF ou Word, até 5MB)</label>
+                      <label htmlFor="candidate-field-14">Currículo (PDF ou Word, até 5MB)</label>
                       <div style={{ position: 'relative' }}>
-                        <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} disabled={saving} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                        <input id="candidate-field-14" type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} disabled={saving} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', background: 'white', border: '1px dashed #cbd5e1', borderRadius: 8, color: '#475569' }}>
                           <Upload size={18} /> {resumeLabel || 'Clique para enviar seu currículo'}
                         </div>
@@ -535,7 +536,7 @@ export function CandidateDashboard() {
                   </S.FieldRow>
                   <S.Actions>
                     <S.Btn type="submit" $variant="success" disabled={saving}><Save size={18} /> {saving ? 'Salvando...' : 'Salvar'}</S.Btn>
-                    <S.Btn type="button" $variant="ghost" onClick={() => setEditingSection(null)}>Cancelar</S.Btn>
+                    <S.Btn type="button" $variant="ghost" onClick={() => { setEditingSection(null); loadCandidate(); }}>Cancelar</S.Btn>
                   </S.Actions>
                 </S.CardBody>
               ) : (

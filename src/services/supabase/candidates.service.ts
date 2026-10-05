@@ -143,6 +143,7 @@ export const candidatesService = {
   async uploadResume(file: File): Promise<string> {
     if (!supabase) throw new Error('Supabase não configurado');
     if (file.size > 5 * 1024 * 1024) throw new Error('O currículo deve ter no máximo 5MB.');
+    if (!/\.(pdf|doc|docx)$/i.test(file.name)) throw new Error('Envie um currículo em PDF ou Word.');
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Não autenticado');
     const ext = file.name.split('.').pop()?.toLowerCase() || 'pdf';
@@ -166,6 +167,7 @@ export const candidatesService = {
   async uploadAvatar(file: File): Promise<string> {
     if (!supabase) throw new Error('Supabase não configurado');
     if (file.size > 2 * 1024 * 1024) throw new Error('A foto deve ter no máximo 2MB.');
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) throw new Error('Envie uma foto em PNG, JPEG ou WebP.');
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Não autenticado');
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
@@ -196,8 +198,8 @@ export const candidatesService = {
     }
 
     if (Object.keys(candidateUpdates).length > 0) {
-      if (candidateUpdates.age === '' || candidateUpdates.age === undefined) delete candidateUpdates.age;
-      else candidateUpdates.age = Number(candidateUpdates.age);
+      if (candidateUpdates.age === '') candidateUpdates.age = null;
+      else if (candidateUpdates.age !== undefined && candidateUpdates.age !== null) candidateUpdates.age = Number(candidateUpdates.age);
       const { data, error } = await (supabase as any)
         .from('candidates')
         .upsert({ ...candidateUpdates, profile_id: user.id }, { onConflict: 'profile_id' })

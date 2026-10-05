@@ -1,10 +1,9 @@
 import styled from 'styled-components';
 
 export const DashboardContainer = styled.div`
-  max-width: 800px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1rem;
-  padding-bottom: 6rem; /* espaço para o bottom nav mobile */
+  padding: 0;
 `;
 
 export const Header = styled.header`
@@ -51,6 +50,7 @@ export const MetricsGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
+  @media (max-width: 480px) { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
 `;
 
 export const MetricCard = styled.div`
@@ -62,6 +62,11 @@ export const MetricCard = styled.div`
   gap: 1rem;
   border: 1px solid ${({ theme }) => theme.colors.border};
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  @media (max-width: 480px) {
+    flex-direction: column; align-items: flex-start; padding: 0.75rem; gap: 0.5rem;
+    .icon { width: 32px; height: 32px; }
+    p { font-size: 0.75rem; }
+  }
 
   .icon {
     width: 48px;
@@ -203,7 +208,7 @@ export const PromoItem = styled.div`
 export const UpsellBanner = styled.div`
   background: linear-gradient(135deg, ${({ theme }) => theme.colors.primary}, #1e3a8a);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.25rem;
   color: white;
   margin-bottom: 2rem;
   display: flex;
@@ -213,7 +218,7 @@ export const UpsellBanner = styled.div`
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
   h3 {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
     font-weight: 700;
     display: flex;
     align-items: center;
