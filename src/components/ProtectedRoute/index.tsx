@@ -15,7 +15,8 @@ export function ProtectedRoute({ roles }: ProtectedRouteProps) {
   if (loading) return <PageLoader label="Verificando sessão..." />;
 
   if (!isAuthenticated) {
-    const wanted = roles?.[0] ? `?type=${roles[0]}` : '';
+    const wantedRole = roles?.[0] === 'admin' ? 'empresa' : roles?.[0];
+    const wanted = wantedRole ? `?type=${wantedRole}` : '';
     return <Navigate to={`/login${wanted}`} replace state={{ from: location.pathname }} />;
   }
 
