@@ -399,8 +399,8 @@ export function CompanyDashboard() {
                         {promo.valid_until && <small style={{ color: '#94a3b8' }}>Até {new Date(promo.valid_until + 'T00:00:00').toLocaleDateString('pt-BR')}</small>}
                       </div>
                       <div className="actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => openPromoForm(promo)} style={{ flex: 1, padding: '0.4rem', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer' }}><Edit2 size={16} style={{ margin: '0 auto' }} /></button>
-                        <button onClick={() => handleDeletePromo(promo)} style={{ flex: 1, padding: '0.4rem', borderRadius: 6, border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} style={{ margin: '0 auto' }} /></button>
+                        <button aria-label={`Editar oferta ${promo.title}`} disabled={saving} onClick={() => openPromoForm(promo)} style={{ flex: 1, padding: '0.4rem', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer' }}><Edit2 size={16} style={{ margin: '0 auto' }} /></button>
+                        <button aria-label={`Excluir oferta ${promo.title}`} disabled={saving} onClick={() => handleDeletePromo(promo)} style={{ flex: 1, padding: '0.4rem', borderRadius: 6, border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} style={{ margin: '0 auto' }} /></button>
                       </div>
                     </S.PromoItem>
                   ))}
