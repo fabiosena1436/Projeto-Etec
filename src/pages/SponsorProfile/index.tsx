@@ -105,7 +105,7 @@ export function SponsorProfile() {
               
               {promo.validUntil && (
                 <small style={{ marginTop: '0.5rem', color: '#64748b' }}>
-                  Válido até: {new Date(promo.validUntil).toLocaleDateString('pt-BR')}
+                  Válido até: {new Date(`${promo.validUntil}T12:00:00`).toLocaleDateString('pt-BR')}
                 </small>
               )}
             </S.PromoCard>

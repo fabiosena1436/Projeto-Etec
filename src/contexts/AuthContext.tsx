@@ -72,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(!isMock);
   const [adminAccess, setAdminAccess] = useState(false);
   const fetchingFor = useRef(0);
+  const resolvedUserId = useRef<string | null>(null);
 
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     if (!supabase) return null;
@@ -94,19 +95,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       setSession(nextSession);
       if (!nextSession?.user) {
+        resolvedUserId.current = null;
         setAdminAccess(false);
         setProfile(null);
         setLoading(false);
         return;
       }
       // evita corrida entre getSession e onAuthStateChange
-      setLoading(true);
+      if (resolvedUserId.current !== nextSession.user.id) {
+        setAdminAccess(false);
+        setLoading(true);
+      }
       const [p, canAdmin] = await Promise.all([
         fetchProfile(nextSession.user.id),
         (supabase as any).rpc('is_super_admin').then(({data,error}:any)=>!error&&data===true).catch(()=>false),
       ]);
       if (cancelled || fetchingFor.current !== requestId) return;
       setProfile(p);
+      resolvedUserId.current = nextSession.user.id;
       setAdminAccess(canAdmin);
       setLoading(false);
     };

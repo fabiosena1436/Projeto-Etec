@@ -10,7 +10,7 @@
 
 ## Verificado automaticamente em PostgreSQL local
 
-`npm run test:database` executa as migrações 001, 003 e 005–008 em PGlite. Verifica criação de perfis, bloqueio de cadastro como administrador, edição de vagas pelo proprietário, isolamento entre empresas, candidatura e rejeição de duplicatas, todos os status da seleção, notificações, favoritos privados, currículo restrito, histórico de vaga encerrada e revogação de acesso após desistência. Também impede que a empresa reative a candidatura retirada.
+`npm run test:database` executa as migrações 001, 003 e 005–009 em PGlite. Verifica criação de perfis, bloqueio de cadastro como administrador, edição de vagas pelo proprietário, isolamento entre empresas, candidatura e rejeição de duplicatas, todos os status da seleção, notificações, favoritos privados, currículo restrito, histórico de vaga encerrada e revogação de acesso após desistência. Também impede que a empresa reative a candidatura retirada. Os testes administrativos verificam acesso restrito, revogação imediata, dados comerciais privados, limite de seis ofertas incluindo vencidas, suspensão da parceria e ativação condicionada a recebimento e período vigente.
 
 Os testes novos reproduzem o problema do preenchimento do perfil e verificam inserção/remoção de habilidades e experiências. Esse teste local não valida os serviços reais de Auth, Storage ou SMTP.
 
@@ -27,6 +27,8 @@ Os testes novos reproduzem o problema do preenchimento do perfil e verificam ins
 - Erros de carregamento não são tratados como sucesso silencioso e mensagens internas de configuração foram removidas da interface.
 
 ## Ainda pendente no navegador
+
+Atualização de 05/10/2026: cinco vagas fictícias de exemplo foram publicadas a pedido do usuário e conferidas no painel de candidato e nas páginas públicas. O usuário enviou seu PDF e o painel exibiu `curriculo.pdf`; o conteúdo não foi aberto. A página `/parcerias` foi publicada e conferida visualmente no computador, com WhatsApp correto e sem erros de console. A conta de Fabio recebeu acesso administrativo mediante confirmação explícita; a verificação visual do painel depende do login nessa versão publicada.
 
 - Upload e abertura de currículo fictício, avatar e logo.
 - Publicação temporária da vaga de teste, favorito, candidatura, visualização pela empresa, mudança de status pelo painel, desistência e encerramento da vaga. Publicação e upload aguardam a resposta do usuário para o teste específico.

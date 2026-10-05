@@ -25,7 +25,7 @@ Configure SMTP personalizado para enviar confirmação e recuperação de senha 
 
 ## Verificação
 
-A migração 009 foi aplicada ao Supabase de produção em 05/10/2026. Ela cria a administração, os registros privados de patrocínio e a validade pública das ofertas. Não concede acesso administrativo automaticamente. A conta existente de Fabio foi conferida; a ativação em `platform_admins` depende da confirmação do proprietário. O papel de empresa permanece preservado. O administrador não recebe acesso adicional aos currículos privados.
+A migração 009 foi aplicada ao Supabase de produção em 05/10/2026. Ela cria a administração, os registros privados de patrocínio e a validade pública das ofertas. Não concede acesso administrativo automaticamente. Após confirmação explícita do proprietário, a conta existente `fabiosena1436@gmail.com` foi ativada em `platform_admins`; o retorno do banco confirmou `is_active=true`. O papel de empresa permanece preservado. O administrador não recebe acesso adicional aos currículos privados.
 
 Publicação das parcerias: `dpl_H6uUJWuo4bTLEcNnd11fNk6HRiuz`, disponível em `/parcerias`. O painel protegido fica em `/admin/painel`. Negociação manual pelo WhatsApp, sem preço público ou cobrança automática. Consulte `PLANO_DE_NEGOCIO.md`.
 
