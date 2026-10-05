@@ -12,7 +12,7 @@ As variáveis VITE são incorporadas durante o build: publique novamente depois 
 
 Em um projeto vazio, aplique as migrações `001_initial_schema.sql`, `003_storage_and_functions.sql`, `005_production_ready.sql`, `006_security_hardening.sql`, `007_candidate_completion.sql` e `008_withdrawal_finality.sql`, nessa ordem. `002_seed.sql` contém habilidades iniciais opcionais. Não aplique `004_demo_seed_real.sql` em produção: ela cria dados de demonstração.
 
-Em um projeto existente, inspecione as tabelas e funções antes de aplicar migrações. As correções 005 e 006 foram aplicadas ao projeto `conecta-teodoro` (`bqyuyxzlqjyismolbwvc`). Elas preservam os cadastros existentes.
+Em um projeto existente, inspecione as tabelas e funções antes de aplicar migrações. As correções 005, 006, 007 e 008 foram aplicadas ao projeto `conecta-teodoro` (`bqyuyxzlqjyismolbwvc`). Elas preservam os cadastros existentes. A 007 corrige o gatilho de preenchimento que impedia salvar perfil, habilidades e experiências; a 008 impede que a empresa reative uma candidatura retirada.
 
 Os buckets são `avatars`, `company-logos`, `resumes` e `promotions`. Currículos são privados. Empresas recebem acesso ao currículo dos candidatos que se candidataram às suas vagas; a desistência revoga esse acesso. Cada usuário ou empresa só pode gravar arquivos na própria pasta.
 
