@@ -1,0 +1,72 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Bell, Building2, Heart, MessageCircle, RefreshCw, Flag, Users } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '../../hooks/useAuth';
+import { communityService, type CommunityPost } from '../../services/supabase/community.service';
+import { companiesService } from '../../services/supabase/companies.service';
+import { apiService } from '../../services/api';
+import { supabase } from '../../lib/supabase';
+import type { Job } from '../../data/jobs';
+import type { Notification } from '../../types/database';
+import * as S from './styles';
+
+const date=(value:string)=>new Date(value).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+const message=(e:unknown)=>e instanceof Error?e.message:'Não foi possível concluir. Tente novamente.';
+
+function PostCard({post,run,participate}:{post:CommunityPost;run:(fn:()=>Promise<unknown>)=>Promise<boolean>;participate:()=>boolean}) {
+ const [open,setOpen]=useState(false),[text,setText]=useState(''),[editing,setEditing]=useState(false);
+ const [body,setBody]=useState(post.body),[image,setImage]=useState(post.image_url||'');
+ const [report,setReport]=useState<string|null>(null),[reason,setReason]=useState(''),[busy,setBusy]=useState(false);
+ async function action(fn:()=>Promise<unknown>){if(!participate())return;setBusy(true);try{return await run(fn);}finally{setBusy(false);}}
+ async function submit(e:React.FormEvent){e.preventDefault();if(await action(()=>communityService.action('comment',post.id,text)))setText('');}
+ async function save(e:React.FormEvent){e.preventDefault();if(await action(()=>communityService.action('edit',post.id,body,image)))setEditing(false);}
+ async function sendReport(e:React.FormEvent){e.preventDefault();if(await action(()=>communityService.action(report===post.id?'report':'report_comment',report!,reason))){setReport(null);setReason('');toast.success('Denúncia enviada de forma privada à administração.');}}
+ return <article className="card" aria-label={`Publicação de ${post.company_name}`}>
+  <div className="posthead">{post.logo_url?<img className="logo" src={post.logo_url} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="logo identity"><Building2 size={24}/></span>}
+   <div className="company"><Link to={`/empresas/${post.company_id}`}>{post.company_name}</Link><div>{post.verified&&<span className="badge">Verificada</span>}{post.sponsor&&<span className="badge">Parceira da cidade</span>}</div><small>{date(post.created_at)}{post.updated_at!==post.created_at?' · editado':''}</small></div>
+   <button disabled={busy} aria-pressed={post.following} onClick={()=>void action(()=>communityService.action('follow',post.company_id,undefined,undefined,!post.following))}>{post.following?'Seguindo':'+ Seguir'}</button>
+  </div>
+  {editing?<form onSubmit={save}><label htmlFor={`edit-${post.id}`}>Editar publicação</label><textarea id={`edit-${post.id}`} required maxLength={2000} value={body} onChange={e=>setBody(e.target.value)}/><label htmlFor={`image-${post.id}`}>Endereço da imagem (opcional)</label><input id={`image-${post.id}`} type="url" pattern="https://.*" value={image} onChange={e=>setImage(e.target.value)}/><div className="actions"><button className="primary" disabled={busy}>Salvar edição</button><button type="button" onClick={()=>setEditing(false)}>Cancelar</button></div></form>:<><p className="postbody">{post.body}</p>{post.image_url&&<img className="postimage" src={post.image_url} alt={`Imagem da publicação de ${post.company_name}`} loading="lazy" referrerPolicy="no-referrer"/>}</>}
+  <div className="counts"><span>{post.likes} curtidas</span><span>{post.comment_count} comentários</span></div>
+  <div className="postactions"><button disabled={busy} aria-pressed={post.liked} onClick={()=>void action(()=>communityService.action('like',post.id,undefined,undefined,!post.liked))}><Heart size={16}/> {post.liked?'Curtiu':'Curtir'}</button><button aria-expanded={open} onClick={()=>setOpen(!open)}><MessageCircle size={16}/> Comentar</button><button disabled={busy} onClick={()=>{if(participate())setReport(post.id);}}><Flag size={15}/> Denunciar</button>
+   {post.can_edit&&<><button disabled={busy} onClick={()=>{setBody(post.body);setImage(post.image_url||'');setEditing(true);}}>Editar</button><button disabled={busy} onClick={()=>void action(()=>communityService.action('withdraw',post.id))}>Retirar publicação</button></>}
+  </div>
+  {open&&<section className="comments" aria-label="Comentários"><p className="muted">{post.comment_count>20?'20 comentários mais recentes.':'Converse com respeito. Não compartilhe dados pessoais.'}</p>{post.comments.map(c=><div className="comment" key={c.id}><div className="by"><strong>{c.name}</strong><small>{date(c.created_at)}</small></div><p>{c.body}</p>{c.own?<button disabled={busy} onClick={()=>void action(()=>communityService.action('remove_comment',c.id))}>Retirar meu comentário</button>:<button disabled={busy} onClick={()=>{if(participate())setReport(c.id);}}>Denunciar comentário</button>}</div>)}<form onSubmit={submit}><label htmlFor={`comment-${post.id}`}>Seu comentário</label><textarea id={`comment-${post.id}`} maxLength={500} required value={text} onChange={e=>setText(e.target.value)} placeholder="Escreva um comentário..."/><small>Seu nome e comentário aparecerão publicamente.</small><div className="actions"><button className="primary" disabled={busy||!text.trim()}>Publicar comentário</button></div></form></section>}
+  {report&&<form className="report" onSubmit={sendReport}><label htmlFor={`reason-${post.id}`}>Motivo da denúncia</label><textarea id={`reason-${post.id}`} required minLength={5} maxLength={500} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Explique o problema. Sua denúncia será privada."/><div className="actions"><button disabled={busy||reason.trim().length<5}>Enviar denúncia</button><button type="button" onClick={()=>setReport(null)}>Cancelar denúncia</button></div></form>}
+ </article>;
+}
+
+export function Community({companyId,compact=false}:{companyId?:string;compact?:boolean}) {
+ const auth=useAuth(), navigate=useNavigate(),[params]=useSearchParams();
+ const companyFilter=companyId||params.get('empresa')||undefined;
+ const [posts,setPosts]=useState<CommunityPost[]>([]),[following,setFollowing]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[more,setMore]=useState(false);
+ const [myCompany,setMyCompany]=useState<{id:string;name:string}|null>(null),[body,setBody]=useState(''),[image,setImage]=useState(''),[publishing,setPublishing]=useState(false);
+ const [jobs,setJobs]=useState<Job[]>([]),[notifications,setNotifications]=useState<Notification[]>([]),[showNotifications,setShowNotifications]=useState(false);
+ const request=useRef(0), alive=useRef(true);
+ const load=useCallback(async(cursor?:CommunityPost)=>{
+  const id=++request.current;setLoading(true);setError('');
+  try{const rows=await communityService.feed(companyFilter,following,cursor);if(alive.current&&id===request.current){setPosts(old=>cursor?[...old,...rows.filter(p=>!old.some(o=>o.id===p.id))]:rows);setMore(rows.length===20);}}
+  catch(e){if(alive.current&&id===request.current)setError(message(e));}
+  finally{if(alive.current&&id===request.current)setLoading(false);}
+ },[companyFilter,following,auth.user?.id]);
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;request.current++;};},[]);
+ useEffect(()=>{setPosts([]);void load();},[load]);
+ useEffect(()=>{let active=true;setMyCompany(null);if(auth.isEmpresa)companiesService.getMyCompany().then(c=>{if(active&&c)setMyCompany({id:c.id,name:c.name});}).catch(()=>{});return()=>{active=false;};},[auth.isEmpresa,auth.user?.id]);
+ useEffect(()=>{if(compact)return;let active=true;apiService.getJobs().then(rows=>{if(active)setJobs(rows.filter(j=>j.status==='Ativa').slice(0,3));}).catch(()=>{});return()=>{active=false;};},[compact]);
+ const loadNotifications=useCallback(async()=>{if(!auth.user||!supabase)return;const {data,error:err}=await supabase.from('notifications').select('*').eq('profile_id',auth.user.id).order('created_at',{ascending:false}).limit(15);if(!err&&alive.current)setNotifications(data||[]);},[auth.user?.id]);
+ useEffect(()=>{setNotifications([]);void loadNotifications();},[loadNotifications]);
+ function participate(){if(auth.loading){toast.info('Aguarde a identificação da sua conta.');return false;}if(auth.isAuthenticated)return true;toast.info('Entre ou crie sua conta para participar.');navigate('/login',{state:{from:'/comunidade'+(companyFilter?`?empresa=${companyFilter}`:'')}});return false;}
+ async function run(fn:()=>Promise<unknown>){try{await fn();await load();void loadNotifications();return true;}catch(e){toast.error(message(e));return false;}}
+ async function publish(e:React.FormEvent){e.preventDefault();if(!myCompany||!participate())return;setPublishing(true);try{if(await run(()=>communityService.action('publish',myCompany.id,body,image))){setBody('');setImage('');toast.success('Publicação compartilhada com a cidade.');}}finally{setPublishing(false);}}
+ const content=<><div className="tabs"><button aria-pressed={!following} onClick={()=>setFollowing(false)}>Todas as publicações</button><button aria-pressed={following} onClick={()=>{if(participate())setFollowing(true);}}>Seguindo</button><button className="refresh" disabled={loading} aria-label="Atualizar publicações" onClick={()=>void load()}><RefreshCw size={16}/></button></div>
+  {!compact&&myCompany&&<form className="card" onSubmit={publish}><h2>O que há de novo em {myCompany.name}?</h2><label htmlFor="new-post">Compartilhe com a cidade</label><textarea id="new-post" required maxLength={2000} value={body} onChange={e=>setBody(e.target.value)} placeholder="Apresente sua empresa, sua equipe ou uma oportunidade..."/><label htmlFor="new-image">Endereço da imagem (opcional)</label><input id="new-image" type="url" pattern="https://.*" maxLength={2048} value={image} onChange={e=>setImage(e.target.value)} placeholder="https://..."/><small>Conteúdo público. Até 2.000 caracteres; use uma imagem que você tenha autorização para publicar.</small><div className="actions"><button className="primary" disabled={publishing||!body.trim()}>{publishing?'Publicando...':'Publicar na comunidade'}</button><small>{body.length}/2.000</small></div></form>}
+  {companyFilter&&!compact&&<div className="card"><p>Publicações desta empresa</p><Link to="/comunidade">Ver toda a comunidade →</Link></div>}
+  {error&&<div className="card" role="alert"><p>{error}</p><button onClick={()=>void load()}>Tentar novamente</button></div>}
+  {loading&&!posts.length&&!error&&<p role="status">Carregando comunidade...</p>}
+  {!loading&&!error&&!posts.length&&<div className="card empty"><Users size={32}/><h2>{following?'Sua rede começa aqui':'A cidade tem muito para compartilhar'}</h2><p>{following?'Siga empresas para acompanhar suas publicações.':'As primeiras publicações das empresas aparecerão aqui. Explore as vagas e conheça os negócios da cidade.'}</p><Link to="/empresas">Conhecer empresas →</Link></div>}
+  {posts.map(post=><PostCard key={post.id} post={post} run={run} participate={participate}/>)}
+  {more&&<button disabled={loading} onClick={()=>void load(posts.at(-1))}>{loading?'Carregando...':'Carregar mais publicações'}</button>}</>;
+ if(compact)return <S.Page style={{padding:0,background:'transparent',minHeight:0}}>{content}</S.Page>;
+ return <S.Page><div className="shell"><span className="eyebrow">A nossa cidade, conectada</span><h1>Comunidade Sampaio</h1><p className="intro">Pessoas, empresas e oportunidades. Acompanhe o que acontece perto de você.</p><div className="columns"><aside className="left"><div className="card"><span className="identity">{(myCompany?.name||auth.profile?.full_name||'CS').slice(0,2).toUpperCase()}</span><h2>{myCompany?.name||auth.profile?.full_name?.split(' ')[0]||'Bem-vindo à comunidade'}</h2><p className="muted">{auth.isAuthenticated?'Seu espaço para descobrir e participar.':'Conheça as empresas. Crie sua conta para curtir, comentar e seguir.'}</p><nav className="navlinks" aria-label="Atalhos da comunidade">{auth.isAuthenticated?<Link to={auth.isEmpresa?'/empresa/painel':'/candidato/painel'}>Meu painel →</Link>:<Link to="/cadastro">Criar conta gratuita →</Link>}<Link to="/vagas">Encontrar vagas</Link><Link to="/empresas">Conhecer empresas</Link><Link to="/parcerias">Parcerias da cidade</Link>{auth.isAdmin&&<Link to="/admin/painel">Administração</Link>}</nav></div><div className="card"><h3>Uma rede feita com respeito</h3><p className="muted">Evite dados pessoais nos comentários. Denuncie conteúdo inadequado para análise da administração.</p><Link to="/privacidade">Sua privacidade →</Link></div></aside><section className="center" aria-label="Feed da comunidade">{content}</section><aside className="right">{auth.isAuthenticated&&<div className="card"><h2><Bell size={18}/> Novidades</h2><button aria-expanded={showNotifications} onClick={()=>{setShowNotifications(!showNotifications);void loadNotifications();}}>Ver notificações ({notifications.filter(n=>!n.is_read).length})</button>{showNotifications&&<>{!notifications.length&&<p className="muted">Nenhuma notificação por enquanto.</p>}{notifications.map(n=><div className="notification" key={n.id}><strong>{n.title}</strong><p>{n.message}</p><small>{date(n.created_at)}</small>{n.link&&<Link to={n.link} onClick={()=>{if(supabase)void supabase.from('notifications').update({is_read:true}).eq('id',n.id).then(()=>void loadNotifications());}}> Abrir →</Link>}</div>)}</>}</div>}<div className="card"><span className="eyebrow">Seu próximo passo</span><h2>Oportunidades por perto</h2>{jobs.map(j=><Link className="joblink" key={j.id} to={`/vagas/${j.id}`}>{j.title}<small>{j.companyName} · {j.location}</small></Link>)}<div className="actions"><Link to="/vagas">Ver todas as vagas →</Link></div></div><div className="card" style={{background:'#e8f3ee'}}><Building2 size={26} color="#0c6d5d"/><h2 style={{marginTop:12}}>Sua empresa faz parte</h2><p className="muted">Publique novidades gratuitamente. Para uma vitrine de produtos e ofertas, conheça as parcerias.</p><Link to="/parcerias">Seja parceiro →</Link></div></aside></div></div></S.Page>;
+}
