@@ -1,112 +1,17 @@
-import { useNavigate } from 'react-router-dom';
-import { useRef, useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 import { apiService } from '../../services/api';
 import type { Company } from '../../data/companies';
 import * as S from './styles';
-
 export function SponsorCarousel() {
-  const navigate = useNavigate();
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [sponsors, setSponsors] = useState<Company[]>([]);
-
-  useEffect(() => {
-    async function fetchSponsors() {
-      try {
-        const companies = await apiService.getCompanies();
-        setSponsors(companies.filter(company => company.isSponsor));
-      } catch (error) {
-        console.error("Failed to fetch sponsors:", error);
-      }
-    }
-    fetchSponsors();
-  }, []);
-
-  useEffect(() => {
-    let animationFrameId: number;
-    
-    const scroll = () => {
-      if (trackRef.current && !isHovered && !isDragging) {
-        trackRef.current.scrollLeft += 1; // Ajuste a velocidade aqui se necessário
-        
-        // Reset scroll when reaching the duplicated content threshold
-        if (trackRef.current.scrollLeft >= trackRef.current.scrollWidth / 2) {
-          trackRef.current.scrollLeft = 0;
-        }
-      }
-      animationFrameId = requestAnimationFrame(scroll);
-    };
-
-    animationFrameId = requestAnimationFrame(scroll);
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isHovered, isDragging, sponsors.length]);
-
-  if (sponsors.length === 0) return null;
-
-  // Duplicando a lista para criar o efeito infinito sem pulos
-  const doubledSponsors = [...sponsors, ...sponsors, ...sponsors, ...sponsors];
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.pageX - (trackRef.current?.offsetLeft || 0));
-    setScrollLeft(trackRef.current?.scrollLeft || 0);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-    setIsHovered(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !trackRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - trackRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Velocidade do arraste
-    trackRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  return (
-    <S.CarouselSection>
-      <S.Title>Lojas Patrocinadoras</S.Title>
-      <S.TrackContainer 
-        ref={trackRef}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={handleMouseLeave}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-      >
-        <S.Track>
-          {doubledSponsors.map((sponsor, index) => (
-            <S.SponsorCard 
-              key={`${sponsor.id}-${index}`} 
-              onClick={() => {
-                if (!isDragging) navigate(`/patrocinador/${sponsor.id}`);
-              }}
-            >
-              <img src={sponsor.logoUrl} alt={`Logo ${sponsor.name}`} draggable="false" />
-              <div>
-                <h4>{sponsor.name}</h4>
-                {sponsor.slogan && <p>"{sponsor.slogan}"</p>}
-              </div>
-              <S.PromoButton onClick={(e) => {
-                e.stopPropagation();
-                if (!isDragging) navigate(`/patrocinador/${sponsor.id}`);
-              }}>
-                Ver promoções e vagas
-              </S.PromoButton>
-            </S.SponsorCard>
-          ))}
-        </S.Track>
-      </S.TrackContainer>
-    </S.CarouselSection>
-  );
+  const [sponsors,setSponsors]=useState<Company[]>([]);
+  useEffect(()=>{let active=true;apiService.getCompanies().then(companies=>{if(active)setSponsors(companies.filter(company=>company.isSponsor));}).catch(()=>{});return()=>{active=false;};},[]);
+  if(!sponsors.length)return null;
+  return <S.CarouselSection><S.Title>Empresas que apoiam esta conexão</S.Title><S.TrackContainer aria-label="Empresas patrocinadoras"><S.Track>
+    {sponsors.map(sponsor=><S.SponsorCard as={Link} to={`/patrocinador/${sponsor.id}`} key={sponsor.id}>
+      {sponsor.logoUrl?<img src={sponsor.logoUrl} alt="" loading="lazy"/>:<span aria-hidden="true" style={{fontSize:30,fontWeight:700}}>{sponsor.name.charAt(0)}</span>}
+      <h3>{sponsor.name}</h3>{sponsor.slogan&&<p>{sponsor.slogan}</p>}<span style={{display:'flex',gap:8,alignItems:'center',fontSize:14,color:'#175cda'}}>Ver empresa <ArrowUpRight size={16}/></span>
+    </S.SponsorCard>)}
+  </S.Track></S.TrackContainer></S.CarouselSection>;
 }

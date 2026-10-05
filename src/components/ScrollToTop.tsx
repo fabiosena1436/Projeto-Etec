@@ -8,7 +8,7 @@ export function ScrollToTop() {
       if(target) target.scrollIntoView(); else window.scrollTo({top:0,behavior:'instant'});
       const main = document.querySelector<HTMLElement>('main');
       main?.focus({preventScroll:true});
-      const title = document.querySelector('h1')?.textContent;
+      const title = document.querySelector('h1')?.innerText.replace(/\s+/g, ' ');
       document.title = title ? title + ' | Conecta Sampaio' : 'Conecta Sampaio | Empregos em Teodoro Sampaio';
     });
     return () => cancelAnimationFrame(frame);

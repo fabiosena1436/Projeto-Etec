@@ -258,7 +258,8 @@ export function Register() {
               <input id="confirmPassword" required name="confirmPassword" type="password" placeholder="Digite a senha novamente" disabled={loading} autoComplete="new-password" />
             </S.FormGroup>
             
-            <S.SubmitButton type="submit" disabled={loading} style={{ backgroundColor: '#0f172a' }}>
+            <p style={{ fontSize: 13, color: '#526578' }}>Saiba como seus dados são utilizados na <a href="/privacidade" style={{ color: '#175cda', textDecoration: 'underline' }}>página de privacidade</a>.</p>
+            <S.SubmitButton type="submit" disabled={loading} style={{ backgroundColor: '#102a43' }}>
               {loading ? 'Criando conta...' : 'Concluir Cadastro da Empresa'}
             </S.SubmitButton>
             

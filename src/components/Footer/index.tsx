@@ -13,8 +13,8 @@ const Wrap = styled.footer`
   .bottom{display:flex;justify-content:space-between;gap:20px;border-top:1px solid #ffffff20;margin-top:28px;padding-top:20px;font-size:11px;color:#c1d0df;}.bottom span{display:flex;gap:5px;align-items:center;}
   @media(max-width:600px){.inner{padding:30px 20px 20px;}.columns{grid-template-columns:1fr 1fr;gap:25px;}.columns>div:first-child{grid-column:1/-1;}.bottom{flex-direction:column;gap:8px;}}
 `;
-export const supportEmail = import.meta.env.VITE_PUBLIC_SUPPORT_EMAIL as string | undefined;
-export const organization = (import.meta.env.VITE_PUBLIC_ORGANIZATION as string | undefined) || 'Projeto Conecta Sampaio';
+export const supportEmail = (import.meta.env.VITE_PUBLIC_SUPPORT_EMAIL as string | undefined) || 'fabiosena1436@gmail.com';
+export const organization = (import.meta.env.VITE_PUBLIC_ORGANIZATION as string | undefined) || 'Fabio V. Sena';
 export function Footer() {
   return <Wrap><div className="inner"><div className="columns">
     <div><Link to="/" className="brand"><BrandMark /> Conecta Sampaio</Link><p>Talentos, empresas e oportunidades.<br />Uma conexão para toda a cidade.</p></div>
