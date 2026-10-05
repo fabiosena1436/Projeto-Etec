@@ -5,11 +5,11 @@ import { useAuth } from '../../hooks/useAuth';
 import * as S from './styles';
 
 export function DefaultLayout() {
-  const { isAuthenticated, role, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
   if (!loading && isAuthenticated && location.pathname === '/') {
-    return <Navigate to={role === 'candidato' ? '/candidato/painel' : '/empresa/painel'} replace />;
+    return <Navigate to="/comunidade" replace />;
   }
 
   return (

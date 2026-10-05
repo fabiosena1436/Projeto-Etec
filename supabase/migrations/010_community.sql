@@ -73,6 +73,7 @@ RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE actor uuid:=auth.uid(); p company_posts; m post_comments; result uuid; company_name text; owner_id uuid;
 BEGIN
  IF actor IS NULL OR NOT EXISTS(SELECT 1 FROM profiles WHERE id=actor AND is_active) THEN RAISE EXCEPTION 'Entre em uma conta ativa para participar.'; END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended(actor::text,0));
  IF desired IS NULL THEN RAISE EXCEPTION 'Informe o estado desejado.'; END IF;
  IF action_name IN ('follow','publish') THEN
   SELECT c.name,c.owner_profile_id INTO company_name,owner_id FROM companies c JOIN profiles a ON a.id=c.owner_profile_id WHERE c.id=target_uuid AND a.is_active;

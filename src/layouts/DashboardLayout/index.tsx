@@ -10,7 +10,7 @@ import * as S from './styles';
 export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, role, logout, isEmpresa, isAdmin } = useAuth();
+  const { profile, logout, isEmpresa, isAdmin } = useAuth();
   const [companyName, setCompanyName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function DashboardLayout() {
       <S.TopBar>
         <S.TopBarContent>
           <S.Brand
-            onClick={() => navigate(role === 'empresa' ? '/empresa/painel' : '/candidato/painel')}
+            onClick={() => navigate('/comunidade')}
             style={{ cursor: 'pointer' }}
           >
             <BrandMark size={32} />
@@ -74,6 +74,7 @@ export function DashboardLayout() {
       </S.MainContent>
 
       <S.BottomNav aria-label="Navegação do painel">
+        <S.NavItem $active={false} onClick={()=>navigate('/comunidade')}><Home size={24}/><span>Comunidade</span></S.NavItem>
         {isAdmin && <S.NavItem $active={isActive('/admin/painel')} onClick={()=>navigate('/admin/painel')}><Building size={24}/><span>Administração</span></S.NavItem>}
         {isEmpresa ? (
           <>
@@ -94,7 +95,7 @@ export function DashboardLayout() {
           <>
             <S.NavItem $active={isActive('/candidato/painel')} onClick={() => navigate('/candidato/painel')}>
               <Home size={24} />
-              <span>Início</span>
+              <span>Painel</span>
             </S.NavItem>
             <S.NavItem $active={isActive('/vagas')} onClick={() => navigate('/vagas')}>
               <Search size={24} />

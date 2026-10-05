@@ -1,0 +1,10 @@
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { communityService, type CommunityReport } from '../../services/supabase/community.service';
+export function CommunityModeration() {
+ const [reports,setReports]=useState<CommunityReport[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ async function load(){setError('');try{setReports(await communityService.reports());}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar denúncias.');}}
+ useEffect(()=>{let active=true;communityService.reports().then(r=>{if(active)setReports(r);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);
+ async function moderate(r:CommunityReport,hide:boolean){setBusy(true);try{await communityService.moderate(r.id,hide);await load();toast.success('Decisão registrada no histórico administrativo.');}catch(e){toast.error(e instanceof Error?e.message:'Não foi possível moderar.');}finally{setBusy(false);}}
+ return <section><h2>Moderação da comunidade</h2><p>Denúncias privadas. A ocultação retira o conteúdo do feed e pode ser revertida. As decisões ficam registradas no histórico.</p><button disabled={busy} onClick={()=>void load()}>Atualizar denúncias</button>{error&&<p role="alert">{error}</p>}{!reports.length&&!error&&<p>Nenhuma denúncia recebida.</p>}<small>Até 100 denúncias mais recentes.</small>{reports.map(r=><div className="row" key={r.id}><div><h3>{r.company_name} · {r.kind==='post'?'Publicação':'Comentário'}</h3><span>{r.resolved?'Analisada':'Pendente'} · {r.hidden?'Conteúdo oculto':'Conteúdo visível'}{r.withdrawn?' · retirado pelo autor':''}</span><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{r.body}</p><p><strong>Motivo: </strong>{r.reason}</p><small>{new Date(r.created_at).toLocaleString('pt-BR')}</small></div><div className="actions"><button disabled={busy||r.withdrawn} onClick={()=>void moderate(r,!r.hidden)}>{r.hidden?'Restaurar conteúdo':'Ocultar conteúdo'}</button>{!r.resolved&&<button disabled={busy} onClick={()=>void moderate(r,r.hidden)}>Concluir análise</button>}</div></div>)}</section>;
+}

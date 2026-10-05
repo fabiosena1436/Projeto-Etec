@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { adminService, type AdminSnapshot, type Sponsorship } from '../../services/supabase/admin.service';
 import { PageLoader } from '../../components/PageLoader';
+import { CommunityModeration } from '../../components/CommunityModeration';
 import * as S from './styles';
 const currency = (value:number)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value);
 const today = ()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'});
@@ -9,7 +10,7 @@ export function AdminDashboard() {
   const [data,setData]=useState<AdminSnapshot|null>(null);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState('');
-  const [tab,setTab]=useState<'companies'|'users'|'finance'>('companies');
+  const [tab,setTab]=useState<'companies'|'users'|'finance'|'community'>('companies');
   const [search,setSearch]=useState('');
   const [form,setForm]=useState<Sponsorship|null>(null);
   const [saving,setSaving]=useState(false);
@@ -33,8 +34,9 @@ export function AdminDashboard() {
     <header><div><p>GESTÃO DO CONECTA SAMPAIO</p><h1>Superadministrador</h1><p>Empresas, cadastros e parcerias sob seu controle.</p></div><button onClick={load} disabled={loading}>Atualizar painel</button></header>
     {error&&<p role="alert">{error}</p>}
     <S.Metrics><article><strong>{data.totals.users}</strong><span>Usuários</span></article><article><strong>{data.totals.companies}</strong><span>Empresas</span></article><article><strong>{data.totals.sponsors}</strong><span>Patrocínios vigentes</span></article><article><strong>{currency(Number(data.totals.monthly_revenue))}</strong><span>Valor mensal contratado</span></article></S.Metrics>
-    <nav aria-label="Seções administrativas">{([['companies','Empresas e patrocínios'],['users','Usuários'],['finance','Financeiro e histórico']] as const).map(([key,label])=><button key={key} aria-pressed={tab===key} onClick={()=>{setTab(key);setSearch('');}}>{label}</button>)}</nav>
-    {tab!=='finance'&&<label>Buscar {tab==='users'?'usuário':'empresa'}<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome ou e-mail"/></label>}
+    <nav aria-label="Seções administrativas">{([['companies','Empresas e patrocínios'],['users','Usuários'],['finance','Financeiro e histórico'],['community','Comunidade e denúncias']] as const).map(([key,label])=><button key={key} aria-pressed={tab===key} onClick={()=>{setTab(key);setSearch('');}}>{label}</button>)}</nav>
+    {tab==='community'&&<CommunityModeration/>}
+    {(tab==='companies'||tab==='users')&&<label>Buscar {tab==='users'?'usuário':'empresa'}<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome ou e-mail"/></label>}
     {form&&<section><h2>Parceria: {data.companies.find(c=>c.id===form.company_id)?.name}</h2><p>Registro privado de negociação e recebimento. Não realiza cobrança ou transferência de dinheiro.</p><form onSubmit={save}>
       <label>Situação<select value={form.status} onChange={e=>setForm({...form,status:e.target.value as Sponsorship['status']})}><option value="pendente">Pendente</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="cancelado">Cancelado</option></select></label>
       <label>Recebimento<select value={form.payment_status} onChange={e=>setForm({...form,payment_status:e.target.value as Sponsorship['payment_status']})}><option value="pendente">Pendente</option><option value="recebido">Recebido / cortesia confirmada</option><option value="atrasado">Em atraso</option></select></label>

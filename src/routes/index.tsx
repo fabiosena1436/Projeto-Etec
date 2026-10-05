@@ -4,6 +4,7 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 
 import { Home } from '../pages/Home';
+import { Community } from '../pages/Community';
 import { JobsList } from '../pages/JobsList';
 import { JobDetails } from '../pages/JobDetails';
 import { CompaniesList } from '../pages/CompaniesList';
@@ -33,6 +34,7 @@ export function AppRoutes() {
       {/* Público */}
       <Route path="/" element={<DefaultLayout />}>
         <Route index element={<Home />} />
+        <Route path="comunidade" element={<Community />} />
         <Route path="vagas" element={<JobsList />} />
         <Route path="ajuda" element={<Help />} />
         <Route path="privacidade" element={<Privacy />} />

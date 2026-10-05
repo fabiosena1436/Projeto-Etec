@@ -82,7 +82,7 @@ export function Register() {
           toast.success('Cadastro realizado! Confirme seu e-mail para ativar a conta.');
         } else {
           toast.success('Conta criada com sucesso!');
-          navigate(`/${role}/painel`, { replace: true });
+          navigate('/comunidade', { replace: true });
         }
       } else {
         await new Promise(r => setTimeout(r, 800));

@@ -20,14 +20,14 @@ export function Header() {
   return <S.HeaderContainer>
     <a className="skip-link" href="#conteudo">Ir para o conteúdo</a>
     <S.HeaderContent>
-      <Link to={isAuthenticated ? panel : '/'} aria-label="Conecta Sampaio — início">
+      <Link to="/" aria-label="Conecta Sampaio — início">
         <S.Logo><BrandMark /><span>Conecta <strong>Sampaio</strong><small>Oportunidades perto de você</small></span></S.Logo>
       </Link>
       <S.Nav id="menu-principal" $open={open} aria-label="Navegação principal" onKeyDown={e => { if(e.key === 'Escape') setOpen(false); }}>
+        <NavLink to="/comunidade">Comunidade</NavLink>
         <NavLink to="/vagas">Encontrar vagas</NavLink>
         <NavLink to="/empresas">Empresas</NavLink>
         <NavLink to="/parcerias">Seja patrocinador</NavLink>
-        <NavLink to="/ajuda">Como funciona</NavLink>
         <S.ButtonGroup>
           {isAuthenticated ? <>
             {isAdmin&&<S.LoginButton onClick={()=>navigate('/admin/painel')}>Administração</S.LoginButton>}

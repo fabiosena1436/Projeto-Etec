@@ -32,12 +32,13 @@ export function Login() {
 
   const from = (location.state as any)?.from as string | undefined;
 
-  // Já logado → vai para o painel
+  const destination = from?.startsWith('/') && !from.startsWith('//') && !from.startsWith('/login') ? from : '/comunidade';
+  // Todas as contas entram na comunidade, preservando links solicitados.
   useEffect(() => {
     if (!authLoading && isAuthenticated && role) {
-      navigate(from || (role === 'empresa' ? '/empresa/painel' : '/candidato/painel'), { replace: true });
+      navigate(destination, { replace: true });
     }
-  }, [authLoading, isAuthenticated, role, navigate, from]);
+  }, [authLoading, isAuthenticated, role, navigate, destination]);
 
   // Retorno do link de confirmação de e-mail
   useEffect(() => {
@@ -56,7 +57,7 @@ export function Login() {
         await new Promise(r => setTimeout(r, 500));
         login(activeType);
         toast.success(`Entrando como ${activeType} (modo demonstração)`);
-        navigate(`/${activeType}/painel`, { replace: true });
+        navigate(destination, { replace: true });
         return;
       }
 
@@ -64,11 +65,10 @@ export function Login() {
       const realRole = result.profile?.role || activeType;
 
       if (realRole !== activeType && realRole !== 'admin') {
-        toast.info(`Sua conta é de ${realRole}. Redirecionando para o painel correto.`);
+        toast.info(`Sua conta é de ${realRole}. Bem-vindo à comunidade.`);
       }
       toast.success(`Bem-vindo(a), ${result.profile?.full_name?.split(' ')[0] || ''}!`);
-      const target = realRole === 'empresa' ? '/empresa/painel' : '/candidato/painel';
-      navigate(from && from.startsWith(`/${realRole}`) ? from : target, { replace: true });
+      navigate(destination, { replace: true });
     } catch (err: any) {
       const msg: string = err?.message || 'Erro ao fazer login';
       if (msg.toLowerCase().includes('confirme seu e-mail')) setUnconfirmedEmail(email.trim());

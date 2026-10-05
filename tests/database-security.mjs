@@ -19,11 +19,11 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community']) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   }
   // Reapplying the security correction is safe.
-  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
   for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato' }]);
@@ -103,7 +103,47 @@ try {
   const snapshot=(await asUser(ids[4],'SELECT admin_dashboard() AS snapshot')).rows[0].snapshot;
   assert.equal(snapshot.totals.users,5);
   assert.equal(snapshot.audit.length,3,'administrative changes are audited');
+  await assert.rejects(asUser(null,"SELECT community_action('publish',$1,'Texto')",[company]),/permission denied/);
+  await assert.rejects(asUser(ids[0],"SELECT community_action('publish',$1,'Texto')",[company]),/restrita/);
+  await assert.rejects(asUser(ids[3],"SELECT community_action('publish',$1,'Texto')",[company]),/restrita/);
+  await assert.rejects(asUser(ids[2],"SELECT community_action('publish',$1,'Texto','javascript:alert(1)')",[company]),/check constraint/);
+  await asUser(ids[0],"SELECT community_action('follow',$1)",[company]);
+  await asUser(ids[0],"SELECT community_action('follow',$1)",[company]);
+  assert.equal((await asUser(null,'SELECT community_company($1) AS item',[company])).rows[0].item.followers,1,'retries do not duplicate follows');
+  const post=(await asUser(ids[2],"SELECT community_action('publish',$1,'EXEMPLO — nossa comunidade') AS id",[company])).rows[0].id;
+  assert.equal((await asUser(ids[0],"SELECT * FROM notifications WHERE title='Nova publicação de empresa'")).rows.length,1,'followers get private notifications');
+  await asUser(ids[0],"SELECT community_action('like',$1)",[post]);
+  await asUser(ids[0],"SELECT community_action('like',$1)",[post]);
+  const comment=(await asUser(ids[0],"SELECT community_action('comment',$1,'Comentário de exemplo') AS id",[post])).rows[0].id;
+  const feed=(await asUser(null,'SELECT community_feed() AS items')).rows[0].items;
+  assert.equal(feed[0].likes,1);assert.equal(feed[0].comments[0].name,'Teste 0');
+  assert.equal(JSON.stringify(feed).includes('@example.com'),false,'public feed never returns account email');
+  assert.equal((await asUser(ids[1],'SELECT community_feed(NULL,true) AS items')).rows[0].items.length,0,'following feed is personal');
+  assert.equal((await asUser(ids[0],'SELECT community_feed(NULL,true) AS items')).rows[0].items.length,1);
+  assert.equal((await asUser(null,'SELECT * FROM post_comments')).rows.length,0,'raw authors and comment data are closed');
+  await assert.rejects(asUser(ids[1],'INSERT INTO post_likes VALUES($1,$2)',[post,ids[0]]),/row-level security/,'cannot forge another person interaction');
+  await assert.rejects(asUser(ids[3],"SELECT community_action('edit',$1,'Fraude')",[post]),/restrita/);
+  await assert.rejects(asUser(ids[1],"SELECT community_action('remove_comment',$1)",[comment]),/seu comentário/);
+  await asUser(ids[2],"SELECT community_action('edit',$1,'EXEMPLO — texto editado')",[post]);
+  const report=(await asUser(ids[1],"SELECT community_action('report_comment',$1,'Teste de moderação') AS id",[comment])).rows[0].id;
+  assert.equal((await asUser(ids[1],'SELECT * FROM community_reports')).rows.length,0,'reports are private even to other signed users');
+  await assert.rejects(asUser(ids[2],'SELECT admin_community_reports()'),/superadministrador/);
+  await assert.rejects(asUser(ids[2],'SELECT admin_moderate_community($1,true)',[report]),/superadministrador/);
+  await asUser(ids[4],'SELECT admin_moderate_community($1,true)',[report]);
+  assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items[0].comment_count,0,'moderated comments disappear publicly');
+  await asUser(ids[4],'SELECT admin_moderate_community($1,false)',[report]);
+  assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items[0].comment_count,1,'moderation is reversible');
+  const postReport=(await asUser(ids[1],"SELECT community_action('report',$1,'Teste de publicação') AS id",[post])).rows[0].id;
+  await asUser(ids[4],'SELECT admin_moderate_community($1,true)',[postReport]);
+  assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items.length,0,'moderated posts disappear publicly');
+  await assert.rejects(asUser(ids[0],"SELECT community_action('like',$1)",[post]),/indisponível/);
+  await asUser(ids[4],'SELECT admin_moderate_community($1,false)',[postReport]);
+  await asUser(ids[0],"SELECT community_action('remove_comment',$1)",[comment]);
+  await asUser(ids[2],"SELECT community_action('withdraw',$1)",[post]);
+  assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items.length,0,'withdrawn posts are private');
+  assert.equal((await db.query("SELECT count(*) FROM audit_logs WHERE action='community_moderation'")).rows[0].count,4,'all moderation decisions are audited');
   await db.query('UPDATE platform_admins SET is_active=false WHERE profile_id=$1',[ids[4]]);
   await assert.rejects(asUser(ids[4],'SELECT admin_dashboard()'),/superadministrador/,'revoked administrators immediately lose access');
-  console.log('PASS: migrations, profiles, applications, private files, superadmin, sponsorships and authorization.');
+  await assert.rejects(asUser(ids[4],'SELECT admin_community_reports()'),/superadministrador/);
+  console.log('PASS: migrations, profiles, applications, private files, sponsorships, community, moderation and authorization.');
 } finally { await db.close(); }

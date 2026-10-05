@@ -5,6 +5,7 @@ import { apiService } from '../../services/api';
 import type { Company } from '../../data/companies';
 import type { Job } from '../../data/jobs';
 import { CardJob } from '../../components/CardJob';
+import { CompanySocial } from '../../components/CompanySocial';
 import * as S from './styles';
 
 export function SponsorProfile() {
@@ -83,6 +84,7 @@ export function SponsorProfile() {
           </div>
         </S.HeaderInfo>
       </S.Header>
+      <CompanySocial companyId={company.id}/>
 
       {company.isSponsor && (
         <>

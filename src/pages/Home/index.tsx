@@ -28,7 +28,7 @@ export function Home() {
           <input aria-label="Cargo ou empresa" placeholder="Qual oportunidade você procura?" value={search} onChange={e => setSearch(e.target.value)} />
           <button type="submit">Buscar vagas <ArrowRight size={17} /></button>
         </S.SearchForm>
-        <S.HeroLinks><span><Check size={15} /> Consulte vagas sem cadastro</span><Link to="/cadastro?type=empresa">Quero contratar <ArrowUpRight size={16} /></Link></S.HeroLinks>
+        <S.HeroLinks><span><Check size={15} /> Consulte vagas sem cadastro</span><Link to="/comunidade">Explorar a comunidade <ArrowUpRight size={16} /></Link><Link to="/cadastro?type=empresa">Quero contratar <ArrowUpRight size={16} /></Link></S.HeroLinks>
       </S.HeroContent>
       <S.CityPanel>
         <div className="panel-top"><span className="dot" /> CONEXÕES QUE MOVEM A CIDADE</div>
