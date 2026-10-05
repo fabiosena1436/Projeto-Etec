@@ -10,7 +10,7 @@ As variáveis VITE são incorporadas durante o build: publique novamente depois 
 
 ## Banco
 
-Em um projeto vazio, aplique as migrações `001_initial_schema.sql`, `003_storage_and_functions.sql`, `005_production_ready.sql`, `006_security_hardening.sql`, `007_candidate_completion.sql` e `008_withdrawal_finality.sql`, nessa ordem. `002_seed.sql` contém habilidades iniciais opcionais. Não aplique `004_demo_seed_real.sql` em produção: ela cria dados de demonstração.
+Em um projeto vazio, aplique as migrações `001_initial_schema.sql`, `003_storage_and_functions.sql`, `005_production_ready.sql`, `006_security_hardening.sql`, `007_candidate_completion.sql`, `008_withdrawal_finality.sql` e `009_super_admin_sponsorship.sql`, nessa ordem. `002_seed.sql` contém habilidades iniciais opcionais. Não aplique `004_demo_seed_real.sql` em produção: ela cria dados de demonstração.
 
 Em um projeto existente, inspecione as tabelas e funções antes de aplicar migrações. As correções 005, 006, 007 e 008 foram aplicadas ao projeto `conecta-teodoro` (`bqyuyxzlqjyismolbwvc`). Elas preservam os cadastros existentes. A 007 corrige o gatilho de preenchimento que impedia salvar perfil, habilidades e experiências; a 008 impede que a empresa reative uma candidatura retirada.
 
@@ -24,6 +24,10 @@ Redirect permitido: `https://projeto-etec-xi.vercel.app/**`.
 Configure SMTP personalizado para enviar confirmação e recuperação de senha a usuários externos. O SMTP padrão do Supabase só atende e-mails dos membros da organização; essa limitação não é resolvida alterando o plano do banco. A configuração existente deste projeto está com confirmação de e-mail desativada, portanto o cadastro não depende do envio. Para ativar a confirmação, configure primeiro o SMTP. A recuperação de senha para usuários externos também depende dele. O cadastro cria automaticamente o perfil e a linha de candidato ou empresa.
 
 ## Verificação
+
+A migração 009 foi aplicada ao Supabase de produção em 05/10/2026. Ela cria a administração, os registros privados de patrocínio e a validade pública das ofertas. Não concede acesso administrativo automaticamente. A conta existente de Fabio foi conferida; a ativação em `platform_admins` depende da confirmação do proprietário. O papel de empresa permanece preservado. O administrador não recebe acesso adicional aos currículos privados.
+
+Publicação das parcerias: `dpl_H6uUJWuo4bTLEcNnd11fNk6HRiuz`, disponível em `/parcerias`. O painel protegido fica em `/admin/painel`. Negociação manual pelo WhatsApp, sem preço público ou cobrança automática. Consulte `PLANO_DE_NEGOCIO.md`.
 
 ```sh
 npm install
