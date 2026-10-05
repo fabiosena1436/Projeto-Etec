@@ -1,4 +1,5 @@
 -- Comunidade pública. Tabelas fechadas; leitura e escrita exclusivamente por RPCs.
+BEGIN;
 CREATE TABLE IF NOT EXISTS public.company_posts (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), company_id uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
  author_id uuid NOT NULL REFERENCES public.profiles(id), body text NOT NULL CHECK(length(btrim(body)) BETWEEN 1 AND 2000),
@@ -158,3 +159,4 @@ END $$;
 REVOKE ALL ON FUNCTION public.community_feed(uuid,boolean,timestamptz,uuid),public.community_company(uuid),public.community_action(text,uuid,text,text,boolean),public.admin_community_reports(),public.admin_moderate_community(uuid,boolean,boolean) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.community_feed(uuid,boolean,timestamptz,uuid),public.community_company(uuid) TO anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.community_action(text,uuid,text,text,boolean),public.admin_community_reports(),public.admin_moderate_community(uuid,boolean,boolean) TO authenticated;
+COMMIT;
