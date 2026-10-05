@@ -52,7 +52,7 @@ export function SponsorProfile() {
   }
 
   // Limite de 6 promoções conforme solicitado
-  const promotions = (company.promotions || []).slice(0, 6);
+  const promotions = (company.promotions || []).filter(p=>!p.validUntil||p.validUntil>=new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'})).slice(0, 6);
 
   return (
     <S.Container>
@@ -61,6 +61,7 @@ export function SponsorProfile() {
         Voltar
       </button>
       
+      {company.isSponsor&&company.bannerUrl&&<img src={company.bannerUrl} alt={`Apresentação de ${company.name}`} style={{width:'100%',maxHeight:300,objectFit:'cover',borderRadius:16,marginBottom:24}}/>}
       <S.Header>
         {company.logoUrl ? (
           <img src={company.logoUrl} alt={`Logo ${company.name}`} />
@@ -78,6 +79,7 @@ export function SponsorProfile() {
             {company.location && <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><MapPin size={16} /> {company.location}</span>}
             {company.website && <a href={company.website} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#2563eb' }}><Globe size={16} /> Site</a>}
             {company.contactEmail && <a href={`mailto:${company.contactEmail}`} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#2563eb' }}><Mail size={16} /> Contato</a>}
+            {company.phone&&<a href={`https://wa.me/${company.phone.replace(/\D/g,'').startsWith('55')?'':'55'}${company.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" style={{color:'#0c6d5d'}}>Conversar no WhatsApp</a>}
           </div>
         </S.HeaderInfo>
       </S.Header>
@@ -85,13 +87,14 @@ export function SponsorProfile() {
       {company.isSponsor && (
         <>
           <S.SectionTitle>
-            <Percent color="#2563eb" /> Promoções do Dia
+            <Percent color="#2563eb" /> Produtos, serviços e ofertas
           </S.SectionTitle>
 
           {promotions.length > 0 ? (
         <S.PromoGrid>
           {promotions.map(promo => (
             <S.PromoCard key={promo.id}>
+              {promo.imageUrl&&<img src={promo.imageUrl} alt={promo.title} loading="lazy" style={{width:'100%',height:180,objectFit:'cover',borderRadius:10,marginBottom:12}}/>}
               <h3>{promo.title}</h3>
               <p>{promo.description}</p>
               

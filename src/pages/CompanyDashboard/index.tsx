@@ -13,6 +13,7 @@ import { metricsService, type CompanyMetrics } from '../../services/supabase/met
 import { candidatesService } from '../../services/supabase/candidates.service';
 import { PageLoader } from '../../components/PageLoader';
 import { openDocument } from '../../utils/openDocument';
+import { commercialLink } from '../../config/business';
 import { INDUSTRIES } from '../Register';
 import { APPLICATION_STATUS_LABEL } from '../CandidateDashboard';
 import * as F from '../CandidateDashboard/styles';
@@ -26,7 +27,6 @@ type AppWithCandidate = Application & {
 
 const STATUS_OPTIONS: ApplicationStatus[] = ['enviada', 'visualizada', 'em_analise', 'pre_selecionado', 'aprovada', 'rejeitada'];
 const MAX_PROMOTIONS = 6;
-const SPONSOR_WHATSAPP = import.meta.env.VITE_SPONSOR_WHATSAPP || '';
 
 export function CompanyDashboard() {
   const navigate = useNavigate();
@@ -41,8 +41,8 @@ export function CompanyDashboard() {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'candidates' | 'profile'>('overview');
 
-  const [profileData, setProfileData] = useState({ name: '', description: '', website: '', slogan: '', industry: '', location: '', phone: '', contact_email: '' });
-  const [promoForm, setPromoForm] = useState<{ open: boolean; editing: Promotion | null; title: string; description: string; price: string; discount_price: string; valid_until: string }>({ open: false, editing: null, title: '', description: '', price: '', discount_price: '', valid_until: '' });
+  const [profileData, setProfileData] = useState({ name: '', description: '', website: '', slogan: '', industry: '', location: '', phone: '', contact_email: '', banner_url: '' });
+  const [promoForm, setPromoForm] = useState<{ open: boolean; editing: Promotion | null; title: string; description: string; price: string; discount_price: string; valid_until: string; image_url: string }>({ open: false, editing: null, title: '', description: '', price: '', discount_price: '', valid_until: '', image_url: '' });
 
   const load = useCallback(async () => {
     try {
@@ -52,6 +52,7 @@ export function CompanyDashboard() {
         setProfileData({
           name: c.name, description: c.description || '', website: c.website || '', slogan: c.slogan || '',
           industry: c.industry || '', location: c.location || '', phone: c.phone || '', contact_email: c.contact_email || '',
+          banner_url: c.banner_url || '',
         });
         const [j, apps, m] = await Promise.all([
           jobsService.getByCompany(c.id),
@@ -128,6 +129,7 @@ export function CompanyDashboard() {
     if (isMock) { toast.success('Perfil da empresa atualizado! (demo)'); return; }
     let website = profileData.website.trim();
     if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
+    if (profileData.banner_url.trim() && !/^https:\/\//i.test(profileData.banner_url.trim())) return toast.error('A imagem de capa deve usar um endereço HTTPS.');
     setSaving(true);
     try {
       const updated = await companiesService.update(company.id, {
@@ -139,6 +141,7 @@ export function CompanyDashboard() {
         location: profileData.location.trim() || company.location,
         phone: profileData.phone.replace(/\D/g, '') || null,
         contact_email: profileData.contact_email.trim() || company.contact_email,
+        banner_url: profileData.banner_url.trim() || null,
       });
       setCompany(prev => ({ ...(prev as Company), ...updated }));
       toast.success('Perfil da empresa atualizado com sucesso!');
@@ -171,6 +174,7 @@ export function CompanyDashboard() {
     title: promo?.title || '', description: promo?.description || '',
     price: promo?.price != null ? String(promo.price) : '', discount_price: promo?.discount_price != null ? String(promo.discount_price) : '',
     valid_until: promo?.valid_until || '',
+    image_url: promo?.image_url || '',
   });
 
   const handleSavePromo = async (e: React.FormEvent) => {
@@ -178,6 +182,7 @@ export function CompanyDashboard() {
     if (!company) return;
     if (isMock) { toast.success('Promoção salva! (demo)'); setPromoForm(p => ({ ...p, open: false })); return; }
     const payload = {
+      image_url: promoForm.image_url.trim() || null,
       title: promoForm.title.trim(),
       description: promoForm.description.trim(),
       price: promoForm.price ? Number(promoForm.price.replace(',', '.')) : null,
@@ -185,6 +190,7 @@ export function CompanyDashboard() {
       valid_until: promoForm.valid_until || null,
     };
     if (payload.price != null && payload.discount_price != null && payload.discount_price > payload.price) return toast.error('O preço promocional deve ser menor que o preço original.');
+    if (payload.image_url && !/^https:\/\//i.test(payload.image_url)) return toast.error('A imagem da oferta deve usar um endereço HTTPS.');
     setSaving(true);
     try {
       if (promoForm.editing) await companiesService.updatePromotion(promoForm.editing.id, payload);
@@ -212,9 +218,7 @@ export function CompanyDashboard() {
   };
 
   const handleSponsorContact = () => {
-    const msg = encodeURIComponent(`Olá! Sou da empresa ${company?.name} e quero ser Patrocinador no Conecta Sampaio.`);
-    if (SPONSOR_WHATSAPP) window.open(`https://wa.me/${SPONSOR_WHATSAPP.replace(/\D/g, '')}?text=${msg}`, '_blank', 'noopener');
-    else toast.info('Entre em contato com a equipe do Conecta Sampaio para se tornar patrocinador.', { description: 'Fale com Fabio V. Sena pelo e-mail fabiosena1436@gmail.com.' });
+    window.open(commercialLink(company?.name), '_blank', 'noopener,noreferrer');
   };
 
   const openResume = async (path: string | null | undefined) => {
@@ -354,7 +358,7 @@ export function CompanyDashboard() {
             <S.Section style={{ marginTop: 0 }}>
               <S.PromoHeader>
                 <div>
-                  <S.SectionTitle style={{ marginBottom: 0 }}>Gerenciar Promoções</S.SectionTitle>
+                  <S.SectionTitle style={{ marginBottom: 0 }}>Produtos, serviços e ofertas</S.SectionTitle>
                   <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>Você está usando {promotions.length} de {MAX_PROMOTIONS} espaços de promoções.</p>
                 </div>
                 <S.AddPromoButton disabled={promotions.length >= MAX_PROMOTIONS} onClick={() => openPromoForm()}>
@@ -369,6 +373,7 @@ export function CompanyDashboard() {
                     <F.Field $basis="160px"><label htmlFor="company-field-2">Válido até</label><input id="company-field-2" type="date" value={promoForm.valid_until} onChange={e => setPromoForm(p => ({ ...p, valid_until: e.target.value }))} /></F.Field>
                   </F.FieldRow>
                   <F.Field><label htmlFor="company-field-3">Descrição</label><textarea id="company-field-3" required rows={2} value={promoForm.description} onChange={e => setPromoForm(p => ({ ...p, description: e.target.value }))} /></F.Field>
+                  <F.Field><label htmlFor="offer-image">Imagem da oferta (URL HTTPS)</label><input id="offer-image" type="url" value={promoForm.image_url} onChange={e=>setPromoForm(p=>({...p,image_url:e.target.value}))} placeholder="https://.../foto.jpg"/><small>Use uma foto que sua empresa tem autorização para divulgar.</small></F.Field>
                   <F.FieldRow>
                     <F.Field $basis="160px"><label htmlFor="company-field-4">Preço original (R$)</label><input id="company-field-4" inputMode="decimal" value={promoForm.price} onChange={e => setPromoForm(p => ({ ...p, price: e.target.value }))} placeholder="25,90" /></F.Field>
                     <F.Field $basis="160px"><label htmlFor="company-field-5">Preço promocional (R$)</label><input id="company-field-5" inputMode="decimal" value={promoForm.discount_price} onChange={e => setPromoForm(p => ({ ...p, discount_price: e.target.value }))} placeholder="19,90" /></F.Field>
@@ -510,6 +515,7 @@ export function CompanyDashboard() {
               </F.Field>
             </F.FieldRow>
             <F.Field><label htmlFor="company-field-8">Slogan</label><input id="company-field-8" maxLength={200} value={profileData.slogan} onChange={e => setProfileData(p => ({ ...p, slogan: e.target.value }))} placeholder="Ex: Qualidade e preço baixo para a sua família." /></F.Field>
+            {company.is_sponsor&&<F.Field><label htmlFor="company-banner">Imagem de capa (URL HTTPS)</label><input id="company-banner" type="url" value={profileData.banner_url} onChange={e=>setProfileData(p=>({...p,banner_url:e.target.value}))} placeholder="https://.../capa.jpg"/><small>Exibida na vitrine enquanto a parceria estiver vigente.</small></F.Field>}
             <F.FieldRow>
               <F.Field><label htmlFor="company-field-9">Endereço / Bairro</label><input id="company-field-9" value={profileData.location} onChange={e => setProfileData(p => ({ ...p, location: e.target.value }))} placeholder="Ex: Centro, Teodoro Sampaio" /></F.Field>
               <F.Field><label htmlFor="company-field-10">Site ou Rede Social</label><input id="company-field-10" value={profileData.website} onChange={e => setProfileData(p => ({ ...p, website: e.target.value }))} placeholder="https://suaempresa.com.br" /></F.Field>

@@ -9,7 +9,7 @@ import * as S from './styles';
 export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, role, logout } = useAuth();
+  const { isAuthenticated, role, logout, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   useEffect(() => { setOpen(false); }, [location.pathname, location.search]);
   const panel = role === 'empresa' ? '/empresa/painel' : '/candidato/painel';
@@ -26,9 +26,11 @@ export function Header() {
       <S.Nav id="menu-principal" $open={open} aria-label="Navegação principal" onKeyDown={e => { if(e.key === 'Escape') setOpen(false); }}>
         <NavLink to="/vagas">Encontrar vagas</NavLink>
         <NavLink to="/empresas">Empresas</NavLink>
+        <NavLink to="/parcerias">Seja patrocinador</NavLink>
         <NavLink to="/ajuda">Como funciona</NavLink>
         <S.ButtonGroup>
           {isAuthenticated ? <>
+            {isAdmin&&<S.LoginButton onClick={()=>navigate('/admin/painel')}>Administração</S.LoginButton>}
             <S.LoginButton onClick={() => navigate(panel)}><LayoutDashboard size={17} /> Meu painel</S.LoginButton>
             <S.LoginButton onClick={handleLogout}><LogOut size={17} /> Sair</S.LoginButton>
           </> : <>

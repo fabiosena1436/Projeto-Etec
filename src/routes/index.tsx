@@ -19,6 +19,8 @@ import { CandidateProfile } from '../pages/CandidateProfile';
 import { SavedJobs } from '../pages/SavedJobs';
 import { CompanyDashboard } from '../pages/CompanyDashboard';
 import { CreateJob } from '../pages/CreateJob';
+import { AdminDashboard } from '../pages/AdminDashboard';
+import { Partnerships } from '../pages/Partnerships';
 
 export function AppRoutes() {
   return (
@@ -34,6 +36,7 @@ export function AppRoutes() {
         <Route path="vagas" element={<JobsList />} />
         <Route path="ajuda" element={<Help />} />
         <Route path="privacidade" element={<Privacy />} />
+        <Route path="parcerias" element={<Partnerships />} />
         <Route path="vagas/:id" element={<JobDetails />} />
         <Route path="empresas" element={<CompaniesList />} />
         <Route path="empresas/:id" element={<SponsorProfile />} />
@@ -43,6 +46,9 @@ export function AppRoutes() {
       {/* Área logada */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
+          <Route element={<ProtectedRoute roles={['admin']} />}>
+            <Route path="/admin/painel" element={<AdminDashboard />} />
+          </Route>
           {/* Perfil público do candidato: qualquer usuário logado (empresa vê como recrutador) */}
           <Route path="/candidato/:id" element={<CandidateProfile />} />
 

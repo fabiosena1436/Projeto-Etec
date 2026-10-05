@@ -54,7 +54,7 @@ export const companiesService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data as Company[];
+    return (data as Company[]).map(c=>({...c,is_sponsor:c.is_sponsor&&(!c.sponsor_expires_at||new Date(c.sponsor_expires_at)>new Date())}));
   },
 
   async getSponsors(): Promise<Company[]> {
@@ -79,7 +79,8 @@ export const companiesService = {
 
     (supabase as any).rpc('increment_company_view', { company_uuid: (data as any).id }).then(() => {}, () => {});
 
-    return data as unknown as Company;
+    const company=data as Company;
+    return {...company,is_sponsor:company.is_sponsor&&(!company.sponsor_expires_at||new Date(company.sponsor_expires_at)>new Date())};
   },
 
   /** Empresa do usuário logado. Cria automaticamente se o perfil for empresa e ainda não tiver. */
@@ -104,7 +105,7 @@ export const companiesService = {
       console.error('Erro buscar minha empresa:', error.message);
       return null;
     }
-    if (data) return data as any;
+    if (data) return {...data,is_sponsor:data.is_sponsor&&(!data.sponsor_expires_at||new Date(data.sponsor_expires_at)>new Date())} as any;
 
     // Sem empresa ainda: usa RPC (migration 005) para criar de forma segura
     const { data: created, error: rpcError } = await (supabase as any).rpc('ensure_my_company');

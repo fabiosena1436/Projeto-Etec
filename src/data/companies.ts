@@ -19,6 +19,8 @@ export interface Company {
   website?: string;
   slogan?: string;
   isSponsor?: boolean;
+  phone?: string;
+  bannerUrl?: string;
   promotions?: Promotion[];
 }
 

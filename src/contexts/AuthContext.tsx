@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return role ? buildMockProfile(role) : null;
   });
   const [loading, setLoading] = useState(!isMock);
+  const [adminAccess, setAdminAccess] = useState(false);
   const fetchingFor = useRef(0);
 
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
@@ -93,14 +94,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       setSession(nextSession);
       if (!nextSession?.user) {
+        setAdminAccess(false);
         setProfile(null);
         setLoading(false);
         return;
       }
       // evita corrida entre getSession e onAuthStateChange
-      const p = await fetchProfile(nextSession.user.id);
+      setLoading(true);
+      const [p, canAdmin] = await Promise.all([
+        fetchProfile(nextSession.user.id),
+        (supabase as any).rpc('is_super_admin').then(({data,error}:any)=>!error&&data===true).catch(()=>false),
+      ]);
       if (cancelled || fetchingFor.current !== requestId) return;
       setProfile(p);
+      setAdminAccess(canAdmin);
       setLoading(false);
     };
 
@@ -150,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
     }
     setSession(null);
+    setAdminAccess(false);
     setProfile(null);
     window.dispatchEvent(new CustomEvent('authStateUpdated', { detail: null }));
   }, [isMock]);
@@ -171,13 +179,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!profile,
       isCandidato: role === 'candidato',
       isEmpresa: role === 'empresa',
-      isAdmin: role === 'admin',
+      isAdmin: adminAccess || (isMock && role === 'admin'),
       isMock,
       login,
       logout,
       refreshProfile,
     };
-  }, [session, profile, loading, isMock, login, logout, refreshProfile]);
+  }, [session, profile, loading, adminAccess, isMock, login, logout, refreshProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

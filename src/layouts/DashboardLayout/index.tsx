@@ -10,7 +10,7 @@ import * as S from './styles';
 export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, role, logout, isEmpresa } = useAuth();
+  const { profile, role, logout, isEmpresa, isAdmin } = useAuth();
   const [companyName, setCompanyName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,6 +74,7 @@ export function DashboardLayout() {
       </S.MainContent>
 
       <S.BottomNav aria-label="Navegação do painel">
+        {isAdmin && <S.NavItem $active={isActive('/admin/painel')} onClick={()=>navigate('/admin/painel')}><Building size={24}/><span>Administração</span></S.NavItem>}
         {isEmpresa ? (
           <>
             <S.NavItem $active={isActive('/empresa/painel')} onClick={() => navigate('/empresa/painel')}>

@@ -19,11 +19,11 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship']) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   }
   // Reapplying the security correction is safe.
-  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
   for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato' }]);
@@ -83,5 +83,27 @@ try {
   await asUser(ids[0],"UPDATE applications SET status='desistiu' WHERE id=$1",[app]);
   await assert.rejects(asUser(ids[2],"UPDATE applications SET status='enviada' WHERE id=$1",[app]),/não pode ser reativada/);
   assert.equal((await asUser(ids[2],"SELECT * FROM storage.objects WHERE bucket_id='resumes'")).rows.length,0,'withdrawal revokes recruiter access');
-  console.log('PASS: migrations, signup, jobs, applications, private files and authorization checks.');
+  await assert.rejects(asUser(ids[2],'SELECT admin_dashboard()'),/superadministrador/,'company cannot inspect administration');
+  await assert.rejects(asUser(ids[2],'INSERT INTO platform_admins(profile_id) VALUES($1)',[ids[2]]),/row-level security/,'self-assigned administrator membership is denied');
+  await db.query('INSERT INTO platform_admins(profile_id) VALUES($1)',[ids[4]]);
+  assert.equal((await asUser(ids[4],'SELECT is_super_admin() AS allowed')).rows[0].allowed,true);
+  await assert.rejects(asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','pendente',99,current_date,current_date+30,'Teste')",[company]),/recebimento/);
+  await asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','recebido',99,current_date,current_date+30,'Valor privado')",[company]);
+  assert.equal((await asUser(null,'SELECT is_current_sponsor($1) AS active',[company])).rows[0].active,true,'confirmed sponsorship grants a current public badge');
+  assert.equal((await asUser(null,'SELECT * FROM sponsorships')).rows.length,0,'financial details are private');
+  for(let i=0;i<6;i++) await asUser(ids[2],'INSERT INTO promotions(company_id,title,description,valid_until) VALUES($1,$2,$3,current_date+30)',[company,`Oferta ${i}`,'Descrição de oferta para validação']);
+  await asUser(ids[2],'UPDATE promotions SET valid_until=current_date-1 WHERE company_id=$1 AND title=$2',[company,'Oferta 0']);
+  assert.equal((await asUser(null,'SELECT * FROM promotions WHERE company_id=$1',[company])).rows.length,5,'expired offers are not public');
+  assert.equal((await asUser(ids[2],'SELECT * FROM promotions WHERE company_id=$1',[company])).rows.length,6,'owner can edit expired offers');
+  await assert.rejects(asUser(ids[2],"INSERT INTO promotions(company_id,title,description) VALUES($1,'Sétima oferta','Teste do limite de ofertas')",[company]),/seis ofertas/,'expired offers still count toward the cap');
+  await asUser(ids[4],"SELECT admin_save_sponsorship($1,'pausado','recebido',99,current_date,current_date+30,'Pausa de teste')",[company]);
+  assert.equal((await asUser(null,'SELECT is_current_sponsor($1) AS active',[company])).rows[0].active,false);
+  assert.equal((await asUser(null,'SELECT * FROM promotions WHERE company_id=$1',[company])).rows.length,0,'paused sponsorship hides public offers');
+  await asUser(ids[4],"SELECT admin_verify_entity('user',$1,true)",[ids[0]]);
+  const snapshot=(await asUser(ids[4],'SELECT admin_dashboard() AS snapshot')).rows[0].snapshot;
+  assert.equal(snapshot.totals.users,5);
+  assert.equal(snapshot.audit.length,3,'administrative changes are audited');
+  await db.query('UPDATE platform_admins SET is_active=false WHERE profile_id=$1',[ids[4]]);
+  await assert.rejects(asUser(ids[4],'SELECT admin_dashboard()'),/superadministrador/,'revoked administrators immediately lose access');
+  console.log('PASS: migrations, profiles, applications, private files, superadmin, sponsorships and authorization.');
 } finally { await db.close(); }

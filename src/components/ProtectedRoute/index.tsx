@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ roles }: ProtectedRouteProps) {
-  const { isAuthenticated, loading, role } = useAuth();
+  const { isAuthenticated, loading, role, isAdmin } = useAuth();
   const location = useLocation();
 
   if (loading) return <PageLoader label="Verificando sessão..." />;
@@ -19,7 +19,8 @@ export function ProtectedRoute({ roles }: ProtectedRouteProps) {
     return <Navigate to={`/login${wanted}`} replace state={{ from: location.pathname }} />;
   }
 
-  if (roles && role && role !== 'admin' && !roles.includes(role)) {
+  if (roles?.includes('admin') && !isAdmin) return <Navigate to="/" replace />;
+  if (roles && !roles.includes('admin') && role && role !== 'admin' && !roles.includes(role)) {
     return <Navigate to={role === 'empresa' ? '/empresa/painel' : '/candidato/painel'} replace />;
   }
 

@@ -54,7 +54,9 @@ export function mapCompany(c: DbCompany): Company {
     contactEmail: c.contact_email,
     website: c.website || undefined,
     slogan: c.slogan || undefined,
-    isSponsor: c.is_sponsor,
+    phone: c.phone || undefined,
+    bannerUrl: c.banner_url || undefined,
+    isSponsor: c.is_sponsor && (!c.sponsor_expires_at || new Date(c.sponsor_expires_at)>new Date()),
     promotions: (c.promotions || []).map(mapPromotion),
   };
 }
