@@ -41,7 +41,7 @@ export function CompanyDashboard() {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'candidates' | 'profile'>('overview');
 
-  const [profileData, setProfileData] = useState({ name: '', description: '', website: '', slogan: '', industry: '', location: '', phone: '', contact_email: '', banner_url: '' });
+  const [profileData, setProfileData] = useState({ name: '', description: '', website: '', slogan: '', industry: '', location: '', phone: '', contact_email: '', banner_url: '', logo_url: '' });
   const [promoForm, setPromoForm] = useState<{ open: boolean; editing: Promotion | null; title: string; description: string; price: string; discount_price: string; valid_until: string; image_url: string }>({ open: false, editing: null, title: '', description: '', price: '', discount_price: '', valid_until: '', image_url: '' });
 
   const load = useCallback(async () => {
@@ -53,6 +53,7 @@ export function CompanyDashboard() {
           name: c.name, description: c.description || '', website: c.website || '', slogan: c.slogan || '',
           industry: c.industry || '', location: c.location || '', phone: c.phone || '', contact_email: c.contact_email || '',
           banner_url: c.banner_url || '',
+          logo_url: c.logo_url || '',
         });
         const [j, apps, m] = await Promise.all([
           jobsService.getByCompany(c.id),
@@ -130,6 +131,7 @@ export function CompanyDashboard() {
     let website = profileData.website.trim();
     if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
     if (profileData.banner_url.trim() && !/^https:\/\//i.test(profileData.banner_url.trim())) return toast.error('A imagem de capa deve usar um endereço HTTPS.');
+    if (profileData.logo_url.trim() && !/^https:\/\//i.test(profileData.logo_url.trim())) return toast.error('A logo deve usar um endereço HTTPS.');
     setSaving(true);
     try {
       const updated = await companiesService.update(company.id, {
@@ -142,6 +144,7 @@ export function CompanyDashboard() {
         phone: profileData.phone.replace(/\D/g, '') || null,
         contact_email: profileData.contact_email.trim() || company.contact_email,
         banner_url: profileData.banner_url.trim() || null,
+        logo_url: profileData.logo_url.trim() || null,
       });
       setCompany(prev => ({ ...(prev as Company), ...updated }));
       toast.success('Perfil da empresa atualizado com sucesso!');
@@ -160,6 +163,7 @@ export function CompanyDashboard() {
     try {
       const url = await companiesService.uploadLogo(company.id, file);
       setCompany(prev => prev ? { ...prev, logo_url: url } : prev);
+      setProfileData(prev => ({ ...prev, logo_url: url }));
       toast.success('Logo atualizada!');
     } catch (err: any) {
       toast.error(err.message || 'Erro ao enviar logo.');
@@ -515,6 +519,7 @@ export function CompanyDashboard() {
               </F.Field>
             </F.FieldRow>
             <F.Field><label htmlFor="company-field-8">Slogan</label><input id="company-field-8" maxLength={200} value={profileData.slogan} onChange={e => setProfileData(p => ({ ...p, slogan: e.target.value }))} placeholder="Ex: Qualidade e preço baixo para a sua família." /></F.Field>
+            <F.Field><label htmlFor="company-logo-url">Logo (URL HTTPS)</label><input id="company-logo-url" type="url" value={profileData.logo_url} onChange={e=>setProfileData(p=>({...p,logo_url:e.target.value}))} placeholder="https://.../logo.png"/><small>Você também pode enviar uma imagem pelo botão de foto no topo do painel.</small></F.Field>
             {company.is_sponsor&&<F.Field><label htmlFor="company-banner">Imagem de capa (URL HTTPS)</label><input id="company-banner" type="url" value={profileData.banner_url} onChange={e=>setProfileData(p=>({...p,banner_url:e.target.value}))} placeholder="https://.../capa.jpg"/><small>Exibida na vitrine enquanto a parceria estiver vigente.</small></F.Field>}
             <F.FieldRow>
               <F.Field><label htmlFor="company-field-9">Endereço / Bairro</label><input id="company-field-9" value={profileData.location} onChange={e => setProfileData(p => ({ ...p, location: e.target.value }))} placeholder="Ex: Centro, Teodoro Sampaio" /></F.Field>
