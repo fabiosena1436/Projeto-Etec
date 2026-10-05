@@ -1,0 +1,44 @@
+# Conecta Sampaio — operação de parcerias
+
+Responsável: Fabio V. Sena. Contato comercial: https://wa.me/5518981579318.
+
+## Modelo escolhido
+
+Candidatos acessam gratuitamente. Empresas podem cadastrar seu perfil, publicar vagas e acompanhar candidaturas gratuitamente. A receita vem da divulgação comercial opcional, negociada diretamente com Fabio pelo WhatsApp. Não haverá tabela pública de preços nem cobrança automática nesta primeira etapa.
+
+O patrocínio tem início e fim registrados. Fabio confirma o recebimento ou uma cortesia, ativa a parceria e acompanha a renovação. Negociações pendentes, em atraso, pausadas ou canceladas não liberam o destaque. Ao vencer, o destaque e as ofertas deixam de aparecer; os dados permanecem para renovação. A renovação é manual.
+
+## O espaço da patrocinadora
+
+- Logo e nome no espaço de apoiadores da plataforma.
+- Página da empresa com descrição, ramo, slogan, endereço, site, WhatsApp e vagas abertas.
+- Imagem de capa na vitrine durante a vigência.
+- Até seis produtos, serviços ou ofertas: imagem por URL HTTPS, descrição, valor original/opcional, valor promocional/opcional e validade.
+- Identificação de patrocinadora nos cartões e prioridade da empresa nas buscas de vagas.
+- Empresa gerencia conteúdo no próprio painel; Fabio controla liberação e validade.
+
+São espaços de divulgação, sem promessa de vendas, contratação, quantidade de visitas ou exclusividade territorial. Fotos devem ser próprias ou autorizadas. Vagas e ofertas fictícias de teste precisam continuar identificadas como exemplo.
+
+## Painel do superadministrador
+
+`/admin/painel`: contadores, pesquisa de empresas e usuários, verificação administrativa, gerenciamento de acordos e histórico de alterações. Acesso concedido por cadastro administrativo separado; ser empresa ou informar o e-mail de Fabio no cadastro não concede essa permissão. Senhas e currículos não são expostos pelo painel administrativo.
+
+O valor exibido é o **valor mensal contratado**, não o saldo de uma conta nem comprovação bancária. O status de recebimento é um registro manual. Esta etapa não gera notas fiscais, não cobra Pix/cartão, não bloqueia usuários e não oferece exclusão de contas. Essas operações precisam de fluxos próprios antes de serem disponibilizadas.
+
+## Formação de preço e controle
+
+Negociar valor e período considerando a produção de material, atendimento, manutenção, domínio, hospedagem e e-mail. A mensalidade deve remunerar tanto o espaço quanto o trabalho de manter a divulgação atualizada. Registrar no acordo o que está incluído, a data de renovação e como funciona uma pausa.
+
+Simulação para planejamento, não preço definido nem projeção de vendas: com valor hipotético de R$ 99 por empresa/mês, 5 patrocinadoras representam R$ 495, 10 representam R$ 990 e 20 representam R$ 1.980 de receita bruta mensal. Resultado operacional = recebimentos reais − custos e despesas. Reservar parte da receita para manutenção e crescimento; descontos e cortesias precisam de prazo.
+
+Priorizar o lançamento com poucas empresas e acompanhar a procura real antes de criar vários planos. O primeiro pacote tem um conjunto único de benefícios; personalizações são combinadas por atendimento.
+
+## Infraestrutura e custos verificados em 05/10/2026
+
+O Supabase Free inclui 500 MB de banco e 1 GB de arquivos, com pausas por inatividade e sem backups automáticos do plano pago: https://supabase.com/pricing. Monitorar consumo, especialmente currículos e imagens, e prever rotina de backup.
+
+O plano gratuito Vercel Hobby é restrito a uso pessoal não comercial: https://vercel.com/docs/plans/hobby. Antes de começar a cobrar patrocínios, usar uma hospedagem que permita a operação comercial ou um plano Vercel apropriado. A implementação não altera planos, contrata serviços ou faz pagamentos. SMTP para recuperação de senha de usuários externos continua pendente.
+
+## Ativação do primeiro administrador
+
+A migração 009 não concede acesso a ninguém. Depois da aprovação de Fabio, conceder apenas à conta existente `fabiosena1436@gmail.com`, cujo ID deve ser conferido no banco. Essa conta mantém seu perfil de empresa; o privilégio administrativo é separado. Não colocar chaves secretas no frontend e não criar uma opção pública de cadastro como administrador.
