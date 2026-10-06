@@ -19,11 +19,11 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community','012_community_images']) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   }
   // Reapplying the security correction is safe.
-  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community','012_community_images']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
   for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato' }]);
@@ -38,6 +38,18 @@ try {
       return tx.query(statement,params);
     });
   }
+  assert.equal((await db.query("SELECT file_size_limit FROM storage.buckets WHERE id='community-images'")).rows[0].file_size_limit,1048576,'post images have a 1 MB server limit');
+  const photoName = ids[0]+'/photo.webp';
+  await asUser(ids[0],"INSERT INTO storage.objects(bucket_id,name) VALUES('community-images',$1)",[photoName]);
+  assert.equal((await asUser(null,"SELECT name FROM storage.objects WHERE bucket_id='community-images'")).rows.length,1,'published images allow public reads');
+  await assert.rejects(asUser(null,"INSERT INTO storage.objects(bucket_id,name) VALUES('community-images',$1)",[photoName]),/permission denied|row-level security/,'anonymous photo upload denied');
+  await assert.rejects(asUser(ids[1],"INSERT INTO storage.objects(bucket_id,name) VALUES('community-images',$1)",[ids[0]+'/foreign.webp']),/row-level security/,'cannot upload into another author folder');
+  assert.equal((await asUser(ids[1],"DELETE FROM storage.objects WHERE bucket_id='community-images' RETURNING name")).rows.length,0,'cannot delete another author photo');
+  assert.equal((await asUser(ids[0],"UPDATE storage.objects SET name=$1 WHERE bucket_id='community-images' RETURNING name",[ids[0]+'/changed.webp'])).rows.length,0,'photo objects cannot be replaced');
+  await db.query('UPDATE profiles SET is_active=false WHERE id=$1',[ids[1]]);
+  await assert.rejects(asUser(ids[1],"INSERT INTO storage.objects(bucket_id,name) VALUES('community-images',$1)",[ids[1]+'/blocked.webp']),/row-level security/,'inactive accounts cannot upload photos');
+  await db.query('UPDATE profiles SET is_active=true WHERE id=$1',[ids[1]]);
+  assert.equal((await asUser(ids[0],"DELETE FROM storage.objects WHERE bucket_id='community-images' RETURNING name")).rows.length,1,'owner can delete their photo');
   assert.equal((await asUser(null,'SELECT * FROM profiles')).rows.length,0,'anonymous cannot read contact information');
   assert.equal((await asUser(null,'SELECT * FROM candidates')).rows.length,0,'anonymous cannot read resumes/profile');
   await assert.rejects(asUser(ids[0],"UPDATE profiles SET role='admin' WHERE id=$1",[ids[0]]),/administrativos/);

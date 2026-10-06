@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { usersMock } from '../../data/users';
 import type { Candidate, Profile } from '../../types/database';
+import { prepareImage } from '../../utils/prepareImage';
 import { translateDbError } from './jobs.service';
 
 function mapMockToCandidate(): (Candidate & { profile: Profile })[] {
@@ -166,8 +167,7 @@ export const candidatesService = {
 
   async uploadAvatar(file: File): Promise<string> {
     if (!supabase) throw new Error('Supabase não configurado');
-    if (file.size > 2 * 1024 * 1024) throw new Error('A foto deve ter no máximo 2MB.');
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) throw new Error('Envie uma foto em PNG, JPEG ou WebP.');
+    file = await prepareImage(file, 512);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Não autenticado');
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';

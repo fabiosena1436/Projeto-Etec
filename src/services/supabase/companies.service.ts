@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { companiesMock } from '../../data/companies';
 import type { Company, Promotion } from '../../types/database';
+import { prepareImage } from '../../utils/prepareImage';
 import { translateDbError } from './jobs.service';
 
 function mapMockToCompany(): Company[] {
@@ -118,8 +119,9 @@ export const companiesService = {
 
   async uploadLogo(companyId: string, file: File): Promise<string> {
     if (!supabase) throw new Error('Supabase não configurado');
-    if (file.size > 2 * 1024 * 1024) throw new Error('A logo deve ter no máximo 2MB.');
-    if (!['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.type)) throw new Error('Envie uma logo em PNG, JPEG, WebP ou SVG.');
+    if (file.type === 'image/svg+xml') {
+      if (file.size > 2 * 1024 * 1024) throw new Error('A logo em SVG deve ter no máximo 2 MB.');
+    } else { file = await prepareImage(file, 512); }
     const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
     const path = `${companyId}/logo-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('company-logos').upload(path, file, { upsert: true, cacheControl: '3600' });

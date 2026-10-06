@@ -19,6 +19,8 @@ import { APPLICATION_STATUS_LABEL } from '../CandidateDashboard';
 import * as F from '../CandidateDashboard/styles';
 import type { Company, Job, Application, ApplicationStatus, Promotion } from '../../types/database';
 import * as S from './styles';
+import { ImagePicker } from '../../components/ImagePicker';
+import { uploadImage } from '../../services/supabase/images.service';
 
 type AppWithCandidate = Application & {
   candidate?: { id: string; full_name: string; avatar_url: string | null; city: string; phone: string | null; email: string };
@@ -42,6 +44,10 @@ export function CompanyDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'candidates' | 'profile'>('overview');
 
   const [profileData, setProfileData] = useState({ name: '', description: '', website: '', slogan: '', industry: '', location: '', phone: '', contact_email: '', banner_url: '', logo_url: '' });
+  const [promoImage,setPromoImage] = useState<File|null>(null);
+  const [bannerImage,setBannerImage] = useState<File|null>(null);
+  const [promoPreparing,setPromoPreparing] = useState(false);
+  const [bannerPreparing,setBannerPreparing] = useState(false);
   const [promoForm, setPromoForm] = useState<{ open: boolean; editing: Promotion | null; title: string; description: string; price: string; discount_price: string; valid_until: string; image_url: string }>({ open: false, editing: null, title: '', description: '', price: '', discount_price: '', valid_until: '', image_url: '' });
 
   const load = useCallback(async () => {
@@ -126,6 +132,7 @@ export function CompanyDashboard() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving || bannerPreparing) return;
     if (!company) return;
     if (isMock) { toast.success('Perfil da empresa atualizado! (demo)'); return; }
     let website = profileData.website.trim();
@@ -134,6 +141,7 @@ export function CompanyDashboard() {
     if (profileData.logo_url.trim() && !/^https:\/\//i.test(profileData.logo_url.trim())) return toast.error('A logo deve usar um endereço HTTPS.');
     setSaving(true);
     try {
+      const banner = bannerImage ? await uploadImage('company-logos', company.id, bannerImage) : profileData.banner_url.trim();
       const updated = await companiesService.update(company.id, {
         name: profileData.name.trim(),
         description: profileData.description.trim() || null,
@@ -143,10 +151,12 @@ export function CompanyDashboard() {
         location: profileData.location.trim() || company.location,
         phone: profileData.phone.replace(/\D/g, '') || null,
         contact_email: profileData.contact_email.trim() || company.contact_email,
-        banner_url: profileData.banner_url.trim() || null,
+        banner_url: banner || null,
         logo_url: profileData.logo_url.trim() || null,
       });
       setCompany(prev => ({ ...(prev as Company), ...updated }));
+      setProfileData(prev => ({...prev,banner_url:banner}));
+      setBannerImage(null);
       toast.success('Perfil da empresa atualizado com sucesso!');
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar.');
@@ -173,16 +183,17 @@ export function CompanyDashboard() {
     }
   };
 
-  const openPromoForm = (promo?: Promotion) => setPromoForm({
+  const openPromoForm = (promo?: Promotion) => { setPromoImage(null); setPromoForm({
     open: true, editing: promo || null,
     title: promo?.title || '', description: promo?.description || '',
     price: promo?.price != null ? String(promo.price) : '', discount_price: promo?.discount_price != null ? String(promo.discount_price) : '',
     valid_until: promo?.valid_until || '',
     image_url: promo?.image_url || '',
-  });
+  }); };
 
   const handleSavePromo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving || promoPreparing) return;
     if (!company) return;
     if (isMock) { toast.success('Promoção salva! (demo)'); setPromoForm(p => ({ ...p, open: false })); return; }
     const payload = {
@@ -197,10 +208,12 @@ export function CompanyDashboard() {
     if (payload.image_url && !/^https:\/\//i.test(payload.image_url)) return toast.error('A imagem da oferta deve usar um endereço HTTPS.');
     setSaving(true);
     try {
+      if (promoImage) payload.image_url = await uploadImage('promotions',company.id,promoImage);
       if (promoForm.editing) await companiesService.updatePromotion(promoForm.editing.id, payload);
       else await companiesService.createPromotion({ ...payload, company_id: company.id });
       toast.success(promoForm.editing ? 'Promoção atualizada!' : 'Promoção publicada!');
       setPromoForm(p => ({ ...p, open: false }));
+      setPromoImage(null);
       await load();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar promoção.');
@@ -377,14 +390,14 @@ export function CompanyDashboard() {
                     <F.Field $basis="160px"><label htmlFor="company-field-2">Válido até</label><input id="company-field-2" type="date" value={promoForm.valid_until} onChange={e => setPromoForm(p => ({ ...p, valid_until: e.target.value }))} /></F.Field>
                   </F.FieldRow>
                   <F.Field><label htmlFor="company-field-3">Descrição</label><textarea id="company-field-3" required rows={2} value={promoForm.description} onChange={e => setPromoForm(p => ({ ...p, description: e.target.value }))} /></F.Field>
-                  <F.Field><label htmlFor="offer-image">Imagem da oferta (URL HTTPS)</label><input id="offer-image" type="url" value={promoForm.image_url} onChange={e=>setPromoForm(p=>({...p,image_url:e.target.value}))} placeholder="https://.../foto.jpg"/><small>Use uma foto que sua empresa tem autorização para divulgar.</small></F.Field>
+                  <ImagePicker id="offer-image" label="Foto da oferta (opcional)" url={promoForm.image_url} file={promoImage} onChange={(url,file)=>{setPromoForm(p=>({...p,image_url:url}));setPromoImage(file);}} disabled={saving} onPreparing={setPromoPreparing}/>
                   <F.FieldRow>
                     <F.Field $basis="160px"><label htmlFor="company-field-4">Preço original (R$)</label><input id="company-field-4" inputMode="decimal" value={promoForm.price} onChange={e => setPromoForm(p => ({ ...p, price: e.target.value }))} placeholder="25,90" /></F.Field>
                     <F.Field $basis="160px"><label htmlFor="company-field-5">Preço promocional (R$)</label><input id="company-field-5" inputMode="decimal" value={promoForm.discount_price} onChange={e => setPromoForm(p => ({ ...p, discount_price: e.target.value }))} placeholder="19,90" /></F.Field>
                   </F.FieldRow>
                   <F.Actions>
-                    <F.Btn type="submit" $variant="success" disabled={saving}><Save size={16} /> {promoForm.editing ? 'Salvar' : 'Publicar'}</F.Btn>
-                    <F.Btn type="button" $variant="ghost" onClick={() => setPromoForm(p => ({ ...p, open: false }))}>Cancelar</F.Btn>
+                    <F.Btn type="submit" $variant="success" disabled={saving||promoPreparing}><Save size={16} /> {promoForm.editing ? 'Salvar' : 'Publicar'}</F.Btn>
+                    <F.Btn type="button" $variant="ghost" disabled={saving||promoPreparing} onClick={() => {setPromoForm(p => ({ ...p, open: false }));setPromoImage(null);}}>Cancelar</F.Btn>
                   </F.Actions>
                 </form>
               )}
@@ -520,7 +533,7 @@ export function CompanyDashboard() {
             </F.FieldRow>
             <F.Field><label htmlFor="company-field-8">Slogan</label><input id="company-field-8" maxLength={200} value={profileData.slogan} onChange={e => setProfileData(p => ({ ...p, slogan: e.target.value }))} placeholder="Ex: Qualidade e preço baixo para a sua família." /></F.Field>
             <F.Field><label htmlFor="company-logo-url">Logo (URL HTTPS)</label><input id="company-logo-url" type="url" value={profileData.logo_url} onChange={e=>setProfileData(p=>({...p,logo_url:e.target.value}))} placeholder="https://.../logo.png"/><small>Você também pode enviar uma imagem pelo botão de foto no topo do painel.</small></F.Field>
-            {company.is_sponsor&&<F.Field><label htmlFor="company-banner">Imagem de capa (URL HTTPS)</label><input id="company-banner" type="url" value={profileData.banner_url} onChange={e=>setProfileData(p=>({...p,banner_url:e.target.value}))} placeholder="https://.../capa.jpg"/><small>Exibida na vitrine enquanto a parceria estiver vigente.</small></F.Field>}
+            {company.is_sponsor&&<ImagePicker id="company-banner" label="Foto de capa (opcional)" url={profileData.banner_url} file={bannerImage} onChange={(url,file)=>{setProfileData(p=>({...p,banner_url:url}));setBannerImage(file);}} disabled={saving} onPreparing={setBannerPreparing}/>}
             <F.FieldRow>
               <F.Field><label htmlFor="company-field-9">Endereço / Bairro</label><input id="company-field-9" value={profileData.location} onChange={e => setProfileData(p => ({ ...p, location: e.target.value }))} placeholder="Ex: Centro, Teodoro Sampaio" /></F.Field>
               <F.Field><label htmlFor="company-field-10">Site ou Rede Social</label><input id="company-field-10" value={profileData.website} onChange={e => setProfileData(p => ({ ...p, website: e.target.value }))} placeholder="https://suaempresa.com.br" /></F.Field>
@@ -535,7 +548,7 @@ export function CompanyDashboard() {
               <small>{profileData.description.length}/5000</small>
             </F.Field>
             <F.Actions>
-              <F.Btn type="submit" disabled={saving}><Save size={18} /> {saving ? 'Salvando...' : 'Salvar Alterações'}</F.Btn>
+              <F.Btn type="submit" disabled={saving||bannerPreparing}><Save size={18} /> {saving ? 'Salvando...' : 'Salvar Alterações'}</F.Btn>
             </F.Actions>
           </form>
         </section>
