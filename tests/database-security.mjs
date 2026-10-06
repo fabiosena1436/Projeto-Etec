@@ -19,7 +19,7 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility','014_company_verification']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility','014_company_verification','015_presentation_visibility']) {
     if (migration==='014_company_verification') {
       await db.exec("INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('99999999-9999-4999-8999-999999999999','legacy@example.com','{\"role\":\"empresa\",\"company_cnpj\":\"11111111111111\"}'); UPDATE companies SET is_verified=true WHERE owner_profile_id='99999999-9999-4999-8999-999999999999';");
     }
@@ -30,7 +30,7 @@ try {
     }
   }
   // Reapplying the security correction is safe.
-  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility','014_company_verification']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility','014_company_verification','015_presentation_visibility']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
   for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato', company_cnpj: i === 2 ? '11444777000161' : '04252011000110' }]);
@@ -150,6 +150,18 @@ try {
   const snapshot=(await asUser(ids[4],'SELECT admin_dashboard() AS snapshot')).rows[0].snapshot;
   assert.equal(snapshot.totals.users,5);
   assert.equal(snapshot.audit.length,3,'administrative changes are audited');
+  assert.equal((await asUser(null,'SELECT presentation_demo_visibility() AS visible')).rows[0].visible,true,'presentation visibility is a public boolean');
+  assert.equal((await asUser(null,'SELECT * FROM presentation_settings')).rows.length,0,'administrative setting details remain private');
+  await assert.rejects(asUser(null,'SELECT admin_set_presentation_demos(false)'),/permission denied/,'anonymous clients cannot remove presentation examples');
+  await assert.rejects(asUser(ids[2],'SELECT admin_set_presentation_demos(false)'),/superadministrador/,'company cannot change global presentation visibility');
+  assert.equal((await asUser(ids[2],'UPDATE presentation_settings SET enabled=false RETURNING enabled')).rows.length,0,'direct REST updates cannot bypass admin authorization');
+  await asUser(ids[4],'SELECT admin_set_presentation_demos(false)');
+  assert.equal((await asUser(null,'SELECT presentation_demo_visibility() AS visible')).rows[0].visible,false,'admin removal applies globally');
+  await db.exec(await readFile(new URL('../supabase/migrations/015_presentation_visibility.sql',import.meta.url),'utf8'));
+  assert.equal((await asUser(null,'SELECT presentation_demo_visibility() AS visible')).rows[0].visible,false,'reapplying migration does not reactivate removed examples');
+  await asUser(ids[4],'SELECT admin_set_presentation_demos(true)');
+  assert.equal((await asUser(null,'SELECT presentation_demo_visibility() AS visible')).rows[0].visible,true,'admin can restore presentation examples');
+  assert.equal((await db.query("SELECT count(*)::int AS total FROM audit_logs WHERE action='admin_presentation_visibility'")).rows[0].total,2,'presentation changes are audited');
   await assert.rejects(asUser(null,"SELECT community_action('publish',$1,'Texto')",[company]),/permission denied/);
   await assert.rejects(asUser(ids[0],"SELECT community_action('publish',$1,'Texto')",[company]),/restrita/);
   await assert.rejects(asUser(ids[3],"SELECT community_action('publish',$1,'Texto')",[company]),/restrita/);
