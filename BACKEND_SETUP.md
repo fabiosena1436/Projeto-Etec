@@ -1,5 +1,28 @@
 # 🚀 Guia de Setup Backend - Conecta Teodoro Sampaio
 
+## Senhas e acesso por tipo de conta
+
+Cadastro e redefinição exigem pelo menos **8 caracteres**, com maiúscula (A–Z),
+minúscula (a–z), número e símbolo. O formulário mostra cada requisito e o serviço
+valida a senha antes de chamar o Supabase. `npm run test:auth` verifica a política
+e o bloqueio de rotas entre tipos de conta.
+
+No Supabase online, abra **Authentication → Sign In / Providers → Email** e ajuste
+**Minimum password length** para `8` e **Password Requirements** para letras
+maiúsculas, minúsculas, números e símbolos. Salve a configuração. A alteração em
+`supabase/config.toml` configura o ambiente local; não atualiza o projeto online.
+Essa exigência precisa estar no Supabase para bloquear chamadas diretas à API.
+
+Senhas antigas não são alteradas automaticamente. Quem usa uma senha fraca deve
+usar **Esqueci minha senha** no login e definir uma senha que cumpra os requisitos.
+
+O convite de patrocínio aparece apenas para empresas. A rota `/parcerias` exige
+conta de empresa ou acesso administrativo confirmado pelo banco. Candidatos não
+veem convites de contratação ou de cadastro de empresa quando estão logados.
+Perfis públicos de empresas, vagas, ofertas e publicações continuam acessíveis.
+Painéis específicos bloqueiam outras funções e contas com papel ainda indefinido;
+somente a associação administrativa confirmada permite acesso de administrador.
+
 ## Comunidade com publicações pessoais
 
 Para um banco que já recebeu as migrações até `010_community.sql`, execute

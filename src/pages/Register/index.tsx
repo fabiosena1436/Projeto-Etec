@@ -5,6 +5,8 @@ import { User, Building, ArrowLeft, MailCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '../../services/supabase/auth.service';
 import { isSupabaseConfigured } from '../../lib/supabase';
+import { PasswordRequirements } from '../../components/PasswordRequirements';
+import { isStrongPassword, PASSWORD_MIN_LENGTH, PASSWORD_POLICY_MESSAGE } from '../../utils/passwordPolicy';
 import * as S from './styles';
 
 type Step = 'select' | 'candidato' | 'empresa';
@@ -17,11 +19,13 @@ export const INDUSTRIES = [
 
 export function Register() {
   const [searchParams] = useSearchParams();
-  const initialType = searchParams.get('type') as Step | null;
+  const requestedType = searchParams.get('type');
+  const initialType = requestedType === 'empresa' || requestedType === 'candidato' ? requestedType : null;
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>(initialType || 'select');
   const [loading, setLoading] = useState(false);
+  const [passwordValue, setPasswordValue] = useState('');
 
   const [emailSent, setEmailSent] = useState<string | null>(null);
 
@@ -43,8 +47,8 @@ export function Register() {
       toast.error('As senhas não coincidem!');
       return;
     }
-    if (password.length < 6) {
-      toast.error('Senha deve ter pelo menos 6 caracteres');
+    if (!isStrongPassword(password)) {
+      toast.error(PASSWORD_POLICY_MESSAGE);
       return;
     }
     const role = step === 'empresa' ? 'empresa' : 'candidato';
@@ -188,7 +192,8 @@ export function Register() {
             </S.FormGroup>
             <S.FormGroup>
               <label htmlFor="password">Senha</label>
-              <input id="password" required name="password" type="password" minLength={6} placeholder="Pelo menos 6 caracteres" disabled={loading} autoComplete="new-password" />
+              <input id="password" required name="password" type="password" minLength={PASSWORD_MIN_LENGTH} value={passwordValue} onChange={e => setPasswordValue(e.target.value)} aria-describedby="password-rules" placeholder="Crie uma senha com pelo menos 8 caracteres" disabled={loading} autoComplete="new-password" />
+              <PasswordRequirements id="password-rules" password={passwordValue} />
             </S.FormGroup>
             <S.FormGroup>
               <label htmlFor="confirmPassword">Confirmar Senha</label>
@@ -251,7 +256,8 @@ export function Register() {
             </S.FormGroup>
             <S.FormGroup>
               <label htmlFor="password">Senha</label>
-              <input id="password" required name="password" type="password" placeholder="Crie uma senha forte (min 6)" disabled={loading} autoComplete="new-password" />
+              <input id="password" required name="password" type="password" minLength={PASSWORD_MIN_LENGTH} value={passwordValue} onChange={e => setPasswordValue(e.target.value)} aria-describedby="password-rules" placeholder="Crie uma senha com pelo menos 8 caracteres" disabled={loading} autoComplete="new-password" />
+              <PasswordRequirements id="password-rules" password={passwordValue} />
             </S.FormGroup>
             <S.FormGroup>
               <label htmlFor="confirmPassword">Confirmar Senha</label>

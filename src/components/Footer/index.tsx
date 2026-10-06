@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 import { BrandMark } from '../BrandMark';
+import { useAuth } from '../../hooks/useAuth';
 const Wrap = styled.footer`
   background:#102a43;color:#d1dce6;margin-top:auto;
   .inner{max-width:1200px;margin:auto;padding:40px 24px 20px;}
@@ -16,9 +17,10 @@ const Wrap = styled.footer`
 export const supportEmail = (import.meta.env.VITE_PUBLIC_SUPPORT_EMAIL as string | undefined) || 'fabiosena1436@gmail.com';
 export const organization = (import.meta.env.VITE_PUBLIC_ORGANIZATION as string | undefined) || 'Fabio V. Sena';
 export function Footer() {
+  const { isAuthenticated, isEmpresa, loading } = useAuth();
   return <Wrap><div className="inner"><div className="columns">
     <div><Link to="/" className="brand"><BrandMark /> Conecta Sampaio</Link><p>Talentos, empresas e oportunidades.<br />Uma conexão para toda a cidade.</p></div>
-    <div><h2>SEU PRÓXIMO PASSO</h2><nav aria-label="Oportunidades"><Link to="/vagas">Encontrar vagas</Link><Link to="/empresas">Conhecer empresas</Link><Link to="/cadastro?type=empresa">Publicar uma vaga <ArrowUpRight size={14} /></Link></nav></div>
+    <div><h2>SEU PRÓXIMO PASSO</h2><nav aria-label="Oportunidades"><Link to="/vagas">Encontrar vagas</Link><Link to="/empresas">Conhecer empresas</Link>{!loading && (!isAuthenticated || isEmpresa) && <Link to={isEmpresa ? '/empresa/vaga/nova' : '/cadastro?type=empresa'}>Publicar uma vaga <ArrowUpRight size={14} /></Link>}</nav></div>
     <div><h2>INFORMAÇÃO E CUIDADO</h2><nav aria-label="Ajuda"><Link to="/ajuda">Como funciona</Link><Link to="/privacidade">Privacidade dos dados</Link><Link to="/ajuda#seguranca">Segurança e suporte</Link>{supportEmail && <a href={`mailto:${supportEmail}`}>Fale com a equipe</a>}</nav></div>
   </div><div className="bottom"><span>© {new Date().getFullYear()} {organization}</span><span><MapPin size={13} /> Feito para Teodoro Sampaio, SP</span></div></div></Wrap>;
 }

@@ -2,9 +2,10 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { PageLoader } from '../PageLoader';
 import type { UserRole } from '../../types/database';
+import { canAccessRoles } from '../../utils/accessPolicy';
 
 interface ProtectedRouteProps {
-  /** Se informado, só permite estes papéis. Admin sempre passa. */
+  /** Se informado, só permite estes papéis e administradores confirmados pelo banco. */
   roles?: UserRole[];
 }
 
@@ -20,9 +21,8 @@ export function ProtectedRoute({ roles }: ProtectedRouteProps) {
     return <Navigate to={`/login${wanted}`} replace state={{ from: location.pathname }} />;
   }
 
-  if (roles?.includes('admin') && !isAdmin) return <Navigate to="/" replace />;
-  if (roles && !roles.includes('admin') && role && role !== 'admin' && !roles.includes(role)) {
-    return <Navigate to={role === 'empresa' ? '/empresa/painel' : '/candidato/painel'} replace />;
+  if (!canAccessRoles(role, isAdmin, roles)) {
+    return <Navigate to={role === 'empresa' ? '/empresa/painel' : role === 'candidato' ? '/candidato/painel' : '/'} replace />;
   }
 
   return <Outlet />;

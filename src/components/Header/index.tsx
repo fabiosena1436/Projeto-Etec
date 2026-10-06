@@ -9,10 +9,10 @@ import * as S from './styles';
 export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, role, logout, isAdmin } = useAuth();
+  const { isAuthenticated, role, logout, isAdmin, isEmpresa } = useAuth();
   const [open, setOpen] = useState(false);
   useEffect(() => { setOpen(false); }, [location.pathname, location.search]);
-  const panel = role === 'empresa' ? '/empresa/painel' : '/candidato/painel';
+  const panel = isAdmin ? '/admin/painel' : role === 'empresa' ? '/empresa/painel' : '/candidato/painel';
   async function handleLogout() {
     try { await logout(); setOpen(false); navigate('/'); }
     catch { toast.error('Não foi possível sair. Tente novamente.'); }
@@ -27,7 +27,7 @@ export function Header() {
         <NavLink to="/comunidade">Comunidade</NavLink>
         <NavLink to="/vagas">Encontrar vagas</NavLink>
         <NavLink to="/empresas">Empresas</NavLink>
-        <NavLink to="/parcerias">Seja patrocinador</NavLink>
+        {isEmpresa && <NavLink to="/parcerias">Seja patrocinador</NavLink>}
         <S.ButtonGroup>
           {isAuthenticated ? <>
             {isAdmin&&<S.LoginButton onClick={()=>navigate('/admin/painel')}>Administração</S.LoginButton>}

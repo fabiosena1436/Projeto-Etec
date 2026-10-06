@@ -40,8 +40,8 @@ jwt_expiry = 3600
 enable_signup = true
 enable_confirmations = true
 enable_manual_linking = true
-minimum_password_length = 6
-password_requirements = "letters_digits"
+minimum_password_length = 8
+password_requirements = "lower_upper_letters_digits_symbols"
 
 [auth.email]
 enable_signup = true

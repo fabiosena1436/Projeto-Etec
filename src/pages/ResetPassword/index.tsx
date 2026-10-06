@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { authService } from '../../services/supabase/auth.service';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import * as S from '../Login/styles';
+import { PasswordRequirements } from '../../components/PasswordRequirements';
+import { isStrongPassword, PASSWORD_MIN_LENGTH, PASSWORD_POLICY_MESSAGE } from '../../utils/passwordPolicy';
 
 /**
  * Página aberta pelo link do e-mail "Esqueci minha senha".
@@ -28,7 +30,7 @@ export function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) return toast.error('A senha deve ter pelo menos 6 caracteres.');
+    if (!isStrongPassword(password)) return toast.error(PASSWORD_POLICY_MESSAGE);
     if (password !== confirm) return toast.error('As senhas não coincidem.');
     setLoading(true);
     try {
@@ -58,11 +60,12 @@ export function ResetPassword() {
           <S.Form onSubmit={handleSubmit}>
             <S.FormGroup>
               <label htmlFor="field-1">Nova senha</label>
-          <input id="field-1" required type="password" minLength={6} value={password} onChange={e => setPassword(e.target.value)} disabled={loading} placeholder="Mínimo 6 caracteres" />
+              <input id="field-1" required type="password" minLength={PASSWORD_MIN_LENGTH} value={password} onChange={e => setPassword(e.target.value)} disabled={loading} placeholder="Pelo menos 8 caracteres" autoComplete="new-password" aria-describedby="password-rules" />
+              <PasswordRequirements id="password-rules" password={password} />
             </S.FormGroup>
             <S.FormGroup>
               <label htmlFor="field-2">Confirmar nova senha</label>
-          <input id="field-2" required type="password" minLength={6} value={confirm} onChange={e => setConfirm(e.target.value)} disabled={loading} placeholder="Repita a senha" />
+              <input id="field-2" required type="password" minLength={PASSWORD_MIN_LENGTH} value={confirm} onChange={e => setConfirm(e.target.value)} disabled={loading} placeholder="Repita a senha" autoComplete="new-password" />
             </S.FormGroup>
             <S.SubmitButton type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar nova senha'}</S.SubmitButton>
           </S.Form>

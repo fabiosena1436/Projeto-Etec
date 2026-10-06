@@ -6,8 +6,11 @@ import { JobsBoard } from '../../components/JobsBoard';
 import { metricsService } from '../../services/supabase/metrics.service';
 import type { PublicMetrics } from '../../services/supabase/metrics.service';
 import * as S from './styles';
+import { useAuth } from '../../hooks/useAuth';
 
 export function Home() {
+  const { isAuthenticated, isEmpresa, loading } = useAuth();
+  const showBusinessInvites = !loading && (!isAuthenticated || isEmpresa);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [metrics, setMetrics] = useState<PublicMetrics | null>(null);
@@ -28,7 +31,7 @@ export function Home() {
           <input aria-label="Cargo ou empresa" placeholder="Qual oportunidade você procura?" value={search} onChange={e => setSearch(e.target.value)} />
           <button type="submit">Buscar vagas <ArrowRight size={17} /></button>
         </S.SearchForm>
-        <S.HeroLinks><span><Check size={15} /> Consulte vagas sem cadastro</span><Link to="/comunidade">Explorar a comunidade <ArrowUpRight size={16} /></Link><Link to="/cadastro?type=empresa">Quero contratar <ArrowUpRight size={16} /></Link></S.HeroLinks>
+        <S.HeroLinks><span><Check size={15} /> Consulte vagas sem cadastro</span><Link to="/comunidade">Explorar a comunidade <ArrowUpRight size={16} /></Link>{showBusinessInvites&&<Link to={isEmpresa ? '/empresa/vaga/nova' : '/cadastro?type=empresa'}>Quero contratar <ArrowUpRight size={16} /></Link>}</S.HeroLinks>
       </S.HeroContent>
       <S.CityPanel>
         <div className="panel-top"><span className="dot" /> CONEXÕES QUE MOVEM A CIDADE</div>
@@ -55,10 +58,10 @@ export function Home() {
         <S.Step><span>03</span><h3>Dê o próximo passo</h3><p>Envie sua candidatura e acompanhe as atualizações pelo seu painel.</p></S.Step>
       </S.StepsGrid>
     </S.HowSection>
-    <S.CompanySection>
+    {showBusinessInvites&&<S.CompanySection>
       <div><S.Eyebrow>PARA QUEM FAZ A CIDADE CRESCER</S.Eyebrow><h2>O próximo talento da sua empresa<br />pode ser seu vizinho.</h2><p>Publique oportunidades e organize suas candidaturas em um só lugar. Seu comércio, negócio ou empresa tem espaço aqui.</p><Link to="/cadastro?type=empresa">Cadastrar minha empresa <ArrowUpRight size={18} /></Link></div>
       <div className="company-note"><Building2 size={40} /><strong>Mais perto das pessoas.<br />Mais perto do seu negócio.</strong><span>De pequenos comércios a grandes equipes.</span></div>
-    </S.CompanySection>
+    </S.CompanySection>}
     <SponsorCarousel />
     <S.TrustSection><ShieldCheck size={25} /><div><strong>Seu currículo merece cuidado.</strong><p>O arquivo fica privado e é compartilhado com as empresas para as quais você se candidata.</p></div><Link to="/privacidade">Entenda a privacidade <ArrowRight size={16} /></Link></S.TrustSection>
   </S.HomeContainer>;

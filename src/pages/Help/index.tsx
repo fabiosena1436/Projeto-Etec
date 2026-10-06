@@ -3,11 +3,13 @@ import { useEffect } from 'react';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { organization, supportEmail } from '../../components/Footer';
 import * as S from './styles';
+import { useAuth } from '../../hooks/useAuth';
 export function Help() {
+  const { isAuthenticated, isEmpresa, loading } = useAuth();
   const { hash } = useLocation();
   useEffect(() => { if(hash) document.getElementById(hash.slice(1))?.scrollIntoView(); }, [hash]);
   return <S.Container><S.Heading><span>UM LUGAR PARA TODA A CIDADE</span><h1>Como podemos ajudar?</h1><p>Encontre oportunidades e conheça os próximos passos com tranquilidade.</p></S.Heading>
-    <S.Cards><S.Card><span>PARA CANDIDATOS</span><h2>Seu talento tem lugar aqui.</h2><p>Consulte as vagas sem cadastro. Para se candidatar, crie uma conta, complete seu perfil e envie seu currículo. Acompanhe o andamento pelo painel.</p><Link to="/vagas">Encontrar oportunidades <ArrowRight size={17} /></Link></S.Card><S.Card><span>PARA EMPRESAS</span><h2>Encontre pessoas perto de você.</h2><p>Crie uma conta de empresa, informe os dados do seu negócio e publique uma vaga. No painel, você acompanha os candidatos e atualiza as etapas do processo.</p><Link to="/cadastro?type=empresa">Cadastrar minha empresa <ArrowRight size={17} /></Link></S.Card></S.Cards>
+    <S.Cards><S.Card><span>PARA CANDIDATOS</span><h2>Seu talento tem lugar aqui.</h2><p>Consulte as vagas sem cadastro. Para se candidatar, crie uma conta, complete seu perfil e envie seu currículo. Acompanhe o andamento pelo painel.</p><Link to="/vagas">Encontrar oportunidades <ArrowRight size={17} /></Link></S.Card>{!loading&&(!isAuthenticated||isEmpresa)&&<S.Card><span>PARA EMPRESAS</span><h2>Encontre pessoas perto de você.</h2><p>Crie uma conta de empresa, informe os dados do seu negócio e publique uma vaga. No painel, você acompanha os candidatos e atualiza as etapas do processo.</p><Link to="/cadastro?type=empresa">Cadastrar minha empresa <ArrowRight size={17} /></Link></S.Card>}</S.Cards>
     <S.Block><h2>Dúvidas frequentes</h2>
       <details><summary>Preciso me cadastrar para ver as vagas?</summary><p>Não. Você pode pesquisar e abrir os detalhes das vagas livremente. Para enviar uma candidatura ou salvar uma vaga, entre na sua conta de candidato.</p></details>
       <details><summary>Quem pode usar a plataforma?</summary><p>Pessoas que procuram trabalho e empresas que oferecem oportunidades em Teodoro Sampaio. Há espaço para quem está começando e para quem já tem experiência.</p></details>

@@ -38,7 +38,9 @@ export function AppRoutes() {
         <Route path="vagas" element={<JobsList />} />
         <Route path="ajuda" element={<Help />} />
         <Route path="privacidade" element={<Privacy />} />
-        <Route path="parcerias" element={<Partnerships />} />
+        <Route element={<ProtectedRoute roles={['empresa']} />}>
+          <Route path="parcerias" element={<Partnerships />} />
+        </Route>
         <Route path="vagas/:id" element={<JobDetails />} />
         <Route path="empresas" element={<CompaniesList />} />
         <Route path="empresas/:id" element={<SponsorProfile />} />

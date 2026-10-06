@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import type { UserRole, Profile } from '../../types/database';
+import { assertStrongPassword, PASSWORD_POLICY_MESSAGE } from '../../utils/passwordPolicy';
 
 export interface SignUpData {
   email: string;
@@ -50,7 +51,7 @@ export function translateAuthError(message?: string): string {
   if (m.includes('invalid login credentials')) return 'E-mail ou senha incorretos.';
   if (m.includes('email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada (e o spam).';
   if (m.includes('already registered') || m.includes('already been registered')) return 'Este e-mail já está cadastrado. Faça login.';
-  if (m.includes('password should be at least')) return 'A senha deve ter pelo menos 6 caracteres.';
+  if (m.includes('password should be at least') || m.includes('password should contain') || m.includes('weak password')) return PASSWORD_POLICY_MESSAGE;
   if (m.includes('rate limit') || m.includes('too many requests')) return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
   if (m.includes('invalid email')) return 'E-mail inválido.';
   if (m.includes('network') || m.includes('fetch')) return 'Falha de conexão. Verifique sua internet.';
@@ -59,6 +60,7 @@ export function translateAuthError(message?: string): string {
 
 export const authService = {
   async signUp(data: SignUpData) {
+    assertStrongPassword(data.password);
     if (!isSupabaseConfigured || !supabase) {
       setMockRole(data.role);
       return { user: { id: 'mock-id', email: data.email }, session: null, needsEmailConfirmation: false };
@@ -153,6 +155,7 @@ export const authService = {
   },
 
   async updatePassword(newPassword: string) {
+    assertStrongPassword(newPassword);
     if (!supabase) throw new Error('Supabase não configurado');
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw new Error(translateAuthError(error.message));
