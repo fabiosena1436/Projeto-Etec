@@ -45,7 +45,7 @@ export function translateDbError(error: any): string {
   const msg: string = error?.message || String(error);
   if (msg.includes('jobs_title_check')) return 'O título deve ter entre 5 e 120 caracteres.';
   if (msg.includes('jobs_description_check')) return 'A descrição deve ter pelo menos 20 caracteres.';
-  if (msg.includes('row-level security')) return 'Você não tem permissão para esta ação. Verifique se sua empresa está cadastrada.';
+  if (msg.includes('row-level security')) return 'Você não tem permissão para esta ação. Confira se sua empresa foi aprovada pela administração.';
   if (msg.includes('companies_website_check')) return 'O site deve começar com http:// ou https://';
   if (msg.includes('companies_cnpj_check') || msg.includes('companies_cnpj_key')) return 'CNPJ inválido ou já cadastrado.';
   if (msg.includes('profiles_phone_check')) return 'Telefone inválido. Use apenas números com DDD.';

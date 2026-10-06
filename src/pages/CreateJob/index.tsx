@@ -48,6 +48,11 @@ export function CreateJob() {
           navigate('/empresa/painel');
           return;
         }
+        if (!company.is_verified && !isMock) {
+          toast.error('Aguarde a aprovação da empresa antes de publicar vagas.');
+          navigate('/empresa/painel', { replace: true });
+          return;
+        }
         setCompanyId(company.id);
         if (!location) setLocation(company.location || 'Teodoro Sampaio, SP');
 

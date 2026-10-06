@@ -1,3 +1,4 @@
+import { isValidCnpj, normalizeCnpj } from '../../utils/cnpj';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { changeAccountPassword } from '../../utils/changeAccountPassword';
 import type { UserRole, Profile } from '../../types/database';
@@ -39,11 +40,7 @@ export function normalizePhone(phone?: string | null): string | null {
   return digits.length >= 10 ? digits : null;
 }
 
-export function normalizeCnpj(cnpj?: string | null): string | null {
-  if (!cnpj) return null;
-  const digits = cnpj.replace(/\D/g, '');
-  return digits.length === 14 ? digits : null;
-}
+export { normalizeCnpj } from '../../utils/cnpj';
 
 /** Traduz mensagens de erro do Supabase Auth para PT-BR amigável */
 export function translateAuthError(message?: string): string {
@@ -65,6 +62,7 @@ export function translateAuthError(message?: string): string {
 export const authService = {
   async signUp(data: SignUpData) {
     assertStrongPassword(data.password);
+    if (data.role === 'empresa' && !isValidCnpj(data.company?.cnpj)) throw new Error('Informe um CNPJ válido para cadastrar a empresa.');
     if (!isSupabaseConfigured || !supabase) {
       setMockRole(data.role);
       return { user: { id: 'mock-id', email: data.email }, session: null, needsEmailConfirmation: false };

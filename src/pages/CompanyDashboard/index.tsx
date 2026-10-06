@@ -1,3 +1,4 @@
+import { isValidCnpj, normalizeCnpj } from '../../utils/cnpj';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -44,7 +45,7 @@ export function CompanyDashboard() {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'candidates' | 'profile'>('overview');
 
-  const [profileData, setProfileData] = useState({ name: '', description: '', website: '', slogan: '', industry: '', location: '', phone: '', contact_email: '', banner_url: '', logo_url: '' });
+  const [profileData, setProfileData] = useState({ name: '', description: '', website: '', slogan: '', industry: '', location: '', phone: '', contact_email: '', banner_url: '', logo_url: '', cnpj: '' });
   const [promoImage,setPromoImage] = useState<File|null>(null);
   const [bannerImage,setBannerImage] = useState<File|null>(null);
   const [promoPreparing,setPromoPreparing] = useState(false);
@@ -60,8 +61,9 @@ export function CompanyDashboard() {
           name: c.name, description: c.description || '', website: c.website || '', slogan: c.slogan || '',
           industry: c.industry || '', location: c.location || '', phone: c.phone || '', contact_email: c.contact_email || '',
           banner_url: c.banner_url || '',
-          logo_url: c.logo_url || '',
+          logo_url: c.logo_url || '', cnpj: c.cnpj || '',
         });
+        if (!c.is_verified && !isMock) { setJobs([]); setApplications([]); setMetrics(null); return; }
         const [j, apps, m] = await Promise.all([
           jobsService.getByCompany(c.id),
           applicationsService.getCompanyApplications(c.id),
@@ -77,7 +79,7 @@ export function CompanyDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isMock]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -136,6 +138,7 @@ export function CompanyDashboard() {
     if (saving || bannerPreparing) return;
     if (!company) return;
     if (isMock) { toast.success('Perfil da empresa atualizado! (demo)'); return; }
+    if (!isValidCnpj(profileData.cnpj)) return toast.error('Informe um CNPJ válido.');
     let website = profileData.website.trim();
     if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
     if (profileData.banner_url.trim() && !/^https:\/\//i.test(profileData.banner_url.trim())) return toast.error('A imagem de capa deve usar um endereço HTTPS.');
@@ -145,6 +148,7 @@ export function CompanyDashboard() {
       const banner = bannerImage ? await uploadImage('company-logos', company.id, bannerImage) : profileData.banner_url.trim();
       const updated = await companiesService.update(company.id, {
         name: profileData.name.trim(),
+        cnpj: normalizeCnpj(profileData.cnpj),
         description: profileData.description.trim() || null,
         website: website || null,
         slogan: profileData.slogan.trim() || null,
@@ -262,6 +266,24 @@ export function CompanyDashboard() {
       </S.DashboardContainer>
     );
   }
+
+  if (!company.is_verified && !isMock) return (
+    <S.DashboardContainer><S.Section>
+      <h1>Empresa aguardando verificação</h1>
+      <p>Para proteger os usuários, a administração precisa consultar a situação ativa do CNPJ e confirmar que você representa a empresa. Vagas, publicações, patrocínios e acesso a candidatos ficam bloqueados até a aprovação.</p>
+      <p>Confira os dados abaixo. Para acompanhar a análise, entre em contato com <a href="mailto:fabiosena1436@gmail.com">fabiosena1436@gmail.com</a>. A confirmação de e-mail não substitui essa análise.</p>
+      <form onSubmit={handleSaveProfile}>
+        <F.FieldRow>
+          <F.Field><label htmlFor="pending-cnpj">CNPJ</label><input id="pending-cnpj" required maxLength={18} autoCapitalize="characters" value={profileData.cnpj} onChange={e=>setProfileData(p=>({...p,cnpj:e.target.value}))}/></F.Field>
+          <F.Field><label htmlFor="pending-name">Nome da empresa</label><input id="pending-name" required minLength={3} value={profileData.name} onChange={e=>setProfileData(p=>({...p,name:e.target.value}))}/></F.Field>
+          <F.Field><label htmlFor="pending-email">E-mail de contato</label><input id="pending-email" required type="email" value={profileData.contact_email} onChange={e=>setProfileData(p=>({...p,contact_email:e.target.value}))}/></F.Field>
+          <F.Field><label htmlFor="pending-phone">Telefone</label><input id="pending-phone" type="tel" value={profileData.phone} onChange={e=>setProfileData(p=>({...p,phone:e.target.value}))}/></F.Field>
+        </F.FieldRow>
+        <F.Btn type="submit" disabled={saving}>{saving?'Salvando...':'Salvar dados para análise'}</F.Btn>
+        <F.Btn type="button" disabled={saving} onClick={()=>void load()}>Consultar aprovação</F.Btn>
+      </form>
+    </S.Section></S.DashboardContainer>
+  );
 
   const renderCandidateRow = (app: AppWithCandidate, showJob = false) => {
     const cand = app.candidate;
@@ -538,6 +560,7 @@ export function CompanyDashboard() {
             <F.Field><label htmlFor="company-logo-url">Logo (URL HTTPS)</label><input id="company-logo-url" type="url" value={profileData.logo_url} onChange={e=>setProfileData(p=>({...p,logo_url:e.target.value}))} placeholder="https://.../logo.png"/><small>Você também pode enviar uma imagem pelo botão de foto no topo do painel.</small></F.Field>
             {company.is_sponsor&&<ImagePicker id="company-banner" label="Foto de capa (opcional)" url={profileData.banner_url} file={bannerImage} onChange={(url,file)=>{setProfileData(p=>({...p,banner_url:url}));setBannerImage(file);}} disabled={saving} onPreparing={setBannerPreparing}/>}
             <F.FieldRow>
+              <F.Field><label htmlFor="company-cnpj">CNPJ (alterar exige nova análise)</label><input id="company-cnpj" required maxLength={18} value={profileData.cnpj} onChange={e=>setProfileData(p=>({...p,cnpj:e.target.value}))}/></F.Field>
               <F.Field><label htmlFor="company-field-9">Endereço / Bairro</label><input id="company-field-9" value={profileData.location} onChange={e => setProfileData(p => ({ ...p, location: e.target.value }))} placeholder="Ex: Centro, Teodoro Sampaio" /></F.Field>
               <F.Field><label htmlFor="company-field-10">Site ou Rede Social</label><input id="company-field-10" value={profileData.website} onChange={e => setProfileData(p => ({ ...p, website: e.target.value }))} placeholder="https://suaempresa.com.br" /></F.Field>
             </F.FieldRow>

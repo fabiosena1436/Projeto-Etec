@@ -19,14 +19,21 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility','014_company_verification']) {
+    if (migration==='014_company_verification') {
+      await db.exec("INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('99999999-9999-4999-8999-999999999999','legacy@example.com','{\"role\":\"empresa\",\"company_cnpj\":\"11111111111111\"}'); UPDATE companies SET is_verified=true WHERE owner_profile_id='99999999-9999-4999-8999-999999999999';");
+    }
     await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+    if (migration==='014_company_verification') {
+      assert.equal((await db.query("SELECT is_verified FROM companies WHERE owner_profile_id='99999999-9999-4999-8999-999999999999'")).rows[0].is_verified,false,'migration preserves but suspends legacy invalid companies');
+      await db.exec("DELETE FROM auth.users WHERE email='legacy@example.com'");
+    }
   }
   // Reapplying the security correction is safe.
-  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility','014_company_verification']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
-  for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato' }]);
+  for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato', company_cnpj: i === 2 ? '11444777000161' : '04252011000110' }]);
   assert.equal((await db.query('SELECT role FROM profiles WHERE id=$1',[ids[4]])).rows[0].role,'candidato','signup must reject administrator self-assignment');
   const company = (await db.query('SELECT id FROM companies WHERE owner_profile_id=$1',[ids[2]])).rows[0].id;
   const secondCompany = (await db.query('SELECT id FROM companies WHERE owner_profile_id=$1',[ids[3]])).rows[0].id;
@@ -38,6 +45,26 @@ try {
       return tx.query(statement,params);
     });
   }
+  for (const [value, valid] of [['11444777000161',true],['11.444.777/0001-61',true],['12.ABC.345/01DE-35',true],['12abc34501de35',true],['00000000000000',false],['11111111111111',false],['11444777000162',false],['11@444777000161',false]]) {
+    assert.equal((await db.query('SELECT is_valid_cnpj($1) AS valid',[value])).rows[0].valid,valid,'database checks CNPJ format and digits');
+  }
+  assert.equal((await asUser(null,'SELECT * FROM companies')).rows.length,0,'pending companies are not public');
+  assert.equal((await asUser(null,'SELECT * FROM jobs')).rows.length,0,'legacy jobs of pending companies are hidden');
+  assert.equal((await asUser(null,"SELECT * FROM search_jobs('')")).rows.length,0,'search RPC cannot bypass approval');
+  await assert.rejects(asUser(ids[0],'SELECT apply_to_job($1)',[job]),/não está ativa/,'application RPC rejects pending companies');
+  await assert.rejects(asUser(ids[2],"INSERT INTO jobs(company_id,title,slug,description,location,type,salary_text) VALUES($1,'Fraude','fraude','Texto para testar publicação antes da aprovação.','SP','Presencial','A combinar')",[company]),/row-level security/,'direct REST insert cannot bypass approval');
+  await assert.rejects(asUser(ids[2],"SELECT community_action('publish',$1,'Post pendente')",[company]),/pendente/);
+  await assert.rejects(asUser(ids[2],"SELECT community_action('publish_person',$1,'Disfarce de pessoa')",[ids[2]]),/pendente/);
+  await assert.rejects(asUser(ids[2],"UPDATE companies SET is_verified=true WHERE id=$1",[company]),/administrativos/);
+  await assert.rejects(asUser(ids[2],"SELECT admin_review_company($1,$2,'Razão social','Vínculo confirmado por canal independente.')",[company,'11444777000161']),/superadministrador/);
+  // Trusted fixture approvals; production approval requires the admin RPC.
+  for (const c of [company,secondCompany]) {
+    await db.query("INSERT INTO company_verifications(company_id,cnpj,legal_name,review_notes,reviewed_by) SELECT id,cnpj,name,'Empresa de teste com situação e vínculo confirmados.',$2 FROM companies WHERE id=$1",[c,ids[4]]);
+    await db.query('UPDATE companies SET is_verified=true WHERE id=$1',[c]);
+  }
+  await assert.rejects(db.query('INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES($1,$2,$3)',['88888888-8888-4888-8888-888888888888','duplicate@example.com',{role:'empresa',company_cnpj:'11.444.777/0001-61'}]),/duplicate key/,'duplicate CNPJ rolls back the entire signup');
+  await assert.rejects(db.query('INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES($1,$2,$3)',['88888888-8888-4888-8888-888888888888','invalid@example.com',{role:'empresa',company_cnpj:'00000000000000'}]),/CNPJ/,'direct signup metadata cannot bypass digits');
+  assert.equal((await db.query("SELECT * FROM auth.users WHERE email IN ('duplicate@example.com','invalid@example.com')")).rows.length,0,'failed company registration leaves no orphan account');
   assert.equal((await db.query("SELECT file_size_limit FROM storage.buckets WHERE id='community-images'")).rows[0].file_size_limit,1048576,'post images have a 1 MB server limit');
   const photoName = ids[0]+'/photo.webp';
   await asUser(ids[0],"INSERT INTO storage.objects(bucket_id,name) VALUES('community-images',$1)",[photoName]);
@@ -68,6 +95,14 @@ try {
   assert.equal((await asUser(null,'SELECT title FROM v_jobs_with_company WHERE id=$1',[job])).rows[0].title,'Vaga Teste Editada','owner changes appear publicly');
   assert.equal((await asUser(ids[2],'SELECT * FROM candidates WHERE profile_id=$1',[ids[0]])).rows.length,1,'recipient company can access its candidate');
   assert.equal((await asUser(ids[2],"SELECT * FROM storage.objects WHERE bucket_id='resumes'")).rows.length,1,'recipient company can download the submitted resume');
+  await db.query('UPDATE companies SET is_verified=false WHERE id=$1',[company]);
+  assert.equal((await asUser(ids[2],'SELECT * FROM candidates WHERE profile_id=$1',[ids[0]])).rows.length,0,'suspension immediately revokes candidate access');
+  assert.equal((await asUser(ids[2],"SELECT * FROM storage.objects WHERE bucket_id='resumes'")).rows.length,0,'suspension revokes new resume downloads');
+  assert.equal((await asUser(ids[2],'SELECT * FROM applications WHERE id=$1',[app])).rows.length,0,'pending company cannot read existing applications');
+  assert.equal((await asUser(ids[0],'SELECT * FROM v_jobs_with_company WHERE id=$1',[job])).rows.length,1,'candidate keeps application history after suspension');
+  await asUser(ids[2],'SELECT mark_application_viewed($1)',[app]);
+  assert.equal((await db.query('SELECT status FROM applications WHERE id=$1',[app])).rows[0].status,'enviada','definer RPC cannot review while suspended');
+  await db.query('UPDATE companies SET is_verified=true WHERE id=$1',[company]);
   await assert.rejects(asUser(ids[0],"UPDATE applications SET status='aprovada' WHERE id=$1",[app]),/só pode desistir/);
   await assert.rejects(asUser(ids[2],'UPDATE applications SET company_id=$1 WHERE id=$2',[secondCompany,app]),/Identidade/);
   await asUser(ids[2],"UPDATE applications SET status='visualizada' WHERE id=$1",[app]);
@@ -219,8 +254,20 @@ try {
   await asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','recebido',99,current_date,current_date+30,'Visibilidade')",[company]);
   await asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','recebido',99,current_date,current_date+30,'Visibilidade')",[secondCompany]);
   const newOwner='66666666-6666-4666-8666-666666666666';
-  await db.query('INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES($1,$2,$3)',[newOwner,'sponsor@example.com',{full_name:'Terceira empresa',role:'empresa'}]);
+  await db.query('INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES($1,$2,$3)',[newOwner,'sponsor@example.com',{full_name:'Terceira empresa',role:'empresa',company_cnpj:'12ABC34501DE35'}]);
   const thirdCompany=(await db.query('SELECT id FROM companies WHERE owner_profile_id=$1',[newOwner])).rows[0].id;
+  await assert.rejects(asUser(ids[4],"SELECT admin_verify_entity('company',$1,true)",[thirdCompany]),/análise/,'old one-click approval is disabled');
+  await assert.rejects(asUser(ids[4],"SELECT admin_review_company($1,'11444777000161','Empresa consultada','Verificação independente do representante.')",[thirdCompany]),/CNPJ atual/,'review detects a changed or wrong CNPJ');
+  await asUser(ids[4],"SELECT admin_review_company($1,'12ABC34501DE35','Empresa consultada','Situação ativa consultada; representante confirmado por canal independente.')",[thirdCompany]);
+  assert.equal((await asUser(null,'SELECT company_is_approved($1) AS approved',[thirdCompany])).rows[0].approved,true);
+  assert.equal((await asUser(null,'SELECT * FROM company_verifications')).rows.length,0,'review evidence is private');
+  assert.equal((await asUser(ids[2],'SELECT * FROM company_verifications')).rows.length,0,'other companies cannot read review evidence');
+  await assert.rejects(asUser(newOwner,"UPDATE companies SET cnpj='00000000000000' WHERE id=$1",[thirdCompany]),/CNPJ/);
+  await asUser(newOwner,"UPDATE companies SET cnpj='12ABC34501DE35' WHERE id=$1",[thirdCompany]);
+  assert.equal((await asUser(null,'SELECT company_is_approved($1) AS approved',[thirdCompany])).rows[0].approved,true,'saving the same CNPJ preserves approval');
+  await asUser(newOwner,"UPDATE companies SET cnpj='11222333000181' WHERE id=$1",[thirdCompany]);
+  assert.equal((await asUser(null,'SELECT company_is_approved($1) AS approved',[thirdCompany])).rows[0].approved,false,'changing identity requires a new review');
+  await asUser(ids[4],"SELECT admin_review_company($1,'11222333000181','Nova empresa consultada','Situação ativa consultada e novo representante confirmado.')",[thirdCompany]);
   await asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','recebido',99,current_date,current_date+30,'Visibilidade')",[thirdCompany]);
   const session='77777777-7777-4777-8777-777777777777';
   const home=(await asUser(null,"SELECT sponsor_placements('home',$1) AS offers",[session])).rows[0].offers;

@@ -1,3 +1,4 @@
+import { isValidCnpj } from '../../utils/cnpj';
 import { BrandMark } from '../../components/BrandMark';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -52,7 +53,8 @@ export function Register() {
       return;
     }
     const role = step === 'empresa' ? 'empresa' : 'candidato';
-    const nameToUse = role === 'empresa' ? companyName : fullName;
+    const nameToUse = fullName;
+    if (role === 'empresa' && companyName.length < 3) { toast.error('Informe o nome da empresa.'); return; }
     if (nameToUse.length < 3) {
       toast.error('Informe um nome com pelo menos 3 caracteres.');
       return;
@@ -62,8 +64,8 @@ export function Register() {
       toast.error('Informe um WhatsApp válido com DDD (ex: 18 99999-9999).');
       return;
     }
-    if (cnpj && cnpj.replace(/\D/g, '').length !== 14) {
-      toast.error('CNPJ inválido. Informe os 14 dígitos ou deixe em branco.');
+    if (role === 'empresa' && !isValidCnpj(cnpj)) {
+      toast.error('CNPJ inválido. Confira o documento, incluindo os dígitos verificadores.');
       return;
     }
 
@@ -232,8 +234,13 @@ export function Register() {
               <input id="companyName" required name="companyName" type="text" placeholder="Ex: Supermercado Central" disabled={loading} autoComplete="organization" />
             </S.FormGroup>
             <S.FormGroup>
-              <label htmlFor="cnpj">CNPJ (opcional no cadastro rápido)</label>
-              <input id="cnpj" name="cnpj" type="text" inputMode="numeric" placeholder="00.000.000/0000-00" disabled={loading} />
+              <label htmlFor="representative">Nome completo do responsável</label>
+              <input id="representative" required name="fullName" minLength={3} maxLength={200} autoComplete="name" disabled={loading}/>
+            </S.FormGroup>
+            <S.FormGroup>
+              <label htmlFor="cnpj">CNPJ da empresa</label>
+              <input id="cnpj" required name="cnpj" type="text" maxLength={18} autoCapitalize="characters" placeholder="00.000.000/0000-00" disabled={loading} />
+            <small>Após confirmar seu e-mail, aguarde a análise do CNPJ e do vínculo do responsável. Vagas, publicações e currículos serão liberados após aprovação.</small>
             </S.FormGroup>
             <S.FormGroup>
               <label htmlFor="industry">Ramo de atuação</label>

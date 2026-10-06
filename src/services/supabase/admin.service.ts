@@ -24,6 +24,10 @@ export const adminService = {
     });
     if (error) throw new Error(error.message);
   },
+  async reviewCompany(id: string, cnpj: string, legalName: string, notes: string) {
+    const { error } = await (supabase as any).rpc('admin_review_company', {company_uuid:id,expected_cnpj:cnpj,legal_name:legalName,review_notes:notes});
+    if (error) throw new Error(error.message.includes('admin_review_company') ? 'A verificação precisa da migração 014 no banco.' : error.message);
+  },
   async verify(kind: 'company' | 'user', id: string, verified: boolean) {
     const { error } = await (supabase as any).rpc('admin_verify_entity', {entity_kind:kind,entity_uuid:id,verified});
     if (error) throw new Error(error.message);

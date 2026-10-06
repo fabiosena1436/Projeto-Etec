@@ -1,3 +1,4 @@
+import { isValidCnpj, normalizeCnpj } from '../src/utils/cnpj.ts';
 import assert from 'node:assert/strict';
 import { assertStrongPassword, isStrongPassword, passwordRequirements } from '../src/utils/passwordPolicy.ts';
 import { changeAccountPassword } from '../src/utils/changeAccountPassword.ts';
@@ -47,3 +48,7 @@ const reused=passwordClient();await assert.rejects(changeAccountPassword(reused,
 const missing=passwordClient();await assert.rejects(changeAccountPassword(missing,authUser.id,'','Abcdef1!'),/senha atual/);assert.equal(missing.calls.length,0);
 await assert.rejects(changeAccountPassword(passwordClient({updateError:true}),authUser.id,'123456','Abcdef1!'),/Server refused/,'server rejection must not be reported as success');
 console.log('PASS: password requirements, account role restrictions and verified password change.');
+
+for (const [value, valid] of [['11444777000161',true],['11.444.777/0001-61',true],['12.ABC.345/01DE-35',true],['12abc34501de35',true],['00000000000000',false],['11111111111111',false],['11444777000162',false],['11@444777000161',false],['11444777000161junk',false],['',false]]) assert.equal(isValidCnpj(value),valid);
+assert.equal(normalizeCnpj(' 12.abc.345/01de-35 '),'12ABC34501DE35');
+console.log('CNPJ numérico e alfanumérico: validações aprovadas.');
