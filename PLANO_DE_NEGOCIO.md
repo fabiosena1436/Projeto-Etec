@@ -8,12 +8,12 @@ Candidatos acessam gratuitamente. Empresas podem cadastrar seu perfil, publicar 
 
 O patrocínio tem início e fim registrados. Fabio confirma o recebimento ou uma cortesia, ativa a parceria e acompanha a renovação. Negociações pendentes, em atraso, pausadas ou canceladas não liberam o destaque. Ao vencer, o destaque e as ofertas deixam de aparecer; os dados permanecem para renovação. A renovação é manual.
 
-## O espaço da patrocinadora
+## O espaço da patrocinadora no código atual
 
 - Logo e nome no espaço de apoiadores da plataforma.
 - Página da empresa com descrição, ramo, slogan, endereço, site, WhatsApp e vagas abertas.
 - Imagem de capa na vitrine durante a vigência.
-- Até seis produtos, serviços ou ofertas: imagem por URL HTTPS, descrição, valor original/opcional, valor promocional/opcional e validade.
+- Até seis produtos, serviços ou ofertas: foto da galeria ou URL HTTPS, descrição, valor original/opcional, valor promocional/opcional e validade. A melhoria de envio de fotos está no código; a ativação do bucket de posts e a publicação do frontend ainda estavam pendentes na revisão de 06/10/2026.
 - Identificação de patrocinadora nos cartões e prioridade da empresa nas buscas de vagas.
 - Empresa gerencia conteúdo no próprio painel; Fabio controla liberação e validade.
 
@@ -42,3 +42,66 @@ O plano gratuito Vercel Hobby é restrito a uso pessoal não comercial: https://
 ## Ativação do primeiro administrador
 
 A migração 009 não concede acesso a ninguém. Depois da aprovação de Fabio, conceder apenas à conta existente `fabiosena1436@gmail.com`, cujo ID deve ser conferido no banco. Essa conta mantém seu perfil de empresa; o privilégio administrativo é separado. Não colocar chaves secretas no frontend e não criar uma opção pública de cadastro como administrador.
+
+## Pesquisa de divulgação discreta — 06/10/2026
+
+Esta seção é uma proposta de evolução do produto e do pacote comercial. Os novos espaços, rodízio e relatórios abaixo ainda não foram implementados nem devem ser vendidos como disponíveis.
+
+### O que outras plataformas fazem
+
+| Plataforma | Participação comercial descrita pela própria plataforma | Aplicação possível ao Conecta Sampaio |
+| --- | --- | --- |
+| Nextdoor | Anúncios de ofertas e negócios locais aparecem no feed dos vizinhos; podem direcionar para site ou contato e têm um painel de desempenho. | Levar uma oferta até quem navega pela comunidade, antes de entrar na loja. |
+| LinkedIn | Publicações patrocinadas aparecem no feed e são identificadas abaixo do nome da empresa como conteúdo promovido/patrocinado. | Cartão com aparência consistente com o site e identificação comercial visível. |
+| Yelp | Resultados patrocinados podem aparecer antes dos resultados comuns e em áreas identificadas da busca. | Destaque comercial separado e relacionado à categoria buscada, sem substituir os resultados comuns. |
+
+Fontes primárias: [Nextdoor Ads](https://business.nextdoor.com/en-us/local/localdealstransition), [formatos e identificação no LinkedIn](https://www.linkedin.com/help/linkedin/answer/a7162175), [ordenação de resultados do Yelp](https://www.yelp-support.com/article/How-does-Yelp-determine-its-search-results?l=en_US).
+
+A pesquisa confirma formatos usados por essas plataformas; não demonstra que um espaço específico terá retorno no nosso site. Quantidade de anúncios, rodízio e desenho abaixo são recomendações próprias para a plataforma local, não limites copiados desses serviços.
+
+### Diagnóstico do projeto
+
+O código já apresenta logo/nome no bloco de apoiadores da Home, estrela na listagem de empresas e selo de parceira nas publicações da empresa. A vitrine e as ofertas estão dentro da página da patrocinadora. Logo, já existe identificação fora da loja, mas falta apresentar o produto/oferta antes do clique e medir essa exposição.
+
+O contador atual de visualizações do painel soma visualizações de vagas. Não representa visualizações de anúncios, ofertas ou visitas à loja e não pode ser usado como comprovação de alcance de patrocínio.
+
+### Pacote recomendado: Parceiro da cidade
+
+Começar com um único pacote mensal de divulgação local, com valor negociado diretamente, mantendo candidatos e recrutamento gratuitos. Vender presença em espaços definidos, atualização da vitrine e relatório de divulgação. Não prometer vendas, clientes, posição permanente no topo ou alcance mínimo antes de haver dados.
+
+| Local | Entrega proposta | Limite inicial para preservar a navegação |
+| --- | --- | --- |
+| Página inicial | Um bloco “Ofertas dos parceiros”, com logo/nome, uma foto, oferta, preço quando aplicável e “Ver oferta”. | Até três empresas diferentes por visita. Substitui o bloco atual de apoiadores, evitando dois blocos de patrocínio na mesma página. |
+| Comunidade no computador | Um cartão compacto “Patrocinado · Parceiro da cidade” na coluna lateral, com uma oferta. | Um único cartão; sem repetição simultânea no feed. |
+| Comunidade no celular/tablet sem coluna lateral | O mesmo espaço em um cartão após a sexta publicação comum, sem interromper o início da conversa. | No máximo uma inserção por visita; se houver menos de seis posts, omitir o espaço. Paginação não cria novas inserções. |
+| Lista e página da empresa | Identificação textual “Parceiro da cidade”, além da vitrine, capa e até seis ofertas válidas. | Selo discreto; patrocínio não representa avaliação de qualidade nem verificação administrativa. |
+
+Uma empresa pode ter seis ofertas cadastradas, mas participa do rodízio com uma oferta escolhida, para não receber seis vezes mais exposição. Mostrar apenas ofertas ativas, dentro da validade e de patrocínios vigentes, com imagem opcional e descrição legível. Quem não tiver oferta válida pode participar com um cartão institucional de negócio local, claramente identificado.
+
+Recomendo começar sem outro espaço comercial na busca de vagas. O código já prevê prioridade de patrocinadoras nas vagas; na evolução, reavaliar essa regra para preservar a relevância da busca e usar os espaços comerciais próprios para promover o negócio.
+
+### Rodízio e limites de exposição
+
+- Manter participação equilibrada entre empresas elegíveis ao longo das visitas, com controle das exposições reais por posição. Ordem fixa ou somente sorteio no navegador não comprova distribuição equilibrada.
+- Home: três empresas distintas; comunidade: uma empresa. Não repetir a mesma empresa dentro do mesmo conjunto de cartões.
+- Manter a seleção estável enquanto a pessoa estiver na página. Não usar carrossel com troca automática nem anúncios que se expandem.
+- Pausa, vencimento e oferta expirada retiram o conteúdo dos espaços comerciais; respeitar a elegibilidade também no servidor.
+- Não preencher espaços vazios com anúncios duplicados. Com uma patrocinadora, mostrar somente um cartão.
+- Não usar pop-ups, vídeo automático, banners piscando, patrocínio fixo cobrindo a tela ou notificações promocionais não solicitadas.
+- O público pode ver as ofertas e a identificação das patrocinadoras. O convite para contratar patrocínio continua restrito às contas de empresa.
+
+### O que a empresa recebe no relatório
+
+Proposta de métricas novas: exibições dos cartões, cliques em “Ver oferta”, visitas à vitrine e cliques para abrir o WhatsApp, separados por espaço e período. Cliques de WhatsApp não comprovam mensagem enviada nem venda. Não somar essas métricas como se fossem pessoas únicas.
+
+Definir “exibição” no produto: por exemplo, pelo menos metade do cartão visível por um segundo; carregar um cartão fora da tela não conta. Deduplicar eventos repetidos e excluir testes administrativos quando possível. Implementar registro e validação no servidor, relatório agregado e acesso restrito à própria empresa/administrador. Esses critérios são proposta de medição, não funcionalidade existente.
+
+Relatório mensal: o que apareceu, quantas exibições válidas, quantos cliques, taxa de cliques quando houver exibições e comparação com o período anterior. Registrar quando não houver dados suficientes. Um relatório honesto também mostra zero.
+
+### Validação comercial antes de ampliar
+
+Fazer um piloto de 30 dias com poucas empresas e um pacote único. Combinar prazo, espaços compartilhados, materiais necessários, limite de ofertas e renovação manual. Valor de entrada deve considerar audiência real e trabalho de atendimento; a simulação de R$ 99 acima continua sendo apenas hipótese, não preço recomendado pela pesquisa.
+
+Medir se as pessoas veem e clicam nas ofertas, colher retorno das patrocinadoras e observar se há reclamações ou abandono da comunidade. Sem tráfego real não dá para afirmar que a mensalidade compensa. Aumentar a quantidade de parceiros sem multiplicar os espaços reduz a exposição média por empresa; comunicar o rodízio e revisar a capacidade antes de vender mais participações.
+
+Ordem proposta de implementação: bloco único na Home e selo textual; espaço único na comunidade adaptado ao dispositivo; coleta de métricas e relatório; piloto comercial. Atualizar a página de parcerias e as condições do acordo somente com as entregas efetivamente disponíveis.
