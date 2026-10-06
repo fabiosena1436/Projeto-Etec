@@ -11,6 +11,7 @@ import type { Job } from '../../data/jobs';
 import type { Notification } from '../../types/database';
 import * as S from './styles';
 import { ImagePicker } from '../../components/ImagePicker';
+import { PostComposer } from '../../components/PostComposer';
 import { SponsorOffers } from '../../components/SponsorOffers';
 import { useSmallScreen } from '../../hooks/useSmallScreen';
 import { uploadImage } from '../../services/supabase/images.service';
@@ -50,6 +51,7 @@ export function Community({companyId,compact=false}:{companyId?:string;compact?:
  const [posts,setPosts]=useState<CommunityPost[]>([]),[following,setFollowing]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[more,setMore]=useState(false);
  const [myCompany,setMyCompany]=useState<{id:string;name:string}|null>(null),[body,setBody]=useState(''),[image,setImage]=useState(''),[publishing,setPublishing]=useState(false),[publishAs,setPublishAs]=useState<'person'|'company'>('person');
  const [imageFile,setImageFile]=useState<File|null>(null),[preparingImage,setPreparingImage]=useState(false);
+ const [composerOpen,setComposerOpen]=useState(false);
  const [jobs,setJobs]=useState<Job[]>([]),[notifications,setNotifications]=useState<Notification[]>([]),[showNotifications,setShowNotifications]=useState(false);
  const request=useRef(0), notificationRequest=useRef(0), alive=useRef(true);
  const load=useCallback(async(cursor?:CommunityPost)=>{
@@ -65,11 +67,23 @@ export function Community({companyId,compact=false}:{companyId?:string;compact?:
  const loadNotifications=useCallback(async()=>{const id=++notificationRequest.current;if(!auth.user||!supabase)return;const {data,error:err}=await supabase.from('notifications').select('*').eq('profile_id',auth.user.id).order('created_at',{ascending:false}).limit(15);if(!err&&alive.current&&id===notificationRequest.current)setNotifications(data||[]);},[auth.user?.id]);
  useEffect(()=>{setNotifications([]);void loadNotifications();return()=>{notificationRequest.current++;};},[loadNotifications]);
  useEffect(()=>{if(!auth.isAuthenticated)setFollowing(false);},[auth.isAuthenticated]);
+ useEffect(()=>{setComposerOpen(false);setBody('');setImage('');setImageFile(null);},[auth.user?.id]);
  function participate(){if(auth.loading){toast.info('Aguarde a identificação da sua conta.');return false;}if(auth.isAuthenticated)return true;toast.info('Entre ou crie sua conta para participar.');navigate('/login',{state:{from:'/comunidade'+(companyFilter?`?empresa=${companyFilter}`:'')}});return false;}
  async function run(fn:()=>Promise<unknown>){try{await fn();await load();void loadNotifications();return true;}catch(e){toast.error(message(e));return false;}}
- async function publish(e:React.FormEvent){e.preventDefault();if(publishing||preparingImage||!participate()||!auth.user)return;if(publishAs==='company'&&!myCompany)return;const targetId=publishAs==='company'?myCompany!.id:auth.user.id;setPublishing(true);try{if(await run(async()=>{const picture=imageFile?await uploadImage('community-images',auth.user!.id,imageFile):image;return communityService.action(publishAs==='company'?'publish':'publish_person',targetId,body,picture);})){setBody('');setImage('');setImageFile(null);toast.success('Publicação compartilhada com a cidade.');}}finally{setPublishing(false);}}
+ async function publish(e:React.FormEvent){e.preventDefault();if(publishing||preparingImage||!body.trim()||!participate()||!auth.user)return;if(publishAs==='company'&&!myCompany)return;const targetId=publishAs==='company'?myCompany!.id:auth.user.id;setPublishing(true);try{if(await run(async()=>{const picture=imageFile?await uploadImage('community-images',auth.user!.id,imageFile):image;return communityService.action(publishAs==='company'?'publish':'publish_person',targetId,body,picture);})){setBody('');setImage('');setImageFile(null);setComposerOpen(false);toast.success('Publicação compartilhada com a cidade.');}}finally{setPublishing(false);}}
  const content=<><div className="tabs"><button aria-pressed={!following} onClick={()=>setFollowing(false)}>Todas as publicações</button><button aria-pressed={following} onClick={()=>{if(participate())setFollowing(true);}}>Seguindo</button><button className="refresh" disabled={loading} aria-label="Atualizar publicações" onClick={()=>void load()}><RefreshCw size={16}/></button></div>
-  {!compact&&auth.isAuthenticated&&<form className="card" onSubmit={publish}><h2>O que você quer compartilhar?</h2>{myCompany&&<><label htmlFor="publish-as">Publicar como</label><select id="publish-as" disabled={publishing} value={publishAs} onChange={e=>setPublishAs(e.target.value as 'person'|'company')}><option value="person">{auth.profile?.full_name||'Meu perfil pessoal'}</option><option value="company">{myCompany.name}</option></select></>}<label htmlFor="new-post">Seu espaço na comunidade</label><textarea id="new-post" disabled={publishing} required maxLength={2000} value={body} onChange={e=>setBody(e.target.value)} placeholder="Compartilhe algo do seu dia, uma notícia, uma conquista ou uma ideia para a cidade..."/><ImagePicker id="new-image" url={image} file={imageFile} onChange={(url,file)=>{setImage(url);setImageFile(file);}} disabled={publishing} onPreparing={setPreparingImage}/><small>Seu nome e sua publicação ficarão públicos. Até 2.000 caracteres; use uma imagem que você tenha autorização para publicar.</small><div className="actions"><button className="primary" disabled={publishing||preparingImage||!body.trim()}>{publishing?'Publicando...':'Publicar na comunidade'}</button><small>{body.length}/2.000</small></div></form>}
+  {!compact&&auth.isAuthenticated&&<>
+    <div className="card">
+      <h2>O que você quer compartilhar?</h2>
+      <label htmlFor="publish-as">Publicar como</label>
+      <select id="publish-as" disabled={publishing} value={publishAs} onChange={e=>setPublishAs(e.target.value as 'person'|'company')}>
+        <option value="person">{auth.profile?.full_name||'Meu perfil pessoal'}</option>
+        {myCompany&&<option value="company">{myCompany.name}</option>}
+      </select>
+      <div className="actions"><button className="primary" type="button" disabled={publishing} aria-haspopup="dialog" onClick={()=>setComposerOpen(true)}>Criar publicação</button></div>
+    </div>
+    <PostComposer open={composerOpen} author={publishAs==='company'?(myCompany?.name||'Minha empresa'):(auth.profile?.full_name||'Meu perfil pessoal')} body={body} image={image} file={imageFile} publishing={publishing} preparing={preparingImage} onClose={()=>setComposerOpen(false)} onBodyChange={setBody} onImageChange={(url,file)=>{setImage(url);setImageFile(file);}} onPreparing={setPreparingImage} onSubmit={publish}/>
+  </>}
   {companyFilter&&!compact&&<div className="card"><p>Publicações desta empresa</p><Link to="/comunidade">Ver toda a comunidade →</Link></div>}
   {error&&<div className="card" role="alert"><p>{error}</p><button onClick={()=>void load()}>Tentar novamente</button></div>}
   {loading&&!posts.length&&!error&&<p role="status">Carregando comunidade...</p>}
