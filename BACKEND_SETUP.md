@@ -1,5 +1,20 @@
 # 🚀 Guia de Setup Backend - Conecta Teodoro Sampaio
 
+## Comunidade com publicações pessoais
+
+Para um banco que já recebeu as migrações até `010_community.sql`, execute
+`supabase/migrations/011_personal_community.sql` no SQL Editor antes de publicar
+a nova versão do site. A migração preserva as publicações das empresas e permite
+publicações pessoais, seguidores de pessoas e moderação no mesmo feed.
+
+Pessoas publicam com seu nome e foto. Contas de empresa podem escolher entre o
+perfil pessoal e a empresa no formulário. O feed não expõe e-mail, telefone ou
+currículo. As imagens continuam sendo informadas por endereço HTTPS.
+
+Validação local: `npm run build` e `npm run test:database`. Os testes executam as
+migrações em um banco temporário, incluindo permissões, seguidores, notificações,
+moderação, contas inativas e limites de publicação; não alteram o Supabase online.
+
 ## 1. Instalar dependência Supabase
 
 ```bash

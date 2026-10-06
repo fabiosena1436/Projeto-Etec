@@ -19,11 +19,11 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community']) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   }
   // Reapplying the security correction is safe.
-  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
   for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato' }]);
@@ -155,6 +155,49 @@ try {
   assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items.length,0,'inactive company account content is not public');
   await assert.rejects(asUser(ids[2],"SELECT community_action('like',$1)",[page1[0].id]),/conta ativa/);
   await db.query('UPDATE profiles SET is_active=true WHERE id=$1',[ids[2]]);
+  const personal=(await asUser(ids[0],"SELECT community_action('publish_person',$1,'Uma notícia e uma conquista do meu dia','https://example.com/foto.jpg') AS id",[ids[0]])).rows[0].id;
+  await assert.rejects(asUser(null,"SELECT community_action('publish_person',$1,'An?nimo')",[ids[0]]),/permission denied/);
+  await assert.rejects(asUser(ids[1],"SELECT community_action('publish_person',$1,'Outra pessoa')",[ids[0]]),/restrita/,'cannot impersonate another author');
+  await assert.rejects(asUser(ids[1],"SELECT community_action('edit',$1,'Alteração indevida')",[personal]),/restrita/);
+  await assert.rejects(asUser(ids[2],"SELECT community_action('withdraw',$1)",[personal]),/restrita/,'company cannot withdraw personal posts');
+  await asUser(ids[0],"SELECT community_action('edit',$1,'Minha conquista do dia')",[personal]);
+  const personalFeed=(await asUser(null,'SELECT community_feed() AS items')).rows[0].items;
+  const personalItem=personalFeed.find(p=>p.id===personal);
+  assert.equal(personalItem.author_kind,'person');assert.equal(personalItem.company_id,null);
+  assert.equal(personalItem.company_name,'Teste 0');assert.equal(personalItem.body,'Minha conquista do dia');
+  assert.equal(personalItem.can_edit,false);assert.equal(JSON.stringify(personalFeed).includes('@example.com'),false);
+  assert.equal((await asUser(null,'SELECT community_feed($1) AS items',[company])).rows[0].items.some(p=>p.id===personal),false,'company pages exclude personal posts');
+  await assert.rejects(asUser(ids[0],"SELECT community_action('follow_person',$1)",[ids[0]]),/própria conta/);
+  await asUser(ids[1],"SELECT community_action('follow_person',$1)",[ids[0]]);
+  await asUser(ids[1],"SELECT community_action('follow_person',$1)",[ids[0]]);
+  assert.equal((await db.query('SELECT count(*) FROM person_followers')).rows[0].count,1);
+  assert.equal((await asUser(ids[1],'SELECT * FROM person_followers')).rows.length,0,'raw social graph remains closed');
+  await assert.rejects(asUser(ids[1],'INSERT INTO person_followers VALUES($1,$2)',[ids[2],ids[0]]),/row-level security/);
+  assert.equal((await asUser(ids[1],'SELECT community_feed(NULL,true) AS items')).rows[0].items[0].id,personal);
+  const secondPersonal=(await asUser(ids[0],"SELECT community_action('publish_person',$1,'Outra novidade do dia') AS id",[ids[0]])).rows[0].id;
+  assert.equal((await asUser(ids[1],"SELECT * FROM notifications WHERE title='Nova publicação na sua rede'")).rows.length,1);
+  await asUser(ids[1],"SELECT community_action('like',$1)",[personal]);
+  const personalComment=(await asUser(ids[1],"SELECT community_action('comment',$1,'Parabéns pela conquista!') AS id",[personal])).rows[0].id;
+  assert.equal((await asUser(ids[0],"SELECT * FROM notifications WHERE title='Novo comentário'")).rows.length,1,'personal author receives comment notification');
+  const personalReport=(await asUser(ids[1],"SELECT community_action('report',$1,'Teste de moderação pessoal') AS id",[personal])).rows[0].id;
+  assert.equal((await asUser(ids[4],'SELECT admin_community_reports() AS items')).rows[0].items.some(r=>r.id===personalReport&&r.company_name==='Teste 0'),true,'moderation includes people');
+  await asUser(ids[4],'SELECT admin_moderate_community($1,true)',[personalReport]);
+  assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items.some(p=>p.id===personal),false);
+  await assert.rejects(asUser(ids[1],"SELECT community_action('comment',$1,'Não permitido')",[personal]),/indisponível/);
+  await asUser(ids[4],'SELECT admin_moderate_community($1,false)',[personalReport]);
+  await asUser(ids[1],"SELECT community_action('remove_comment',$1)",[personalComment]);
+  await db.query('UPDATE profiles SET is_active=false WHERE id=$1',[ids[0]]);
+  assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items.some(p=>p.author_kind==='person'),false,'inactive people disappear from public feed');
+  await assert.rejects(asUser(ids[1],"SELECT community_action('like',$1)",[personal]),/indisponível/);
+  await assert.rejects(asUser(ids[1],"SELECT community_action('follow_person',$1)",[ids[0]]),/indisponível/);
+  await assert.rejects(asUser(ids[0],"SELECT community_action('publish_person',$1,'Inativo')",[ids[0]]),/conta ativa/);
+  await db.query('UPDATE profiles SET is_active=true WHERE id=$1',[ids[0]]);
+  await asUser(ids[1],"SELECT community_action('follow_person',$1,NULL,NULL,false)",[ids[0]]);
+  assert.equal((await asUser(ids[1],'SELECT community_feed(NULL,true) AS items')).rows[0].items.length,0);
+  await db.query("INSERT INTO company_posts(author_id,body) SELECT $1,'Limite pessoal '||i FROM generate_series(1,8) i",[ids[0]]);
+  await assert.rejects(asUser(ids[0],"SELECT community_action('publish_person',$1,'Excesso')",[ids[0]]),/dez publicações/);
+  await asUser(ids[0],"SELECT community_action('withdraw',$1)",[secondPersonal]);
+  assert.equal((await asUser(null,'SELECT community_feed() AS items')).rows[0].items.some(p=>p.id===secondPersonal),false);
   await db.query('UPDATE platform_admins SET is_active=false WHERE profile_id=$1',[ids[4]]);
   await assert.rejects(asUser(ids[4],'SELECT admin_dashboard()'),/superadministrador/,'revoked administrators immediately lose access');
   await assert.rejects(asUser(ids[4],'SELECT admin_community_reports()'),/superadministrador/);

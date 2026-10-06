@@ -1,12 +1,12 @@
 import { supabase } from '../../lib/supabase';
 export interface CommunityComment { id:string; body:string; name:string; created_at:string; own:boolean }
 export interface CommunityPost {
-  id:string; company_id:string; company_name:string; logo_url:string|null; verified:boolean; sponsor:boolean;
+  id:string; company_id:string|null; author_id:string; author_kind:'person'|'company'; company_name:string; logo_url:string|null; verified:boolean; sponsor:boolean;
   body:string; image_url:string|null; created_at:string; updated_at:string; can_edit:boolean;
   likes:number; liked:boolean; following:boolean; comment_count:number; comments:CommunityComment[];
 }
 export interface CommunityReport { id:string; reason:string; created_at:string; resolved:boolean; kind:'post'|'comment'; target:string; body:string; company_name:string; hidden:boolean; withdrawn:boolean }
-type Action = 'publish'|'edit'|'withdraw'|'follow'|'like'|'comment'|'remove_comment'|'report'|'report_comment';
+type Action = 'publish'|'publish_person'|'edit'|'withdraw'|'follow'|'follow_person'|'like'|'comment'|'remove_comment'|'report'|'report_comment';
 async function rpc<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
   if(!supabase) throw new Error('Comunidade indisponível.');
   const {data,error}=await (supabase as any).rpc(name,args);

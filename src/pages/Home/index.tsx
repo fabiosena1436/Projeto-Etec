@@ -22,7 +22,7 @@ export function Home() {
       <S.HeroContent>
         <S.Eyebrow><MapPin size={15} /> TEODORO SAMPAIO · SP</S.Eyebrow>
         <h1>Seu próximo passo<br />pode estar <em>bem perto.</em></h1>
-        <p>Encontre trabalho, descubra empresas e faça novas conexões. Um lugar para o talento de toda a nossa cidade.</p>
+        <p>Encontre trabalho e faça parte da vida da nossa cidade. Compartilhe seu dia, acompanhe notícias e conecte-se com pessoas e empresas.</p>
         <S.SearchForm role="search" onSubmit={e => { e.preventDefault(); navigate(`/vagas${search.trim() ? `?busca=${encodeURIComponent(search.trim())}` : ''}`); }}>
           <Search size={21} aria-hidden="true" />
           <input aria-label="Cargo ou empresa" placeholder="Qual oportunidade você procura?" value={search} onChange={e => setSearch(e.target.value)} />
