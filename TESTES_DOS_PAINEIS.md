@@ -37,3 +37,16 @@ Atualização de 05/10/2026: cinco vagas fictícias de exemplo foram publicadas 
 - Promoções de patrocinadores: a conta de empresa existente não é patrocinadora. Não se alterou esse privilégio para executar testes.
 
 Não considerar a suíte local ou o build como comprovação de todos os fluxos reais. Esta lista registra exatamente o que foi executado e o que falta.
+
+
+## Alterar senha dentro da conta — 06/10/2026
+
+Disponível no código em Minha conta → Alterar senha, rota protegida /conta/alterar-senha para todos os tipos de conta. No menu móvel, a opção aparece junto dos atalhos da conta. Solicita senha atual, nova senha e confirmação; mostrar/ocultar senhas é opcional. A nova senha segue o mínimo de oito caracteres e os requisitos existentes. A senha antiga não precisa cumprir as regras novas.
+
+O fluxo verifica a identidade autenticada pelo Supabase, reautentica com e-mail da própria conta e senha atual, confirma a sessão retornada e usa updateUser com password e current_password. Não imprime nem grava senhas em logs/localStorage. Não modifica papéis de conta nem utiliza credenciais administrativas. Contas de demonstração não simulam uma troca real.
+
+A reautenticação verifica a senha atual mesmo sem a opção global do Auth estar ativada. A configuração global de exigir senha atual no Supabase continua uma proteção separada para chamadas fora desta tela; não foi alterada no painel nesta sessão. Referências: [senha e verificação atual](https://supabase.com/docs/guides/auth/passwords), [configuração de segurança](https://supabase.com/docs/guides/auth/password-security). O SDK instalado é 2.116.0; o mínimo declarado foi atualizado para 2.102.0, que suporta current_password.
+
+O link Esqueci minha senha atual abre diretamente o formulário de recuperação em /login?recuperar=1, inclusive quando a conta ainda está conectada. A recuperação por e-mail depende da configuração SMTP já registrada como pendente.
+
+Build e npm run test:auth passaram. Testes com um cliente de Auth simulado verificaram senha antiga fraca aceita, senha atual incorreta, sessão inválida/outra conta, ausência de sessão de reautenticação, senha nova fraca/igual e rejeição pelo servidor. Não foi alterada a senha de nenhuma conta real nem executado teste visual/HTTP no navegador. Esta funcionalidade não exige migration SQL; precisa publicar o frontend. Validação pendente: candidato/empresa/admin, menu desktop/móvel, troca em conta de teste e entrada com a nova senha.

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard, ArrowUpRight, UserRound, Bookmark, PlusCircle, ChevronDown } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, ArrowUpRight, UserRound, Bookmark, PlusCircle, ChevronDown, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandMark } from '../BrandMark';
 import { useAuth } from '../../hooks/useAuth';
@@ -64,6 +64,7 @@ export function Header() {
                 <NavLink to="/candidato/salvas"><Bookmark size={17} /> Vagas salvas</NavLink>
               </>}
               {isEmpresa && <NavLink to="/empresa/vaga/nova"><PlusCircle size={17} /> Publicar vaga</NavLink>}
+              <NavLink to="/conta/alterar-senha"><KeyRound size={17} /> Alterar senha</NavLink>
               <S.LoginButton onClick={handleLogout}><LogOut size={17} /> Sair da conta</S.LoginButton>
             </S.AccountLinks>
           </S.AccountMenu> : <>

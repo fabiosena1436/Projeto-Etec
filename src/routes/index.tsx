@@ -11,6 +11,7 @@ import { CompaniesList } from '../pages/CompaniesList';
 import { SponsorProfile } from '../pages/SponsorProfile';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
+import { ChangePassword } from '../pages/ChangePassword';
 import { ResetPassword } from '../pages/ResetPassword';
 import { Help } from '../pages/Help';
 import { Privacy } from '../pages/Privacy';
@@ -50,6 +51,7 @@ export function AppRoutes() {
       {/* Área logada */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
+          <Route path="/conta/alterar-senha" element={<ChangePassword />} />
           <Route element={<ProtectedRoute roles={['admin']} />}>
             <Route path="/admin/painel" element={<AdminDashboard />} />
           </Route>

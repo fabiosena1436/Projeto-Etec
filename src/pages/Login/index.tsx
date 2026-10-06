@@ -24,7 +24,7 @@ export function Login() {
 
   const [loading, setLoading] = useState(false);
   const [activeType, setActiveType] = useState<RoleType | null>(initialType);
-  const [mode, setMode] = useState<'login' | 'forgot'>('login');
+  const [mode, setMode] = useState<'login' | 'forgot'>(()=>searchParams.get('recuperar')==='1'?'forgot':'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,10 +35,10 @@ export function Login() {
   const destination = from?.startsWith('/') && !from.startsWith('//') && !from.startsWith('/login') ? from : '/comunidade';
   // Todas as contas entram na comunidade, preservando links solicitados.
   useEffect(() => {
-    if (!authLoading && isAuthenticated && role) {
+    if (mode !== 'forgot' && !authLoading && isAuthenticated && role) {
       navigate(destination, { replace: true });
     }
-  }, [authLoading, isAuthenticated, role, navigate, destination]);
+  }, [authLoading, isAuthenticated, role, navigate, destination, mode]);
 
   // Retorno do link de confirmação de e-mail
   useEffect(() => {
@@ -120,7 +120,7 @@ export function Login() {
           </div>
         )}
 
-        {!activeType ? (
+        {!activeType && mode !== 'forgot' ? (
           <>
             <p style={{ marginBottom: '2rem', color: '#64748b', textAlign: 'center' }}>
               Selecione o seu perfil para acessar a plataforma

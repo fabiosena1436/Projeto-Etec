@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { changeAccountPassword } from '../../utils/changeAccountPassword';
 import type { UserRole, Profile } from '../../types/database';
 import { assertStrongPassword, PASSWORD_POLICY_MESSAGE } from '../../utils/passwordPolicy';
 
@@ -48,6 +49,9 @@ export function normalizeCnpj(cnpj?: string | null): string | null {
 export function translateAuthError(message?: string): string {
   if (!message) return 'Ocorreu um erro inesperado. Tente novamente.';
   const m = message.toLowerCase();
+  if (m.includes('same password') || m.includes('different from the old password')) return 'Escolha uma senha diferente da atual.';
+  if (m.includes('current password')) return 'Confira sua senha atual e tente novamente.';
+  if (m.includes('reauthentication')) return 'Entre novamente na sua conta antes de alterar a senha.';
   if (m.includes('invalid login credentials')) return 'E-mail ou senha incorretos.';
   if (m.includes('email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada (e o spam).';
   if (m.includes('already registered') || m.includes('already been registered')) return 'Este e-mail já está cadastrado. Faça login.';
@@ -159,6 +163,12 @@ export const authService = {
     if (!supabase) throw new Error('Supabase não configurado');
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw new Error(translateAuthError(error.message));
+  },
+
+  async changePassword(currentPassword: string, newPassword: string, expectedUserId: string) {
+    if (!isSupabaseConfigured || !supabase) throw new Error('A troca de senha precisa de uma conta real conectada.');
+    try { await changeAccountPassword(supabase.auth, expectedUserId, currentPassword, newPassword); }
+    catch (error) { throw new Error(translateAuthError(error instanceof Error ? error.message : undefined)); }
   },
 
   async signInWithGoogle(role: UserRole = 'candidato') {
