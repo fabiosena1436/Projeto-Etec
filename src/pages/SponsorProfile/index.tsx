@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Tag, ArrowLeft, Percent, Briefcase, MapPin, Globe, Mail, Building2 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import type { Company } from '../../data/companies';
@@ -7,33 +7,38 @@ import type { Job } from '../../data/jobs';
 import { CardJob } from '../../components/CardJob';
 import { CompanySocial } from '../../components/CompanySocial';
 import * as S from './styles';
+import { sponsorsService, isDeliveryToken } from '../../services/supabase/sponsors.service';
 
 export function SponsorProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [params]=useSearchParams();
+  const delivery=params.get('divulgacao');
+  const {hash}=useLocation();
   const [company, setCompany] = useState<Company | null>(null);
   const [companyJobs, setCompanyJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let active=true;
+    setCompany(null); setCompanyJobs([]); setIsLoading(true);
     async function fetchData() {
-      if (!id) return;
-      setIsLoading(true);
       try {
+        if (!id) return;
         const fetchedCompany = await apiService.getCompanyById(id);
-        if (fetchedCompany) {
-          setCompany(fetchedCompany);
-          const jobs = await apiService.getJobsByCompany(fetchedCompany.id);
-          setCompanyJobs(jobs.filter(j => j.status === 'Ativa').map(j => ({ ...j, companyName: fetchedCompany.name, companyLogoUrl: fetchedCompany.logoUrl, companyIsSponsor: fetchedCompany.isSponsor })));
-        }
-      } catch (error) {
-        console.error("Failed to fetch sponsor details:", error);
-      } finally {
-        setIsLoading(false);
-      }
+        if (!active || !fetchedCompany) return;
+        setCompany(fetchedCompany);
+        const jobs = await apiService.getJobsByCompany(fetchedCompany.id);
+        if(active)setCompanyJobs(jobs.filter(j=>j.status==='Ativa').map(j=>({...j,companyName:fetchedCompany.name,companyLogoUrl:fetchedCompany.logoUrl,companyIsSponsor:fetchedCompany.isSponsor})));
+      } catch(error) { console.error('Erro ao carregar a empresa:',error); }
+      finally { if(active)setIsLoading(false); }
     }
-    fetchData();
+    void fetchData();
+    return()=>{active=false;};
   }, [id]);
+
+  useEffect(()=>{if(company&&company.id===id&&company.isSponsor&&isDeliveryToken(delivery))void sponsorsService.track(delivery,'visit',company.id);},[company?.id,company?.isSponsor,id,delivery]);
+  useEffect(()=>{if(!isLoading&&company?.id===id&&hash.startsWith('#oferta-'))document.getElementById(hash.slice(1))?.scrollIntoView({block:'center'});},[isLoading,company?.id,id,hash]);
 
   if (isLoading) {
     return (
@@ -73,6 +78,7 @@ export function SponsorProfile() {
         )}
         <S.HeaderInfo>
           <h1>{company.name}</h1>
+          {company.isSponsor&&<span style={{fontSize:13,color:'#0c6d5d'}}>Parceiro da cidade · Patrocinador da plataforma</span>}
           {company.slogan && <p style={{ fontStyle: 'italic', marginBottom: '1rem', color: '#2563eb' }}>"{company.slogan}"</p>}
           {company.description && <p>{company.description}</p>}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem', fontSize: '0.9rem', color: '#475569' }}>
@@ -80,7 +86,7 @@ export function SponsorProfile() {
             {company.location && <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><MapPin size={16} /> {company.location}</span>}
             {company.website && <a href={company.website} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#2563eb' }}><Globe size={16} /> Site</a>}
             {company.contactEmail && <a href={`mailto:${company.contactEmail}`} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#2563eb' }}><Mail size={16} /> Contato</a>}
-            {company.phone&&<a href={`https://wa.me/${company.phone.replace(/\D/g,'').startsWith('55')?'':'55'}${company.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" style={{color:'#0c6d5d'}}>Conversar no WhatsApp</a>}
+            {company.phone&&<a onClick={()=>void sponsorsService.track(delivery,'whatsapp',company.id)} href={`https://wa.me/${company.phone.replace(/\D/g,'').startsWith('55')?'':'55'}${company.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" style={{color:'#0c6d5d'}}>Conversar no WhatsApp</a>}
           </div>
         </S.HeaderInfo>
       </S.Header>
@@ -95,14 +101,14 @@ export function SponsorProfile() {
           {promotions.length > 0 ? (
         <S.PromoGrid>
           {promotions.map(promo => (
-            <S.PromoCard key={promo.id}>
+            <S.PromoCard key={promo.id} id={`oferta-${promo.id}`} style={{scrollMarginTop:110}}>
               {promo.imageUrl&&<img src={promo.imageUrl} alt={promo.title} loading="lazy" style={{width:'100%',height:180,objectFit:'cover',borderRadius:10,marginBottom:12}}/>}
               <h3>{promo.title}</h3>
               <p>{promo.description}</p>
               
               <S.PriceContainer>
-                {promo.price && <span className="old-price">R$ {promo.price.toFixed(2)}</span>}
-                {promo.discountPrice && <span className="new-price">R$ {promo.discountPrice.toFixed(2)}</span>}
+                {promo.price != null && <span className={promo.discountPrice != null ? "old-price" : "new-price"}>R$ {promo.price.toFixed(2)}</span>}
+                {promo.discountPrice != null && <span className="new-price">R$ {promo.discountPrice.toFixed(2)}</span>}
               </S.PriceContainer>
               
               {promo.validUntil && (

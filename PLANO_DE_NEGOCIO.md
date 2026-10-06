@@ -45,7 +45,7 @@ A migração 009 não concede acesso a ninguém. Depois da aprovação de Fabio,
 
 ## Pesquisa de divulgação discreta — 06/10/2026
 
-Esta seção é uma proposta de evolução do produto e do pacote comercial. Os novos espaços, rodízio e relatórios abaixo ainda não foram implementados nem devem ser vendidos como disponíveis.
+Esta seção registra a proposta pesquisada e suas regras. Em 06/10/2026, o primeiro conjunto de espaços, rodízio e relatório de 30 dias foi implementado no código. A ativação das migrations em produção e a publicação do frontend ainda estavam pendentes; não vender entregas como disponíveis antes dessa ativação. Veja PATROCINIO_FUNCIONAL.md para o estado efetivo.
 
 ### O que outras plataformas fazem
 
@@ -105,3 +105,11 @@ Fazer um piloto de 30 dias com poucas empresas e um pacote único. Combinar praz
 Medir se as pessoas veem e clicam nas ofertas, colher retorno das patrocinadoras e observar se há reclamações ou abandono da comunidade. Sem tráfego real não dá para afirmar que a mensalidade compensa. Aumentar a quantidade de parceiros sem multiplicar os espaços reduz a exposição média por empresa; comunicar o rodízio e revisar a capacidade antes de vender mais participações.
 
 Ordem proposta de implementação: bloco único na Home e selo textual; espaço único na comunidade adaptado ao dispositivo; coleta de métricas e relatório; piloto comercial. Atualizar a página de parcerias e as condições do acordo somente com as entregas efetivamente disponíveis.
+
+## Implementação inicial — 06/10/2026
+
+A Home agora substitui a faixa de logos por um bloco de até três ofertas após a seção de oportunidades. A comunidade apresenta um cartão lateral acima de 700 px ou uma inserção após o sexto post em telas menores; páginas compactas e feeds filtrados por empresa não recebem inserção comercial. Há identificação textual na listagem e vitrine das empresas e links para a oferta escolhida.
+
+O rodízio do servidor considera exibições registradas e seleções recentes; cada empresa ocupa uma posição por espaço, independentemente de quantas ofertas tem. A seleção fica estável por sessão de navegador/dia, sem promessa de igualdade exata de alcance. O relatório implementado cobre 30 dias e discrimina os dois espaços; comparação com mês anterior e escolha manual da oferta ainda não estão implementadas.
+
+O fluxo preserva a ordenação atual das vagas. A recomendação de reavaliar a prioridade por patrocínio permanece uma evolução separada. Ofertas são elegíveis conforme status ativo e validade; patrocínio pausado, vencido ou dono inativo não participa.

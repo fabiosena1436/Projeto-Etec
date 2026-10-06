@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, MapPin, Search, BriefcaseBusiness, Building2, ShieldCheck, UserRound, Check } from 'lucide-react';
-import { SponsorCarousel } from '../../components/SponsorCarousel';
+import { SponsorOffers } from '../../components/SponsorOffers';
 import { JobsBoard } from '../../components/JobsBoard';
 import { metricsService } from '../../services/supabase/metrics.service';
 import type { PublicMetrics } from '../../services/supabase/metrics.service';
@@ -50,6 +50,7 @@ export function Home() {
       <S.SectionTitle><div><S.Eyebrow>ENCONTRE SEU CAMINHO</S.Eyebrow><h2>Oportunidades perto de você</h2><p>Do primeiro emprego ao próximo desafio. Explore as vagas da cidade.</p></div><Link to="/vagas">Ver todas as vagas <ArrowRight size={18} /></Link></S.SectionTitle>
       <JobsBoard maxItems={6} />
     </S.Section>
+    <S.Section><SponsorOffers surface="home" /></S.Section>
     <S.HowSection>
       <S.SectionTitle><div><S.Eyebrow>SIMPLES, DO COMEÇO AO FIM</S.Eyebrow><h2>Seu próximo passo em três etapas</h2></div><Link to="/ajuda">Como funciona <ArrowRight size={18} /></Link></S.SectionTitle>
       <S.StepsGrid>
@@ -62,7 +63,7 @@ export function Home() {
       <div><S.Eyebrow>PARA QUEM FAZ A CIDADE CRESCER</S.Eyebrow><h2>O próximo talento da sua empresa<br />pode ser seu vizinho.</h2><p>Publique oportunidades e organize suas candidaturas em um só lugar. Seu comércio, negócio ou empresa tem espaço aqui.</p><Link to="/cadastro?type=empresa">Cadastrar minha empresa <ArrowUpRight size={18} /></Link></div>
       <div className="company-note"><Building2 size={40} /><strong>Mais perto das pessoas.<br />Mais perto do seu negócio.</strong><span>De pequenos comércios a grandes equipes.</span></div>
     </S.CompanySection>}
-    <SponsorCarousel />
+
     <S.TrustSection><ShieldCheck size={25} /><div><strong>Seu currículo merece cuidado.</strong><p>O arquivo fica privado e é compartilhado com as empresas para as quais você se candidata.</p></div><Link to="/privacidade">Entenda a privacidade <ArrowRight size={16} /></Link></S.TrustSection>
   </S.HomeContainer>;
 }

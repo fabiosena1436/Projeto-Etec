@@ -67,10 +67,11 @@ export function CompaniesList() {
                 {company.name}
                 {company.isSponsor && <Star size={14} fill="#fbbf24" color="#fbbf24" aria-label="Empresa parceira" />}
               </h3>
+              {company.isSponsor&&<span style={{fontSize:12,color:'#0c6d5d',marginBottom:8}}>Parceiro da cidade</span>}
               <span className="industry">{company.industry}</span>
               <p className="desc">{company.description || company.location}</p>
-              <button onClick={() => navigate(`/empresas/${company.id}`)}>
-                Ver vagas da empresa
+              <button onClick={() => navigate(company.isSponsor?`/patrocinador/${company.id}`:`/empresas/${company.id}`)}>
+                {company.isSponsor?'Ver empresa e ofertas':'Ver vagas da empresa'}
               </button>
             </S.CompanyCard>
           ))

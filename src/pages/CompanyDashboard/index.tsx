@@ -19,6 +19,7 @@ import { APPLICATION_STATUS_LABEL } from '../CandidateDashboard';
 import * as F from '../CandidateDashboard/styles';
 import type { Company, Job, Application, ApplicationStatus, Promotion } from '../../types/database';
 import * as S from './styles';
+import { SponsorReport } from '../../components/SponsorReport';
 import { ImagePicker } from '../../components/ImagePicker';
 import { uploadImage } from '../../services/supabase/images.service';
 
@@ -363,13 +364,15 @@ export function CompanyDashboard() {
             </S.MetricCard>
             <S.MetricCard>
               <div className="icon"><Eye size={24} color="#10b981" /></div>
-              <div className="info"><h3>{(metrics?.total_views ?? jobs.reduce((s, j) => s + (j.views_count || 0), 0)).toLocaleString('pt-BR')}</h3><p>Visualizações</p></div>
+              <div className="info"><h3>{(metrics?.total_views ?? jobs.reduce((s, j) => s + (j.views_count || 0), 0)).toLocaleString('pt-BR')}</h3><p>Visualizações de vagas</p></div>
             </S.MetricCard>
             <S.MetricCard>
               <div className="icon"><Users size={24} color="#f59e0b" /></div>
               <div className="info"><h3>{metrics?.total_applications ?? applications.length}</h3><p>Candidatos{metrics?.applications_last_7d ? ` (+${metrics.applications_last_7d} na semana)` : ''}</p></div>
             </S.MetricCard>
           </S.MetricsGrid>
+
+          <SponsorReport companyId={company.id}/>
 
           {company.is_sponsor && (
             <S.Section style={{ marginTop: 0 }}>

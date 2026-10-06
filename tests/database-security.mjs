@@ -19,11 +19,11 @@ try {
     CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array(name,'/') $$;
     GRANT USAGE ON SCHEMA auth,storage,public TO anon,authenticated;
   `);
-  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community','012_community_images']) {
+  for (const migration of ['001_initial_schema', '003_storage_and_functions', '005_production_ready', '006_security_hardening', '007_candidate_completion', '008_withdrawal_finality', '009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility']) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   }
   // Reapplying the security correction is safe.
-  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community','012_community_images']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
+  for (const migration of ['006_security_hardening','007_candidate_completion','008_withdrawal_finality','009_super_admin_sponsorship','010_community','011_personal_community','012_community_images','013_sponsor_visibility']) await db.exec(await readFile(new URL(`../supabase/migrations/${migration}.sql`, import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public,storage TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public,storage TO anon;');
   const ids = ['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
   for (let i = 0; i < ids.length; i++) await db.query('INSERT INTO auth.users (id,email,raw_user_meta_data) VALUES ($1,$2,$3)', [ids[i],`test${i}@example.com`, { full_name: `Teste ${i}`, role: i === 4 ? 'admin' : i >= 2 ? 'empresa' : 'candidato' }]);
@@ -213,5 +213,63 @@ try {
   await db.query('UPDATE platform_admins SET is_active=false WHERE profile_id=$1',[ids[4]]);
   await assert.rejects(asUser(ids[4],'SELECT admin_dashboard()'),/superadministrador/,'revoked administrators immediately lose access');
   await assert.rejects(asUser(ids[4],'SELECT admin_community_reports()'),/superadministrador/);
-  console.log('PASS: migrations, profiles, applications, private files, sponsorships, community, moderation and authorization.');
+
+  // Commercial slots, balanced allocation, authenticated reports and bounded events.
+  await db.query('UPDATE platform_admins SET is_active=true WHERE profile_id=$1',[ids[4]]);
+  await asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','recebido',99,current_date,current_date+30,'Visibilidade')",[company]);
+  await asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','recebido',99,current_date,current_date+30,'Visibilidade')",[secondCompany]);
+  const newOwner='66666666-6666-4666-8666-666666666666';
+  await db.query('INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES($1,$2,$3)',[newOwner,'sponsor@example.com',{full_name:'Terceira empresa',role:'empresa'}]);
+  const thirdCompany=(await db.query('SELECT id FROM companies WHERE owner_profile_id=$1',[newOwner])).rows[0].id;
+  await asUser(ids[4],"SELECT admin_save_sponsorship($1,'ativo','recebido',99,current_date,current_date+30,'Visibilidade')",[thirdCompany]);
+  const session='77777777-7777-4777-8777-777777777777';
+  const home=(await asUser(null,"SELECT sponsor_placements('home',$1) AS offers",[session])).rows[0].offers;
+  assert.equal(home.length,3,'home shows at most three different sponsors');
+  assert.equal(new Set(home.map(o=>o.company_id)).size,3,'six offers do not grant six commercial slots');
+  assert.equal(home.find(o=>o.company_id===thirdCompany).promotion_id,null,'sponsor without an offer gets institutional visibility');
+  assert.notEqual(home.find(o=>o.company_id===company).title,'Oferta 0','expired offer is excluded');
+  const again=(await asUser(null,"SELECT sponsor_placements('home',$1) AS offers",[session])).rows[0].offers;
+  assert.deepEqual(home,again,'refresh keeps allocation stable and avoids issuing duplicate tokens');
+  assert.equal((await asUser(null,'SELECT * FROM sponsor_deliveries')).rows.length,0,'delivery records and sessions are private');
+  const delivery=home.find(o=>o.company_id===company);
+  await asUser(ids[2],"SELECT track_sponsor_event($1,'impression',$2)",[delivery.token,company]);
+  await asUser(ids[4],"SELECT track_sponsor_event($1,'impression',$2)",[delivery.token,company]);
+  assert.equal((await asUser(ids[2],'SELECT sponsor_report($1) AS report',[company])).rows[0].report.impressions,0,'owner/admin test impressions are ignored');
+  for(const event of ['impression','click','visit','whatsapp']){
+    await asUser(null,'SELECT track_sponsor_event($1,$2,$3)',[delivery.token,event,company]);
+    await asUser(null,'SELECT track_sponsor_event($1,$2,$3)',[delivery.token,event,company]);
+  }
+  const commercialReport=(await asUser(ids[2],'SELECT sponsor_report($1) AS report',[company])).rows[0].report;
+  assert.equal(commercialReport.impressions,1,'repeated visible events count once');
+  assert.equal(commercialReport.clicks,1); assert.equal(commercialReport.visits,1); assert.equal(commercialReport.whatsapp,1);
+  assert.equal(commercialReport.surfaces[0].surface,'home');
+  await assert.rejects(asUser(ids[3],'SELECT sponsor_report($1)',[company]),/Acesso restrito/,'another company cannot inspect results');
+  await assert.rejects(asUser(null,'SELECT sponsor_report($1)',[company]),/permission denied/,'anonymous cannot inspect reports');
+  assert.equal((await asUser(ids[4],'SELECT sponsor_report($1) AS report',[company])).rows[0].report.clicks,1,'administrator can inspect results');
+  await assert.rejects(asUser(null,"SELECT track_sponsor_event($1,'invented',$2)",[delivery.token,company]),/Evento inválido/);
+  await asUser(null,"SELECT track_sponsor_event($1,'impression',$2)",[delivery.token,secondCompany]);
+  assert.equal((await asUser(ids[3],'SELECT sponsor_report($1) AS report',[secondCompany])).rows[0].report.impressions,0,'delivery token must belong to the displayed company');
+  const rotation=[];
+  for(let i=1;i<=3;i++)rotation.push((await asUser(null,"SELECT sponsor_placements('community',$1) AS offers",['88888888-8888-4888-8888-'+String(i).padStart(12,'0')])).rows[0].offers[0].company_id);
+  assert.equal(new Set(rotation).size,3,'community allocation rotates across equally eligible companies');
+  await asUser(ids[4],"SELECT admin_save_sponsorship($1,'pausado','recebido',99,current_date,current_date+30,'Pausa')",[company]);
+  const paused=(await asUser(null,"SELECT sponsor_placements('home',$1) AS offers",[session])).rows[0].offers;
+  assert.equal(paused.some(o=>o.company_id===company),false,'paused sponsors disappear even from an existing selection');
+  const pausedToken=(await db.query("SELECT id FROM sponsor_deliveries WHERE company_id=$1 AND surface='community'",[company])).rows[0].id;
+  await asUser(null,"SELECT track_sponsor_event($1,'impression',$2)",[pausedToken,company]);
+  assert.equal((await asUser(ids[2],'SELECT sponsor_report($1) AS report',[company])).rows[0].report.impressions,1,'inactive delivery cannot gain new events');
+  await db.query("UPDATE sponsor_deliveries SET created_at=now()-interval '46 days'");
+  await asUser(null,"SELECT sponsor_placements('community',$1)",[session]);
+  assert.equal((await db.query("SELECT count(*)::int AS total FROM sponsor_deliveries WHERE created_at<now()-interval '45 days'")).rows[0].total,0,'old anonymous delivery records are cleaned up');
+  await assert.rejects(asUser(null,"SELECT sponsor_placements('invalid',$1)",[session]),/Espaço inválido/);
+  await assert.rejects(asUser(ids[2],"INSERT INTO sponsor_deliveries(company_id,surface,session_id) VALUES($1,'home',$2)",[company,session]),/row-level security/,'direct delivery creation is denied');
+  await db.query('UPDATE profiles SET is_active=false WHERE id=$1',[newOwner]);
+  assert.equal((await asUser(null,"SELECT sponsor_placements('home',$1) AS offers",[session])).rows[0].offers.some(o=>o.company_id===thirdCompany),false,'inactive company owners disappear from commercial spaces');
+  await db.query('UPDATE profiles SET is_active=true WHERE id=$1',[newOwner]);
+  await db.query("UPDATE companies SET sponsor_expires_at=now()-interval '1 day' WHERE id=$1",[thirdCompany]);
+  assert.equal((await asUser(null,"SELECT sponsor_placements('home',$1) AS offers",[session])).rows[0].offers.some(o=>o.company_id===thirdCompany),false,'expired sponsorship cannot be served');
+  await db.query("INSERT INTO sponsor_deliveries(company_id,surface,session_id) SELECT $1,'home',$2 FROM generate_series(1,10000)",[secondCompany,session]);
+  const capped=(await asUser(null,"SELECT sponsor_placements('home',$1) AS offers",['99999999-9999-4999-8999-999999999999'])).rows[0].offers;
+  assert.equal(capped.length,0,'daily allocation budget bounds public delivery storage');
+  console.log('PASS: migrations, profiles, applications, private files, sponsorships, commercial rotation/events/reports, community, moderation and authorization.');
 } finally { await db.close(); }
