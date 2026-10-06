@@ -11,6 +11,9 @@ async function rpc<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
   if(!supabase) throw new Error('Comunidade indisponível.');
   const {data,error}=await (supabase as any).rpc(name,args);
   if(error) {
+    if(name==='community_action' && ['publish_person','follow_person'].includes(String(args.action_name)) && error.message==='Ação desconhecida.') {
+      throw new Error('As publicações pessoais ainda não estão disponíveis. A administração precisa atualizar o banco da comunidade.');
+    }
     if(error.code==='23514'||error.code==='23502') throw new Error('Confira o texto e a imagem: publicação até 2.000 caracteres, comentário até 500 e imagem com endereço HTTPS.');
     throw new Error(error.message);
   }

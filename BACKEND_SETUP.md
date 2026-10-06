@@ -15,6 +15,13 @@ Validação local: `npm run build` e `npm run test:database`. Os testes executam
 migrações em um banco temporário, incluindo permissões, seguidores, notificações,
 moderação, contas inativas e limites de publicação; não alteram o Supabase online.
 
+Em 06/10/2026, a migração `011_personal_community.sql` foi aplicada pelo SQL Editor
+ao projeto `bqyuyxzlqjyismolbwvc`, após confirmar que o feed online ainda usava
+o formato anterior. Publicar o frontend por si só não aplica migrações no banco.
+A validação no banco online executou publicação pessoal, leitura no feed, edição
+e retirada com o papel `authenticated`, dentro de uma transação revertida por
+`ROLLBACK`. Nenhuma publicação de teste ficou salva.
+
 ## 1. Instalar dependência Supabase
 
 ```bash
