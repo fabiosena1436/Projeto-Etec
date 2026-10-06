@@ -14,7 +14,7 @@ export const Logo = styled.div`
 `;
 export const Nav = styled.nav<{ $open: boolean }>`
   display: flex; gap: 18px; align-items: center; font-size: 14px; font-weight: 600;
-  > a { padding: 10px 0; color: ${({ theme }) => theme.colors.textLight}; }
+  > a { display:inline-flex;align-items:center;gap:7px;padding: 10px 0; color: ${({ theme }) => theme.colors.textLight}; }
   > a:hover, > a.active { color: ${({ theme }) => theme.colors.primary}; }
   @media(max-width: 1200px) {
     display: ${({ $open }) => $open ? 'flex' : 'none'}; position: absolute; top: 100%; left: 0; right: 0; background: white; padding: 20px; flex-direction: column; align-items: stretch; gap: 8px; border-bottom: 1px solid #dbe3eb; box-shadow: 0 16px 30px #102a4310;
@@ -29,3 +29,13 @@ export const LoginButton = styled.button`
 `;
 export const RegisterButton = styled(LoginButton)`background: ${({ theme }) => theme.colors.primary}; color: white; border-color: transparent; &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }`;
 export const MobileMenuButton = styled.button`display: none; align-items: center; justify-content: center; width:44px; flex-shrink:0; color:#102a43; border:1px solid #dbe3eb; border-radius:9px; @media(max-width:1200px){display:flex;}`;
+
+export const AccountMenu = styled.div`position:relative;min-width:0;@media(max-width:1200px){width:100%;}`;
+export const AccountToggle = styled(LoginButton)`@media(max-width:1200px){display:none;}`;
+export const AccountLinks = styled.div<{ $open: boolean }>`
+  display:${({$open})=>$open?'flex':'none'};flex-direction:column;gap:6px;position:absolute;right:0;top:calc(100% + 12px);width:250px;padding:14px;background:white;border:1px solid #dbe3eb;border-radius:12px;box-shadow:0 12px 30px #102a4318;
+  .account-name{color:#526578;font-size:12px;padding:4px 8px 10px;overflow-wrap:anywhere;border-bottom:1px solid #dbe3eb;}
+  a{display:flex;align-items:center;gap:8px;padding:12px 8px;min-height:44px;color:#526578;border-radius:8px;}
+  a:hover,a.active{background:#edf4ff;color:#175cda;}button{justify-content:flex-start;}
+  @media(max-width:1200px){display:flex;position:static;width:100%;padding:12px 0 0;border:none;border-top:1px solid #dbe3eb;border-radius:0;box-shadow:none;}
+`;

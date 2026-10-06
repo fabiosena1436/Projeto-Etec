@@ -15,8 +15,11 @@
   cabeçalho e é desativada em telas com até 700 px de altura.
 - A apresentação da página inicial usa uma coluna até 850 px. A busca separa o
   botão do campo até 480 px. Links podem ocupar mais de uma linha.
-- Painéis permitem quebrar cabeçalhos e ações em linhas. Nomes extensos na barra
-  superior são abreviados visualmente; a navegação inferior preserva a área segura.
+- Painéis permitem quebrar cabeçalhos e ações em linhas. O cabeçalho e o rodapé
+  são os mesmos das páginas públicas. A navegação inferior antiga foi removida.
+  Perfil, vagas salvas e publicação de vagas ficam no menu conforme o tipo de conta.
+  Em telas amplas, os atalhos da conta ficam em “Minha conta”; até 1200 px,
+  aparecem dentro do mesmo menu hambúrguer usado em todo o site.
 - O rodapé usa duas colunas até 800 px e uma até 380 px. Login e cartões de perfil
   usam menos espaço interno em telas pequenas.
 
@@ -43,4 +46,6 @@ Nas páginas públicas e nos painéis de candidato, empresa e administrador:
 - Abrir o menu, comentários, notificações e edição de perfil; conferir que ações
   continuam visíveis e utilizáveis sem sobreposição.
 - Rolar os detalhes de vaga para conferir a lateral e o cabeçalho fixo.
-- Conferir teclado virtual e navegação inferior no celular.
+- Conferir teclado virtual e menu hambúrguer no celular. Confirmar que o menu
+  fecha ao selecionar um link, clicar fora ou usar Escape e que a navegação não
+  muda de posição ao entrar no painel.

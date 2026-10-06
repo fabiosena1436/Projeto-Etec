@@ -4,7 +4,6 @@ export const Container = styled.div`
   max-width: 600px;
   margin: 0 auto;
   padding: 2rem 1rem;
-  padding-bottom: 6rem;
 `;
 
 export const Header = styled.div`
