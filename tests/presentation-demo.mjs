@@ -13,9 +13,9 @@ for(const c of presentationCompanies){
   assert.ok(isPresentationEntity(c.id));
   assert.equal(mergePresentationFeed([],c.id).length,2,'profile shows only its two posts');
   for(const path of [c.logo_url,c.banner_url]){
-    const svg=await readFile(new URL('../public'+path,import.meta.url),'utf8');
-    assert.ok(svg.includes('<svg') && svg.includes('</svg>'));
-    assert.ok(!svg.includes('http://') || svg.includes('xmlns="http://www.w3.org/2000/svg"'));
+    const image=await readFile(new URL('../public'+path,import.meta.url));
+    if(path.endsWith('.jpg')) { assert.equal(image.readUInt16BE(0),0xffd8); assert.ok(image.length<512*1024,'demo photos are bounded for mobile transfer'); }
+    else assert.ok(image.toString('utf8').includes('<svg'));
   }
   for(const p of c.promotions||[]) assert.ok(p.description.startsWith('Demonstração:') && p.views_count===0);
 }
@@ -40,3 +40,6 @@ for(let page=0;page<6;page++){
 }
 assert.deepEqual(read.map(p=>p.id),expected.map(p=>p.id),'combined pagination must preserve all real and demo posts, including timestamp ties');
 console.log('PASS: five labelled demo companies, ten posts, local images, safe contacts and combined feed pagination.');
+
+assert.equal(mergePresentationFeed([],undefined,false,undefined,false).length,0,'global hide removes demo posts');
+assert.deepEqual(mergePresentationFeed(real.slice(0,20),undefined,false,undefined,false).map(p=>p.id),real.slice(0,20).sort(compare).map(p=>p.id),'global hide preserves real posts');

@@ -1,3 +1,4 @@
+import { presentationService } from './presentation.service';
 import { getPresentationCompany, presentationCompanies } from '../../data/presentationDemo';
 import { isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
 import { apiService } from '../api';
@@ -26,8 +27,9 @@ export function sponsorSession() {
 }
 export const isDeliveryToken = (value: string | null): value is string => Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value));
 
-function withDemoOffers(real: SponsorOffer[], surface: SponsorSurface): SponsorOffer[] {
+async function withDemoOffers(real: SponsorOffer[], surface: SponsorSurface): Promise<SponsorOffer[]> {
   const slots = surface==='home'?3:1;
+  if(real.length>=slots || !(await presentationService.visibility()).enabled)return real.slice(0,slots);
   const demos = presentationCompanies.filter(c=>c.is_sponsor && !real.some(r=>r.company_id===c.id)).map(c=>{
     const p=c.promotions?.[0];
     return {is_demo:true,token:null,company_id:c.id,company_name:c.name,logo_url:c.logo_url,industry:c.industry,title:p?.title||c.name,

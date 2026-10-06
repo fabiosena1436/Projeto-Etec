@@ -12,7 +12,7 @@ const examples = [
     offers:[{title:'Combo café da manhã',description:'Café e pão artesanal em uma oferta ilustrativa. Exemplo de divulgação; não disponível para compra.',price:18,discount:14.9},{title:'Cesta de pães artesanais',description:'Uma vitrine de produtos para mostrar a participação de um parceiro. Oferta fictícia de demonstração.',price:32,discount:26}] },
   { key:'restaurante', name:'Restaurante Sabor do Bairro', industry:'Alimentação', slogan:'Sabores que aproximam pessoas.', sponsor:true,
     about:'Restaurante fictício de comida caseira, usado para apresentar publicações com imagem, ofertas e a vitrine de parceiros.',
-    post:'Uma pausa para o almoço pode ser também um momento de encontro. Nossa cozinha fictícia preparou um prato colorido para ilustrar como um restaurante pode apresentar novidades no feed.\n\nNesta demonstração, você pode abrir o perfil da empresa, conhecer as ofertas de exemplo e ver outras publicações. A imagem é uma ilustração e o cardápio não corresponde a um restaurante real.',
+    post:'Uma pausa para o almoço pode ser também um momento de encontro. Nossa cozinha fictícia preparou um prato colorido para ilustrar como um restaurante pode apresentar novidades no feed.\n\nNesta demonstração, você pode abrir o perfil da empresa, conhecer as ofertas de exemplo e ver outras publicações. A imagem é uma fotografia ilustrativa e o cardápio não corresponde a um restaurante real.',
     update:'Ideia para a comunidade: compartilhar dicas de organização e redução do desperdício na cozinha. Esta notícia é um exemplo de conteúdo que uma empresa pode publicar para conversar com as pessoas, além de divulgar produtos. Demonstração do Conecta Jovens.',
     offers:[{title:'Almoço da casa',description:'Prato ilustrativo de comida caseira para demonstrar uma promoção. Nenhuma refeição está sendo comercializada.',price:29.9,discount:24.9},{title:'Menu para duas pessoas',description:'Exemplo de oferta com preço original e promocional. Conteúdo fictício para apresentação.',price:69.9,discount:59.9}] },
   { key:'escola', name:'Escola Trilhas do Futuro', industry:'Educação', slogan:'Aprender abre novos caminhos.', sponsor:true,
@@ -27,7 +27,7 @@ const examples = [
     offers:[] },
   { key:'oficina', name:'Oficina Pedal Livre', industry:'Serviços', slogan:'Mais movimento para o seu dia.', sponsor:false,
     about:'Oficina fictícia de bicicletas para mostrar como prestadores de serviços podem participar da rede e compartilhar conhecimentos.',
-    post:'Bicicleta revisada e um passeio tranquilo: nesta ilustração, mostramos uma oficina de bairro compartilhando uma novidade com a comunidade.\n\nO perfil, a equipe e o serviço são fictícios e servem para apresentar os recursos do Conecta Jovens. Não há agendamento ou atendimento real neste exemplo.',
+    post:'Bicicleta revisada e um passeio tranquilo: nesta fotografia ilustrativa, mostramos uma oficina de bairro compartilhando uma novidade com a comunidade.\n\nO perfil, a equipe e o serviço são fictícios e servem para apresentar os recursos do Conecta Jovens. Não há agendamento ou atendimento real neste exemplo.',
     update:'Notícia de demonstração: um encontro fictício de pessoas interessadas em mobilidade e passeios pela cidade. Empresas também podem compartilhar ideias e valorizar iniciativas da comunidade. Este encontro não é um evento real.',
     offers:[] },
 ];
@@ -37,10 +37,10 @@ export const presentationCompanies: Company[] = PRESENTATION_DEMOS_ENABLED ? exa
   const created = new Date(timestamp-(index+1)*3600000).toISOString();
   return {id,owner_profile_id:'presentation-only',slug:`demo-${example.key}`,name:`${example.name} — Demonstração`,industry:example.industry,
     description:`DEMONSTRAÇÃO: ${example.about} Não representa uma empresa real.`,location:'Localização ilustrativa · Teodoro Sampaio, SP',city:'Teodoro Sampaio',state:'SP',
-    contact_email:'',phone:null,website:null,logo_url:`/demos/${example.key}-logo.svg`,banner_url:`/demos/${example.key}.svg`,slogan:example.slogan,
+    contact_email:'',phone:null,website:null,logo_url:`/demos/${example.key}-logo.svg`,banner_url:`/demos/${example.key}.jpg`,slogan:example.slogan,
     cnpj:null,is_sponsor:example.sponsor,is_verified:false,is_demo:true,sponsor_expires_at:null,views_count:0,rating:0,created_at:created,updated_at:created,
     promotions:example.offers.map((offer,offerIndex)=>({id:`demo-offer-${example.key}-${offerIndex+1}`,company_id:id,title:offer.title,description:`Demonstração: ${offer.description}`,
-      image_url:`/demos/${example.key}.svg`,price:offer.price,discount_price:offer.discount??null,valid_until:null,is_active:true,views_count:0,created_at:created,updated_at:created}))};
+      image_url:`/demos/${example.key}.jpg`,price:offer.price,discount_price:offer.discount??null,valid_until:null,is_active:true,views_count:0,created_at:created,updated_at:created}))};
 }) : [];
 
 export const presentationPosts: CommunityPost[] = presentationCompanies.flatMap((company,index)=>[examples[index].post,examples[index].update].map((body,postIndex)=>{
@@ -52,8 +52,8 @@ export const presentationPosts: CommunityPost[] = presentationCompanies.flatMap(
 
 export const getPresentationCompany = (id:string) => presentationCompanies.find(company=>company.id===id || company.slug===id);
 export const isPresentationEntity = (id:string) => Boolean(getPresentationCompany(id) || presentationPosts.some(post=>post.id===id));
-export function mergePresentationFeed(real:CommunityPost[],companyId?:string,following=false,cursor?:CommunityPost) {
+export function mergePresentationFeed(real:CommunityPost[],companyId?:string,following=false,cursor?:CommunityPost,includeDemos=true) {
   const before = (post:CommunityPost) => !cursor || Date.parse(post.created_at)<Date.parse(cursor.created_at) || (Date.parse(post.created_at)===Date.parse(cursor.created_at) && post.id<cursor.id);
-  const demos = following?[]:presentationPosts.filter(post=>(!companyId || post.company_id===getPresentationCompany(companyId)?.id || post.company_id===companyId) && before(post));
+  const demos = following||!includeDemos?[]:presentationPosts.filter(post=>(!companyId || post.company_id===getPresentationCompany(companyId)?.id || post.company_id===companyId) && before(post));
   return [...real.filter(before),...demos].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at) || b.id.localeCompare(a.id)).slice(0,20);
 }

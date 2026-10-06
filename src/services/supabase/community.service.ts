@@ -1,3 +1,4 @@
+import { presentationService } from './presentation.service';
 import { getPresentationCompany, isPresentationEntity, mergePresentationFeed } from '../../data/presentationDemo';
 import { supabase } from '../../lib/supabase';
 export interface CommunityComment { id:string; body:string; name:string; created_at:string; own:boolean }
@@ -23,9 +24,10 @@ async function rpc<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
 }
 export const communityService = {
   async feed(companyId?:string,following=false,cursor?:CommunityPost) {
-    if(getPresentationCompany(companyId||'') || !supabase) return mergePresentationFeed([],companyId,following,cursor);
+    const demoVisibility = presentationService.visibility();
+    if(getPresentationCompany(companyId||'') || !supabase) return mergePresentationFeed([],companyId,following,cursor,(await demoVisibility).enabled);
     const real = await rpc<CommunityPost[]>('community_feed',{company_uuid:companyId||null,following_only:following,before_time:cursor?.created_at||null,before_uuid:cursor?.id||null});
-    return mergePresentationFeed(real,companyId,following,cursor);
+    return mergePresentationFeed(real,companyId,following,cursor,(await demoVisibility).enabled);
   },
   company(id:string){if(getPresentationCompany(id))return Promise.resolve(null);return rpc<{followers:number;following:boolean}|null>('community_company',{company_uuid:id});},
   action(action:Action,id:string,content?:string,image?:string,desired=true){

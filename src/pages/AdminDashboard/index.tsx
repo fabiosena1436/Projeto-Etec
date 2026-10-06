@@ -1,3 +1,4 @@
+import { PresentationControls } from '../../components/PresentationControls';
 import { CnpjLookupActions } from '../../components/CnpjLookupActions';
 import { CompanyReview } from '../../components/CompanyReview';
 import { useCallback, useEffect, useState } from 'react';
@@ -38,6 +39,7 @@ export function AdminDashboard() {
     {error&&<p role="alert">{error}</p>}
     <S.Metrics><article><strong>{data.totals.users}</strong><span>Usuários</span></article><article><strong>{data.totals.companies}</strong><span>Empresas</span></article><article><strong>{data.totals.sponsors}</strong><span>Patrocínios vigentes</span></article><article><strong>{currency(Number(data.totals.monthly_revenue))}</strong><span>Valor mensal contratado</span></article></S.Metrics>
     <nav aria-label="Seções administrativas">{([['companies','Empresas e patrocínios'],['users','Usuários'],['finance','Financeiro e histórico'],['community','Comunidade e denúncias']] as const).map(([key,label])=><button key={key} aria-pressed={tab===key} onClick={()=>{setTab(key);setSearch('');}}>{label}</button>)}</nav>
+    {tab==='companies'&&<PresentationControls/>}
     {tab==='community'&&<CommunityModeration/>}
     {(tab==='companies'||tab==='users')&&<label>Buscar {tab==='users'?'usuário':'empresa'}<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome ou e-mail"/></label>}
     {form&&<section><h2>Parceria: {data.companies.find(c=>c.id===form.company_id)?.name}</h2><p>Registro privado de negociação e recebimento. Não realiza cobrança ou transferência de dinheiro.</p><form onSubmit={save}>
