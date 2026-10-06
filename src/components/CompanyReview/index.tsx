@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import type { Company } from '../../types/database';
 import { adminService } from '../../services/supabase/admin.service';
 import { isValidCnpj } from '../../utils/cnpj';
+import { CnpjLookupActions } from '../CnpjLookupActions';
 
 export function CompanyReview({ company, representative, onDone, onCancel }: {
   company: Company; representative: string; onDone: () => Promise<void>; onCancel: () => void;
@@ -25,7 +26,7 @@ export function CompanyReview({ company, representative, onDone, onCancel }: {
     <h2>Analisar empresa: {company.name}</h2>
     <p>CNPJ: {company.cnpj || 'Não informado'} · Responsável: {representative}</p>
     <p>Contato informado: {company.contact_email} · {company.phone || 'Sem telefone'}</p>
-    <p><a href="https://solucoes.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_S.aspx" target="_blank" rel="noopener noreferrer">Consultar situação cadastral na Receita Federal</a></p>
+    <CnpjLookupActions cnpj={company.cnpj}/>
     <p>Compare razão social, endereço e situação ATIVA. Confirme a autorização do responsável por um canal da empresa obtido de fonte independente. O CNPJ e os contatos preenchidos pelo solicitante não comprovam esse vínculo.</p>
     <form onSubmit={submit}>
       <label>Razão social consultada<input required minLength={3} maxLength={200} value={legalName} onChange={event=>setLegalName(event.target.value)} disabled={saving}/></label>

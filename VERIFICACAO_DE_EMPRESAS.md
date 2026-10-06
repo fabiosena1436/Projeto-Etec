@@ -7,7 +7,7 @@ O cadastro de empresa exige CNPJ e nome do responsável. O navegador e o banco v
 ## Aprovação administrativa
 
 1. No painel administrativo, abra **Analisar empresa**. Empresas pendentes aparecem primeiro.
-2. Consulte o CNPJ no serviço oficial da Receita Federal, pelo link do formulário. Compare razão social, endereço e situação cadastral ATIVA.
+2. Use **Consultar CNPJ na Receita**, disponível na lista de empresas e no formulário de análise. A consulta abre em nova aba. O botão **Copiar CNPJ** copia o documento sem pontuação para colar no campo da Receita. Compare razão social, endereço e situação cadastral ATIVA.
 3. Confirme a autorização do responsável por um canal da empresa obtido de fonte independente. Não use apenas telefone/e-mail fornecidos pelo solicitante como prova. Não solicite senhas.
 4. Registre razão social, data/fonte da consulta e como confirmou o vínculo, marque a confirmação e aprove. Não registre documentos pessoais completos nas observações.
 5. Se a verificação falhar, deixe o cadastro pendente. Uma aprovação pode ser suspensa no painel; isso revoga a liberação da empresa. Não existe rejeição automática nem garantia absoluta contra fraude.
