@@ -120,7 +120,7 @@ export function JobDetails() {
 
   const handleShare = async () => {
     const url = window.location.href;
-    const text = `${job.title} - ${company?.name || 'Conecta Sampaio'}`;
+    const text = `${job.title} - ${company?.name || 'Conecta Jovens'}`;
     try {
       if (navigator.share) await navigator.share({ title: text, url });
       else { await navigator.clipboard.writeText(url); toast.success('Link copiado!'); }

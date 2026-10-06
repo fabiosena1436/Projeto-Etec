@@ -35,8 +35,8 @@ export function Header() {
   return <S.HeaderContainer ref={header}>
     <a className="skip-link" href="#conteudo">Ir para o conteúdo</a>
     <S.HeaderContent>
-      <Link to="/" aria-label="Conecta Sampaio — início">
-        <S.Logo><BrandMark /><span>Conecta <strong>Sampaio</strong><small>Oportunidades perto de você</small></span></S.Logo>
+      <Link to="/" aria-label="Conecta Jovens — início">
+        <S.Logo><BrandMark /><span>Conecta <strong>Jovens</strong><small>Oportunidades perto de você</small></span></S.Logo>
       </Link>
       <S.Nav id="menu-principal" $open={open} aria-label="Navegação principal" onClick={e => {
         if (e.target instanceof Element && e.target.closest('a')) { setOpen(false); setAccountOpen(false); }

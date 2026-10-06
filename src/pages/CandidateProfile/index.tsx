@@ -87,7 +87,7 @@ export function CandidateProfile() {
     if (!p?.phone) return;
     const digits = p.phone.replace(/\D/g, '');
     const withCountry = digits.startsWith('55') ? digits : `55${digits}`;
-    const message = encodeURIComponent(`Olá ${name.split(' ')[0]}, vi seu perfil no Conecta Sampaio e gostaria de conversar sobre uma oportunidade.`);
+    const message = encodeURIComponent(`Olá ${name.split(' ')[0]}, vi seu perfil no Conecta Jovens e gostaria de conversar sobre uma oportunidade.`);
     window.open(`https://wa.me/${withCountry}?text=${message}`, '_blank', 'noopener');
   };
 

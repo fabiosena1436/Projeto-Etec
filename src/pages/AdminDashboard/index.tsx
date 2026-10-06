@@ -31,7 +31,7 @@ export function AdminDashboard() {
   if(!data)return <S.Container><h1>Administração</h1><p role="alert">{error}</p><button onClick={load}>Tentar novamente</button></S.Container>;
   const match=(text:string)=>text.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'));
   return <S.Container>
-    <header><div><p>GESTÃO DO CONECTA SAMPAIO</p><h1>Superadministrador</h1><p>Empresas, cadastros e parcerias sob seu controle.</p></div><button onClick={load} disabled={loading}>Atualizar painel</button></header>
+    <header><div><p>GESTÃO DO CONECTA JOVENS</p><h1>Superadministrador</h1><p>Empresas, cadastros e parcerias sob seu controle.</p></div><button onClick={load} disabled={loading}>Atualizar painel</button></header>
     {error&&<p role="alert">{error}</p>}
     <S.Metrics><article><strong>{data.totals.users}</strong><span>Usuários</span></article><article><strong>{data.totals.companies}</strong><span>Empresas</span></article><article><strong>{data.totals.sponsors}</strong><span>Patrocínios vigentes</span></article><article><strong>{currency(Number(data.totals.monthly_revenue))}</strong><span>Valor mensal contratado</span></article></S.Metrics>
     <nav aria-label="Seções administrativas">{([['companies','Empresas e patrocínios'],['users','Usuários'],['finance','Financeiro e histórico'],['community','Comunidade e denúncias']] as const).map(([key,label])=><button key={key} aria-pressed={tab===key} onClick={()=>{setTab(key);setSearch('');}}>{label}</button>)}</nav>

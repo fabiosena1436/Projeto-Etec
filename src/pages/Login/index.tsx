@@ -111,7 +111,7 @@ export function Login() {
       <S.LoginCard>
         <S.Brand>
           <BrandMark size={44} />
-          <h1>Conecta Sampaio</h1>
+          <h1>Conecta Jovens</h1>
         </S.Brand>
 
         {!isSupabaseConfigured && (

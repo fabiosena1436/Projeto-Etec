@@ -154,7 +154,7 @@ export function Register() {
         {step === 'select' && (
           <>
             <p style={{ textAlign: 'center', marginBottom: '2rem', color: '#64748b' }}>
-              Como você deseja usar o Conecta Sampaio?
+              Como você deseja usar o Conecta Jovens?
             </p>
             <S.RoleButtonGroup>
               <S.RoleButton onClick={() => setStep('candidato')}>

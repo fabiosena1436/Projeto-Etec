@@ -20,7 +20,7 @@ export const organization = (import.meta.env.VITE_PUBLIC_ORGANIZATION as string 
 export function Footer() {
   const { isAuthenticated, isEmpresa, loading } = useAuth();
   return <Wrap><div className="inner"><div className="columns">
-    <div><Link to="/" className="brand"><BrandMark /> Conecta Sampaio</Link><p>Talentos, empresas e oportunidades.<br />Uma conexão para toda a cidade.</p></div>
+    <div><Link to="/" className="brand"><BrandMark /> Conecta Jovens</Link><p>Talentos, empresas e oportunidades.<br />Uma conexão para toda a cidade.</p></div>
     <div><h2>SEU PRÓXIMO PASSO</h2><nav aria-label="Oportunidades"><Link to="/vagas">Encontrar vagas</Link><Link to="/empresas">Conhecer empresas</Link>{!loading && (!isAuthenticated || isEmpresa) && <Link to={isEmpresa ? '/empresa/vaga/nova' : '/cadastro?type=empresa'}>Publicar uma vaga <ArrowUpRight size={14} /></Link>}</nav></div>
     <div><h2>INFORMAÇÃO E CUIDADO</h2><nav aria-label="Ajuda"><Link to="/ajuda">Como funciona</Link><Link to="/privacidade">Privacidade dos dados</Link><Link to="/ajuda#seguranca">Segurança e suporte</Link>{supportEmail && <a href={`mailto:${supportEmail}`}>Fale com a equipe</a>}</nav></div>
   </div><div className="bottom"><span>© {new Date().getFullYear()} {organization}</span><span><MapPin size={13} /> Feito para Teodoro Sampaio, SP</span></div></div></Wrap>;

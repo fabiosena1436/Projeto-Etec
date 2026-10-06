@@ -9,7 +9,7 @@ export function ScrollToTop() {
       const main = document.querySelector<HTMLElement>('main');
       main?.focus({preventScroll:true});
       const title = document.querySelector('h1')?.innerText.replace(/\s+/g, ' ');
-      document.title = title ? title + ' | Conecta Sampaio' : 'Conecta Sampaio | Empregos em Teodoro Sampaio';
+      document.title = title ? title + ' | Conecta Jovens' : 'Conecta Jovens | Empregos em Teodoro Sampaio';
     });
     return () => cancelAnimationFrame(frame);
   }, [pathname, hash]);

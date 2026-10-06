@@ -3,7 +3,7 @@ import { commercialLink } from '../../config/business';
 import * as S from '../Help/styles';
 export function Partnerships() {
   return <S.Container>
-    <S.Heading><span>PARCERIAS LOCAIS</span><h1>Sua empresa mais perto da cidade.</h1><p>Apoie o Conecta Sampaio e ganhe um espaço para apresentar seu negócio, suas oportunidades e suas ofertas.</p></S.Heading>
+    <S.Heading><span>PARCERIAS LOCAIS</span><h1>Sua empresa mais perto da cidade.</h1><p>Apoie o Conecta Jovens e ganhe um espaço para apresentar seu negócio, suas oportunidades e suas ofertas.</p></S.Heading>
     <S.Cards>
       <S.Card><span>ACESSO GRATUITO</span><h2>Conecte-se aos talentos</h2><p>Cadastre sua empresa, publique vagas e acompanhe candidaturas. As pessoas continuam acessando oportunidades gratuitamente.</p><Link to="/cadastro?type=empresa">Cadastrar empresa →</Link></S.Card>
       <S.Card><span>EMPRESA PATROCINADORA</span><h2>Uma vitrine para seu negócio</h2><p>Ofertas na página inicial e na comunidade, em espaços compartilhados com rodízio entre parceiros. Identificação de patrocinadora, capa na vitrine, contato por WhatsApp e até seis ofertas com foto e validade. Acompanhe exibições e cliques no painel.</p><a href={commercialLink()} target="_blank" rel="noopener noreferrer">Falar com Fabio no WhatsApp →</a></S.Card>

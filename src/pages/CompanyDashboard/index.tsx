@@ -492,7 +492,7 @@ export function CompanyDashboard() {
           </S.Section>
           {!company.is_sponsor && <S.UpsellBanner>
             <h3><Star size={20} /> Divulgue sua empresa</h3>
-            <p>Conheça as opções de destaque e divulgação de promoções no Conecta Sampaio.</p>
+            <p>Conheça as opções de destaque e divulgação de promoções no Conecta Jovens.</p>
             <button onClick={handleSponsorContact}>Falar com a equipe</button>
           </S.UpsellBanner>}
         </div>

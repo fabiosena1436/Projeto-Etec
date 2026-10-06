@@ -1,4 +1,4 @@
-# Conecta Sampaio — operação de parcerias
+# Conecta Jovens — operação de parcerias
 
 Responsável: Fabio V. Sena. Contato comercial: https://wa.me/5518981579318.
 
@@ -49,7 +49,7 @@ Esta seção registra a proposta pesquisada e suas regras. Em 06/10/2026, o prim
 
 ### O que outras plataformas fazem
 
-| Plataforma | Participação comercial descrita pela própria plataforma | Aplicação possível ao Conecta Sampaio |
+| Plataforma | Participação comercial descrita pela própria plataforma | Aplicação possível ao Conecta Jovens |
 | --- | --- | --- |
 | Nextdoor | Anúncios de ofertas e negócios locais aparecem no feed dos vizinhos; podem direcionar para site ou contato e têm um painel de desempenho. | Levar uma oferta até quem navega pela comunidade, antes de entrar na loja. |
 | LinkedIn | Publicações patrocinadas aparecem no feed e são identificadas abaixo do nome da empresa como conteúdo promovido/patrocinado. | Cartão com aparência consistente com o site e identificação comercial visível. |
