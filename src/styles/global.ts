@@ -12,6 +12,9 @@ export const GlobalStyle = createGlobalStyle`
     scroll-behavior: smooth;
   }
 
+  #root { min-height: 100dvh; width: 100%; }
+  :where(main, section, article, aside, header, footer, nav, form, fieldset) { min-width: 0; }
+
   body {
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.text};
@@ -36,10 +39,11 @@ export const GlobalStyle = createGlobalStyle`
 
   input, select, textarea { max-width: 100%; min-width: 0; }
   input, select { min-height: 44px; }
-  img { max-width: 100%; }
+  img, video, iframe { max-width: 100%; }
+  button > svg, a > svg { flex-shrink: 0; }
   h1, h2, h3, h4 { line-height: 1.25; letter-spacing: -0.025em; }
   h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
-  p { overflow-wrap: break-word; }
+  p, h1, h2, h3, h4, a, label, button { overflow-wrap: anywhere; }
   ::selection { background: #c9e3fc; color: #102a43; }
   :focus-visible { outline: 3px solid #175cda; outline-offset: 4px; }
   button:disabled { cursor: not-allowed; }

@@ -91,7 +91,7 @@ export const SearchInputWrapper = styled.div`
 
 export const JobsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 1.5rem;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {

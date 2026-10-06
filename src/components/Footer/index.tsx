@@ -6,13 +6,14 @@ import { useAuth } from '../../hooks/useAuth';
 const Wrap = styled.footer`
   background:#102a43;color:#d1dce6;margin-top:auto;
   .inner{max-width:1200px;margin:auto;padding:40px 24px 20px;}
-  .columns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;}
+  .columns{display:grid;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));gap:40px;}.columns>div{min-width:0;}
   .brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:20px;color:white;}
   p{font-size:13px;line-height:1.8;max-width:310px;margin-top:14px;}
   h2{font-size:12px;font-weight:650;letter-spacing:.06em;color:#91e0c5;margin-bottom:12px;}
   nav{display:flex;flex-direction:column;align-items:start;gap:4px;}nav a{font-size:13px;min-height:36px;display:flex;gap:6px;align-items:center;}a:hover{text-decoration:underline;}
   .bottom{display:flex;justify-content:space-between;gap:20px;border-top:1px solid #ffffff20;margin-top:28px;padding-top:20px;font-size:11px;color:#c1d0df;}.bottom span{display:flex;gap:5px;align-items:center;}
-  @media(max-width:600px){.inner{padding:30px 20px 20px;}.columns{grid-template-columns:1fr 1fr;gap:25px;}.columns>div:first-child{grid-column:1/-1;}.bottom{flex-direction:column;gap:8px;}}
+  @media(max-width:800px){.inner{padding:30px 20px 20px;}.columns{grid-template-columns:repeat(2,minmax(0,1fr));gap:25px;}.columns>div:first-child{grid-column:1/-1;}.bottom{flex-direction:column;gap:8px;}}
+  @media(max-width:380px){.columns{grid-template-columns:1fr;gap:20px;}}
 `;
 export const supportEmail = (import.meta.env.VITE_PUBLIC_SUPPORT_EMAIL as string | undefined) || 'fabiosena1436@gmail.com';
 export const organization = (import.meta.env.VITE_PUBLIC_ORGANIZATION as string | undefined) || 'Fabio V. Sena';

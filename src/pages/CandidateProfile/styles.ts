@@ -9,7 +9,7 @@ export const ProfileContainer = styled.div`
   padding: 2rem 1rem;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
-    grid-template-columns: 350px 1fr;
+    grid-template-columns: 320px minmax(0, 1fr);
     align-items: start;
   }
 `;
@@ -34,12 +34,14 @@ export const BackButton = styled.button`
 `;
 
 export const LeftColumn = styled.aside`
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2rem;
 `;
 
 export const RightColumn = styled.main`
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -49,6 +51,7 @@ export const HeaderCard = styled.div`
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
   padding: 2rem;
+  @media (max-width: 600px) { padding: 1.25rem; }
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   border: 1px solid ${({ theme }) => theme.colors.border};
   display: flex;
@@ -92,6 +95,8 @@ export const Avatar = styled.div`
 `;
 
 export const UserInfo = styled.div`
+  min-width: 0;
+  h1 { flex-wrap: wrap; }
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -124,6 +129,7 @@ export const InfoList = styled.ul`
   padding-top: 1.5rem;
 
   li {
+    overflow-wrap: anywhere;
     color: ${({ theme }) => theme.colors.textLight};
     font-size: 0.9rem;
     display: flex;
@@ -141,6 +147,7 @@ export const ContentCard = styled.section`
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
   padding: 2rem;
+  @media (max-width: 600px) { padding: 1.25rem; }
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   border: 1px solid ${({ theme }) => theme.colors.border};
 `;
@@ -212,6 +219,7 @@ export const ExperienceItem = styled.div`
   }
 
   .content-col {
+    min-width: 0;
     h4 {
       font-size: 1.125rem;
       color: ${({ theme }) => theme.colors.text};

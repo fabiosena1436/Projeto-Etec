@@ -1,12 +1,15 @@
 import styled from 'styled-components';
 
 export const DashboardContainer = styled.div`
+  min-width: 0;
+  > * { min-width: 0; }
   display: flex;
   flex-direction: column;
   gap: 2rem;
 `;
 
 export const WelcomeSection = styled.section`
+  > div, > div > div { min-width: 0; }
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -29,6 +32,8 @@ export const StatsGrid = styled.div`
 `;
 
 export const StatCard = styled.div`
+  min-width: 0;
+  span { overflow-wrap: anywhere; }
   background-color: ${({ theme }) => theme.colors.surface};
   padding: 1.5rem;
   border-radius: 12px;
@@ -70,6 +75,8 @@ export const SectionTitle = styled.h2`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 
   button {
     font-size: 0.875rem;
@@ -117,7 +124,7 @@ export const TabButton = styled.button<{ $active?: boolean }>`
 
 export const JobsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 1.5rem;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -140,6 +147,7 @@ export const CardHeader = styled.div<{ $bordered?: boolean }>`
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
   padding: 1.25rem;
   border-bottom: ${({ $bordered, theme }) => $bordered ? `1px solid ${theme.colors.border}` : 'none'};
 
@@ -195,7 +203,7 @@ export const Field = styled.div<{ $basis?: string }>`
 
 export const ReadGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 1.25rem;
 `;
 
@@ -247,6 +255,8 @@ export const Btn = styled.button<{ $variant?: 'primary' | 'success' | 'ghost' | 
 `;
 
 export const Chip = styled.span`
+  max-width: 100%;
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -285,6 +295,7 @@ export const StatusBadge = styled.span<{ $status: string }>`
 `;
 
 export const ApplicationRow = styled.div`
+  > div { min-width: 0; }
   display: flex;
   justify-content: space-between;
   align-items: center;

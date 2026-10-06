@@ -52,11 +52,12 @@ export const BackButton = styled.button`
 
 export const ContentWrapper = styled.div`
   display: grid;
-  grid-template-columns: 1fr 350px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 2rem;
   align-items: start;
   
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+  > * { min-width: 0; }
+  @media (max-width: 960px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -65,6 +66,7 @@ export const MainInfo = styled.main`
   background: white;
   border-radius: 16px;
   padding: 2rem;
+  @media (max-width: 600px) { padding: 1.25rem; }
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 `;
 
@@ -77,11 +79,13 @@ export const Header = styled.header`
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
     margin-bottom: 1rem;
     
     h1 {
       color: ${({ theme }) => theme.colors.text};
-      font-size: 2rem;
+      font-size: clamp(1.5rem, 3vw, 2rem);
       margin-bottom: 0.5rem;
     }
     
@@ -163,7 +167,8 @@ export const Sidebar = styled.aside`
   flex-direction: column;
   gap: 1.5rem;
   position: sticky;
-  top: 2rem;
+  top: 110px;
+  @media (max-width: 960px), (max-height: 700px) { position: static; }
 `;
 
 export const CompanyCard = styled.div`

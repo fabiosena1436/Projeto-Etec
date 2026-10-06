@@ -3,10 +3,11 @@ import styled from 'styled-components';
 export const LayoutContainer = styled.div`
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
 `;
 
 export const MainContent = styled.main`
+  min-width: 0;
   flex: 1;
   display: flex;
   flex-direction: column;

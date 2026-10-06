@@ -256,7 +256,7 @@ export function CompanyDashboard() {
     const job = jobs.find(j => j.id === app.job_id);
     return (
       <div key={app.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', padding: '1rem', background: 'white', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0, flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0, flex: '1 1 240px' }}>
           <div style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, background: cand?.avatar_url ? `url(${cand.avatar_url}) center/cover` : '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
             {!cand?.avatar_url && (cand?.full_name || '?').charAt(0)}
           </div>
@@ -280,7 +280,7 @@ export function CompanyDashboard() {
             value={app.status}
             onChange={e => handleStatusChange(app, e.target.value as ApplicationStatus)}
             aria-label="Status da candidatura"
-            style={{ padding: '0.45rem 0.6rem', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.85rem', background: 'white' }}
+            style={{ padding: '0.45rem 0.6rem', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '1rem', background: 'white' }}
           >
             {app.status === 'desistiu' && <option value="desistiu">Desistiu</option>}
             {STATUS_OPTIONS.map(s => <option key={s} value={s}>{APPLICATION_STATUS_LABEL[s]}</option>)}

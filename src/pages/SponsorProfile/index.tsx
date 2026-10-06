@@ -126,7 +126,7 @@ export function SponsorProfile() {
       </S.SectionTitle>
       
       {companyJobs.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
           {companyJobs.map(job => (
             <CardJob key={job.id} job={job} />
           ))}

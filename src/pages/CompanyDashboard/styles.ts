@@ -7,6 +7,10 @@ export const DashboardContainer = styled.div`
 `;
 
 export const Header = styled.header`
+  gap: 1rem;
+  flex-wrap: wrap;
+  > div { min-width: 0; }
+  > div > div { min-width: 0; }
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -50,10 +54,12 @@ export const MetricsGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
-  @media (max-width: 480px) { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+  @media (max-width: 480px) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
 `;
 
 export const MetricCard = styled.div`
+  min-width: 0;
+  > div { min-width: 0; }
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
@@ -69,6 +75,7 @@ export const MetricCard = styled.div`
   }
 
   .icon {
+    flex-shrink: 0;
     width: 48px;
     height: 48px;
     border-radius: 12px;
@@ -106,6 +113,8 @@ export const JobList = styled.div`
 `;
 
 export const PromoHeader = styled.div`
+  gap: 0.75rem;
+  flex-wrap: wrap;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -140,7 +149,7 @@ export const AddPromoButton = styled.button`
 
 export const PromoList = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
   gap: 1rem;
 `;
 
@@ -281,6 +290,7 @@ export const TabsContainer = styled.div`
 `;
 
 export const TabButton = styled.button<{ $active?: boolean }>`
+  flex-shrink: 0;
   background: transparent;
   border: none;
   padding: 0.75rem 0;

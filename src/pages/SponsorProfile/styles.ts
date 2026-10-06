@@ -17,6 +17,7 @@ export const Header = styled.div`
   margin-bottom: 3rem;
 
   img {
+    flex-shrink: 0;
     width: 120px;
     height: 120px;
     border-radius: 50%;
@@ -30,6 +31,7 @@ export const Header = styled.div`
 `;
 
 export const HeaderInfo = styled.div`
+  min-width: 0;
   h1 {
     font-size: 2rem;
     color: ${({ theme }) => theme.colors.text};
@@ -54,7 +56,7 @@ export const SectionTitle = styled.h2`
 
 export const PromoGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 2rem;
 `;
 
@@ -89,6 +91,7 @@ export const PriceContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
   margin-top: 1rem;
 
   .old-price {

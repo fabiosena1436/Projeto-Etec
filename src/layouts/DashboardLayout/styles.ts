@@ -24,6 +24,8 @@ export const TopBarContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  gap: 1rem;
+  > div { min-width: 0; }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: 0.75rem 1rem;
@@ -31,6 +33,7 @@ export const TopBarContent = styled.div`
 `;
 
 export const Brand = styled.button`
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -49,12 +52,17 @@ export const Brand = styled.button`
 `;
 
 export const ProfileMenu = styled.button`
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
 
   span {
+    max-width: min(28vw, 260px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-weight: 500;
     color: ${({ theme }) => theme.colors.text};
     @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
@@ -63,6 +71,7 @@ export const ProfileMenu = styled.button`
   }
 
   div.avatar {
+    flex-shrink: 0;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -82,6 +91,7 @@ export const ProfileMenu = styled.button`
 `;
 
 export const MainContent = styled.main`
+  min-width: 0;
   flex: 1;
   padding: 2rem;
   max-width: 1200px;
@@ -120,6 +130,8 @@ export const BottomNav = styled.nav`
 `;
 
 export const NavItem = styled.button<{ $active?: boolean }>`
+  min-width: 0;
+  padding: 0.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;

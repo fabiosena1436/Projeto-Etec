@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
 export const CardContainer = styled(Link)`
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.colors.surface};
@@ -24,6 +25,7 @@ export const CardContainer = styled(Link)`
 `;
 
 export const CompanyHeader = styled.div`
+  > div { min-width: 0; }
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -35,6 +37,7 @@ export const CompanyHeader = styled.div`
   }
 
   img {
+    flex-shrink: 0;
     width: 48px;
     height: 48px;
     border-radius: 8px;
@@ -101,6 +104,9 @@ export const TagsContainer = styled.div`
 `;
 
 export const Tag = styled.div`
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -133,6 +139,7 @@ export const Description = styled.p`
 `;
 
 export const CardFooter = styled.div`
+  flex-wrap:wrap;
   margin-top:auto;padding-top:20px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:#526578;
   span,strong{display:inline-flex;gap:6px;align-items:center;}strong{color:#175cda;font-weight:650;}
 `;

@@ -8,6 +8,7 @@ export const LoginContainer = styled.div`
   min-height: 100dvh; /* Usa 100dvh para evitar barra de rolagem em celulares (safari/chrome mobile) */
   background: radial-gradient(ellipse at top left, #e5eff9, transparent 55%), #f5f7fa;
   padding: 2rem;
+  @media (max-width: 500px) { padding: 1rem; }
 `;
 
 export const LoginCard = styled.div`
