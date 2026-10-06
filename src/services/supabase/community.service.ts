@@ -1,7 +1,9 @@
+import { getPresentationCompany, isPresentationEntity, mergePresentationFeed } from '../../data/presentationDemo';
 import { supabase } from '../../lib/supabase';
 export interface CommunityComment { id:string; body:string; name:string; created_at:string; own:boolean }
 export interface CommunityPost {
   id:string; company_id:string|null; author_id:string; author_kind:'person'|'company'; company_name:string; logo_url:string|null; verified:boolean; sponsor:boolean;
+  is_demo?:boolean;
   body:string; image_url:string|null; created_at:string; updated_at:string; can_edit:boolean;
   likes:number; liked:boolean; following:boolean; comment_count:number; comments:CommunityComment[];
 }
@@ -20,11 +22,14 @@ async function rpc<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
   return data as T;
 }
 export const communityService = {
-  feed(companyId?:string,following=false,cursor?:CommunityPost) {
-    return rpc<CommunityPost[]>('community_feed',{company_uuid:companyId||null,following_only:following,before_time:cursor?.created_at||null,before_uuid:cursor?.id||null});
+  async feed(companyId?:string,following=false,cursor?:CommunityPost) {
+    if(getPresentationCompany(companyId||'') || !supabase) return mergePresentationFeed([],companyId,following,cursor);
+    const real = await rpc<CommunityPost[]>('community_feed',{company_uuid:companyId||null,following_only:following,before_time:cursor?.created_at||null,before_uuid:cursor?.id||null});
+    return mergePresentationFeed(real,companyId,following,cursor);
   },
-  company(id:string){return rpc<{followers:number;following:boolean}|null>('community_company',{company_uuid:id});},
+  company(id:string){if(getPresentationCompany(id))return Promise.resolve(null);return rpc<{followers:number;following:boolean}|null>('community_company',{company_uuid:id});},
   action(action:Action,id:string,content?:string,image?:string,desired=true){
+    if(isPresentationEntity(id))return Promise.reject(new Error('Este conteúdo é de demonstração. Para participar, escolha uma publicação ou empresa real.'));
     return rpc<string>('community_action',{action_name:action,target_uuid:id,content:content??null,picture:image??null,desired});
   },
   reports(){return rpc<CommunityReport[]>('admin_community_reports');},

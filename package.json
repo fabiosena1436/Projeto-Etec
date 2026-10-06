@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test:database": "node tests/database-security.mjs",
     "test:auth": "node --experimental-strip-types tests/auth-policy.mjs",
-    "test:images": "node --experimental-strip-types tests/image-policy.mjs"
+    "test:images": "node --experimental-strip-types tests/image-policy.mjs",
+    "test:presentation": "node --experimental-strip-types tests/presentation-demo.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

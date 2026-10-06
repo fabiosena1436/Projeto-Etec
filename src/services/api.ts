@@ -2,6 +2,7 @@
 // usado pelos componentes visuais, buscando sempre do Supabase quando configurado
 // e caindo para o mock apenas em modo demonstração.
 
+import { getPresentationCompany } from '../data/presentationDemo';
 import { jobsService } from './supabase/jobs.service';
 import { companiesService } from './supabase/companies.service';
 import type { Job } from '../data/jobs';
@@ -47,6 +48,7 @@ export function mapCompany(c: DbCompany): Company {
   return {
     id: c.id,
     name: c.name,
+    is_demo: c.is_demo,
     industry: c.industry,
     logoUrl: c.logo_url || '',
     description: c.description || '',
@@ -77,6 +79,7 @@ export const apiService = {
   },
 
   async getJobsByCompany(companyId: string): Promise<Job[]> {
+    if(getPresentationCompany(companyId))return [];
     const jobs = await jobsService.getByCompany(companyId);
     return jobs.map(mapJob);
   },

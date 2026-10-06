@@ -78,7 +78,7 @@ export function SponsorProfile() {
         )}
         <S.HeaderInfo>
           <h1>{company.name}</h1>
-          {company.isSponsor&&<span style={{fontSize:13,color:'#0c6d5d'}}>Parceiro da cidade · Patrocinador da plataforma</span>}
+          {company.isSponsor&&<span style={{fontSize:13,color:'#0c6d5d'}}>{company.is_demo?'Demonstração de empresa parceira':'Parceiro da cidade · Patrocinador da plataforma'}</span>}
           {company.slogan && <p style={{ fontStyle: 'italic', marginBottom: '1rem', color: '#2563eb' }}>"{company.slogan}"</p>}
           {company.description && <p>{company.description}</p>}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem', fontSize: '0.9rem', color: '#475569' }}>
@@ -90,6 +90,7 @@ export function SponsorProfile() {
           </div>
         </S.HeaderInfo>
       </S.Header>
+      {company.is_demo&&<div role="note" style={{background:'#fff7e8',border:'1px solid #ecd8ae',borderRadius:12,padding:18,margin:'20px 0',lineHeight:1.6}}>Perfil fictício de demonstração para apresentação do Conecta Jovens. Publicações, imagens e preços são exemplos ilustrativos; não há venda, inscrições ou contato comercial real.</div>}
       <CompanySocial companyId={company.id}/>
 
       {company.isSponsor && (

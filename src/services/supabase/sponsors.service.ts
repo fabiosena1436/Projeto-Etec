@@ -1,9 +1,11 @@
+import { getPresentationCompany, presentationCompanies } from '../../data/presentationDemo';
 import { isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
 import { apiService } from '../api';
 import type { Promotion } from '../../types/database';
 
 export type SponsorSurface = 'home' | 'community';
 export interface SponsorOffer {
+  is_demo?: boolean;
   token: string | null; company_id: string; company_name: string; logo_url: string | null;
   industry: string; title: string; description: string; image_url: string | null;
   promotion_id: string | null; price: number | null; discount_price: number | null; valid_until: string | null;
@@ -24,15 +26,24 @@ export function sponsorSession() {
 }
 export const isDeliveryToken = (value: string | null): value is string => Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value));
 
+function withDemoOffers(real: SponsorOffer[], surface: SponsorSurface): SponsorOffer[] {
+  const slots = surface==='home'?3:1;
+  const demos = presentationCompanies.filter(c=>c.is_sponsor && !real.some(r=>r.company_id===c.id)).map(c=>{
+    const p=c.promotions?.[0];
+    return {is_demo:true,token:null,company_id:c.id,company_name:c.name,logo_url:c.logo_url,industry:c.industry,title:p?.title||c.name,
+      description:p?.description||c.description||'',image_url:p?.image_url||c.banner_url,promotion_id:p?.id||null,price:p?.price??null,discount_price:p?.discount_price??null,valid_until:null};
+  });
+  return [...real,...demos].slice(0,slots);
+}
 export const sponsorsService = {
   async placements(surface: SponsorSurface): Promise<SponsorOffer[]> {
     if (isSupabaseConfigured) {
       const {data,error} = await (supabase as any).rpc('sponsor_placements',{placement:surface,visitor_session:sponsorSession()});
-      if (!error) return data || [];
+      if (!error) return withDemoOffers(data || [],surface);
       // Older deployments still show real offers, without inventing measured results.
       if (!['PGRST202','42883'].includes(error.code)) throw new Error('Não foi possível carregar as ofertas dos parceiros.');
-    } else if (!isDemoMode) return [];
-    const companies = (await apiService.getCompanies()).filter(c=>c.isSponsor);
+    } else if (!isDemoMode) return withDemoOffers([],surface);
+    const companies = (await apiService.getCompanies()).filter(c=>c.isSponsor&&!c.is_demo);
     const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'});
     // Stable within a tab; compatibility mode is not the server's balanced rotation.
     const seed = [...sponsorSession()].reduce((sum,c)=>sum+c.charCodeAt(0),0);
@@ -45,15 +56,15 @@ export const sponsorsService = {
       const promotions = (data || []) as Promotion[];
       for (const company of selected) company.promotions = promotions.filter(p=>p.company_id===company.id && (!p.valid_until||p.valid_until>=today)).map(p=>({id:p.id,title:p.title,description:p.description,imageUrl:p.image_url||undefined,price:p.price??undefined,discountPrice:p.discount_price??undefined,validUntil:p.valid_until||undefined}));
     }
-    return selected.map(c=>{
+    return withDemoOffers(selected.map(c=>{
       const p=c.promotions?.find(p=>!p.validUntil||p.validUntil>=today);
       return {token:null,company_id:c.id,company_name:c.name,logo_url:c.logoUrl||null,industry:c.industry,
         title:p?.title||c.slogan||c.name,description:p?.description||c.description,image_url:p?.imageUrl||null,
         promotion_id:p?.id||null,price:p?.price??null,discount_price:p?.discountPrice??null,valid_until:p?.validUntil||null};
-    });
+    }),surface);
   },
   async track(token: string | null, event: 'impression'|'click'|'visit'|'whatsapp', companyId: string) {
-    if (!isSupabaseConfigured || !isDeliveryToken(token)) return;
+    if (getPresentationCompany(companyId) || !isSupabaseConfigured || !isDeliveryToken(token)) return;
     // Analytics must never block opening an offer or talking to the company.
     try { await (supabase as any).rpc('track_sponsor_event',{delivery_token:token,event_name:event,company_uuid:companyId}); } catch { /* best effort */ }
   },

@@ -51,8 +51,8 @@ function OfferCard({offer}:{offer:SponsorOffer}) {
   const params=new URLSearchParams();
   if(offer.token)params.set('divulgacao',offer.token);
   const href=`/patrocinador/${offer.company_id}${params.size?'?'+params:''}${offer.promotion_id?'#oferta-'+offer.promotion_id:''}`;
-  return <article ref={element} aria-label={`Oferta patrocinada de ${offer.company_name}`}>
-    <span className="sponsor-label">Patrocinado · Parceiro da cidade</span>
+  return <article ref={element} aria-label={`${offer.is_demo?'Oferta de demonstração':'Oferta patrocinada'} de ${offer.company_name}`}>
+    <span className="sponsor-label">{offer.is_demo?'Demonstração de parceria · Oferta fictícia':'Patrocinado · Parceiro da cidade'}</span>
     <div className="business">{offer.logo_url?<img src={offer.logo_url} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<Building2/>}<strong>{offer.company_name}</strong></div>
     {offer.image_url&&<img className="offer-photo" src={offer.image_url} alt={offer.title} loading="lazy" referrerPolicy="no-referrer"/>}
     <h3>{offer.title}</h3><p className="description">{offer.description}</p>

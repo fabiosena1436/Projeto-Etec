@@ -76,6 +76,7 @@ export interface CandidateExperience {
 }
 
 export interface Company {
+  is_demo?: boolean;
   id: string;
   owner_profile_id: string;
   name: string;

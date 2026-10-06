@@ -1,3 +1,4 @@
+import { getPresentationCompany, presentationCompanies } from '../../data/presentationDemo';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { companiesMock } from '../../data/companies';
 import type { Company, Promotion } from '../../types/database';
@@ -36,7 +37,7 @@ export const companiesService = {
   async getAll(params?: { isSponsor?: boolean; industry?: string; search?: string; limit?: number }): Promise<Company[]> {
     if (!isSupabaseConfigured || !supabase) {
       await new Promise(r => setTimeout(r, 400));
-      let filtered = mapMockToCompany();
+      let filtered = [...mapMockToCompany(),...presentationCompanies];
       if (params?.isSponsor) filtered = filtered.filter(c => c.is_sponsor);
       if (params?.industry) filtered = filtered.filter(c => c.industry === params.industry);
       if (params?.search) {
@@ -55,7 +56,8 @@ export const companiesService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data as Company[]).map(c=>({...c,is_sponsor:c.is_sponsor&&(!c.sponsor_expires_at||new Date(c.sponsor_expires_at)>new Date())}));
+    const demos = presentationCompanies.filter(c=>(!params?.isSponsor||c.is_sponsor) && (!params?.industry||c.industry===params.industry) && (!params?.search||c.name.toLocaleLowerCase('pt-BR').includes(params.search.toLocaleLowerCase('pt-BR'))));
+    return [...(data as Company[]).map(c=>({...c,is_sponsor:c.is_sponsor&&(!c.sponsor_expires_at||new Date(c.sponsor_expires_at)>new Date())})),...demos].slice(0,params?.limit||100);
   },
 
   async getSponsors(): Promise<Company[]> {
@@ -63,6 +65,7 @@ export const companiesService = {
   },
 
   async getById(id: string): Promise<Company | null> {
+    const demo = getPresentationCompany(id); if(demo) return demo;
     if (!isSupabaseConfigured || !supabase) {
       await new Promise(r => setTimeout(r, 200));
       return mapMockToCompany().find(c => c.id === id || c.slug === id) || null;

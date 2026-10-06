@@ -9,6 +9,7 @@ export interface Promotion {
 }
 
 export interface Company {
+  is_demo?: boolean;
   id: string;
   name: string;
   industry: string;
