@@ -30,3 +30,6 @@ dist-ssr
 
 .vercel
 .env*
+
+# Arquivos temporários da apresentação empresarial
+tmp/apresentacao/
